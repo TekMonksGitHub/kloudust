@@ -61,7 +61,7 @@ async function _verifyJWT(jsonReq) {
         const jwtClaims = JSON.parse(_decodeBase64(jsonReq.jwt.split(".")[1]));
         let kdLoginResult = await kloudust.loginUser({user: [jwtClaims.id]}, KLOUD_CONSTANTS);  // this may fail if the cloud is in setup mode
         if ((!kdLoginResult) && (await roleman.canBeSetupMode()) && jwtClaims.role == LOGIN_APP_ADMIN_ROLE) { 
-            KLOUD_CONSTANTS.LOGERRORWARN(`Allowing user ${jwtClaims.id} of org ${jwtClaims.org} with role ${jwtClaims.role} to login in, despite user not being registered, as setup mode can be possible for the cloud.`); 
+            KLOUD_CONSTANTS.LOGWARN(`Allowing user ${jwtClaims.id} of org ${jwtClaims.org} with role ${jwtClaims.role} to login in, despite user not being registered, as setup mode can be possible for the cloud.`); 
             kdLoginResult = true;   
         }
         if (!kdLoginResult) {

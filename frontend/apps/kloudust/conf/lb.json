@@ -1,0 +1,11 @@
+{
+    "backends": {
+        "endpoints": ["localhost"],
+        "balancing_algorithm": "roundrobin"
+    },
+
+    "frontends": {
+        "endpoints": ["localhost"],
+        "balancing_algorithm": "roundrobin"
+    }
+}
