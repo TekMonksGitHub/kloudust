@@ -19,7 +19,7 @@ const hostchooser = require(`${KLOUD_CONSTANTS.LIBDIR}/hostchooser.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
-const DEFAULT_SHUTDOWN_WAIT = 20;   // after creation initial restart should wait 90 seconds
+const DEFAULT_SHUTDOWN_WAIT = 90;   // after creation initial restart should wait 90 seconds
 
 /**
  * Creates VM from URI download or catalog image

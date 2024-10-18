@@ -209,6 +209,24 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory
     return await _db().runCmd(query, [id, name, description, hostname, org, _getProjectID(), os, cpus, memory, JSON.stringify(disks), creation_cmd, name_raw, vmtype]);
 }
 
+exports.addOrUpdateBucketToDB = async (name,userid, description, size, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const id = `${org}_${project}_${name}`;
+    const query = "insert into buckets(id,userid, name, description, size, org, projectid) values (?,?,?,?,?,?,?)";
+    const ans = await _db().runCmd(query, [id,userid, name, description, size, org, _getProjectID()]);
+    return ans;
+}
+
+exports.getUserFromBucket = async (userid) =>{
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    results = await _db().getQuery("select * from buckets where userid = ? collate nocase", [userid]);
+    if ((!results) || (!results.length)) return false;
+    return true;
+}
+
 /**
  * Returns the VM for the current user, org and project given its name. 
  * @param {string} name The VM Name
@@ -228,6 +246,18 @@ exports.getVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANT
         KLOUD_CONSTANTS.LOGERROR(`Unable to parse disks for VM ${vm.name}`); vm.disks = [];
     };
     return vm;
+}
+
+exports.getBucket = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const bucketid = `${org}_${project}_${name}`, 
+        results = await _db().getQuery("select * from buckets where id = ? collate nocase", [bucketid]);
+    if ((!results) || (!results.length)) return null;
+    
+    const bucket = results[0]; 
+    return bucket;
 }
 
 /**
@@ -273,6 +303,19 @@ exports.deleteVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONST
     return deletionResult;
 }
 
+exports.deleteBucket = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const bucket = await exports.getBucket(name, project, org); if (!bucket) return true;
+
+    const bucketid = `${org}_${project}_${name}`;
+    const deletionResult = await _db().runCmd("delete from buckets where id = ? collate nocase", [bucketid]);
+    if (deletionResult) if (!await this.addObjectToRecycleBin(bucketid, bucket, project, org)) 
+        KLOUD_CONSTANTS.LOGWARN(`Unable to add bucket ${name} to the recycle bin.`);
+    return deletionResult;
+}
+
 /**
  * Changes hostname hosting the given VM. Only cloud admins can run this.
  * @param {string} name VM ID (getVM returns this)
@@ -315,6 +358,19 @@ exports.listVMsForOrgOrProject = async (types, org=KLOUD_CONSTANTS.env.org, proj
     return results;
 }
 
+
+exports.listBucketsForOrgOrProject = async (org=KLOUD_CONSTANTS.env.org, project) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    if (project) project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    if ((!project) && (!roleman.isOrgAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) project=KLOUD_CONSTANTS.env.prj;
+
+    const projectid = _getProjectID(project, org)
+    const query = (project ? "select * from buckets where projectid = ? collate nocase and org = ? collate nocase ":
+            "select * from buckets where org = ? collate nocase ");
+
+    const results = await _db().getQuery(query, [projectid,org]) ;
+    return results;
+}
 /**
  * Returns VMs for the given host. All VMs are returned if hostname is skipped. 
  * This is for cloud admins.
