@@ -210,6 +210,17 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory
     return await _db().runCmd(query, [id, name, description, hostname, org, _getProjectID(), os, cpus, memory, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
 }
 
+exports.addOrUpdateBucketToDB = async (name_raw, name, userid, description, size, vm_name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const bucketid = `${org}_${project}_${name}`;
+    const vmid = `${org}_${project}_${vm_name}`
+    const query = "insert into s3storage(id, bucketname, userid, description, size, bucketname_raw, vmid, org, projectid) values (?,?,?,?,?,?,?,?,?)";
+    const result = await _db().runCmd(query, [bucketid, name, userid, description, size, name_raw, vmid, org, _getProjectID()]);
+    return result;
+}
+
 /**
  * Returns the VM for the current user, org and project given its name. 
  * @param {string} name The VM Name
