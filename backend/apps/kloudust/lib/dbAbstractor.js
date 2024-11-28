@@ -16,15 +16,15 @@ const dbschema = jsonxparser.parseFileSync(`${KLOUD_CONSTANTS.DBDIR}/kd_dbschema
 const KLOUDUST_MAIN_DBFILE = path.resolve(`${KLOUD_CONSTANTS.ROOTDIR}/db/kloudust.db`);
 
 /** Inits the module */
-exports.initAsync = async function() { KLOUD_CONSTANTS.env.db = await _initMonkshuGlobalAndGetDBModuleAsync(); }
+exports.initAsync = async function () { KLOUD_CONSTANTS.env.db = await _initMonkshuGlobalAndGetDBModuleAsync(); }
 
 /** Returns the total number of users in the cloud database */
 exports.getUserCount = async _ => {
-    const user_count = (await _db().getQuery("select * from users"))?.length||0;
+    const user_count = (await _db().getQuery("select * from users"))?.length || 0;
     if (user_count == 0) return user_count; // this is a special case when the Kloud has no users at all
-    
+
     // if we have users already then we must lookup the role permissions
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) {_logUnauthorized(); return 0;}
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) { _logUnauthorized(); return 0; }
     else return user_count;
 }
 
@@ -47,13 +47,13 @@ exports.getUserCount = async _ => {
  * @param {number} sockets The sockets
  * @return true on success or false otherwise
  */
-exports.addHostToDB = async (hostname, hostaddress, type, rootid, rootpw, hostkey, port, cores, memory, disk, networkspeed, 
-        processor, processor_architecture, sockets) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false;}
+exports.addHostToDB = async (hostname, hostaddress, type, rootid, rootpw, hostkey, port, cores, memory, disk, networkspeed,
+    processor, processor_architecture, sockets) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) { _logUnauthorized(); return false; }
 
     const rootpw_encrypted = crypt.encrypt(rootpw);
     const query = "replace into hosts(hostname, hostaddress, type, rootid, rootpw, hostkey, port, cores, memory, disk, networkspeed, processor, processorarchitecture, sockets) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    return await _db().runCmd(query, [hostname, hostaddress, type, rootid, rootpw_encrypted, hostkey, port, cores, memory, 
+    return await _db().runCmd(query, [hostname, hostaddress, type, rootid, rootpw_encrypted, hostkey, port, cores, memory,
         disk, networkspeed, processor, processor_architecture, sockets]);
 }
 
@@ -63,7 +63,7 @@ exports.addHostToDB = async (hostname, hostaddress, type, rootid, rootpw, hostke
  * @return true on success or false otherwise
  */
 exports.deleteHostFromDB = async (hostname) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false; }
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) { _logUnauthorized(); return false; }
 
     const query = "delete from hosts where hostname = ? collate nocase";
     return await _db().runCmd(query, [hostname]);
@@ -75,8 +75,8 @@ exports.deleteHostFromDB = async (hostname) => {
  * @param {number} timestamp The sync timestamp value to set
  * @returns true on success or false otherwise
  */
-exports.updateHostSynctime = async(hostname, timestamp) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false; }
+exports.updateHostSynctime = async (hostname, timestamp) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) { _logUnauthorized(); return false; }
 
     const query = "update hosts set synctimestamp = ? where hostname = ? collate nocase";
     return await _db().runCmd(query, [timestamp, hostname]);
@@ -87,8 +87,8 @@ exports.updateHostSynctime = async(hostname, timestamp) => {
  * @param {string} processor_architecture The processor architecutre, eg amd64
  * @returns The matching hosts or null on error or empty array if nothing found
  */
-exports.getHostsMatchingProcessorArchitecture = async(processor_architecture) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) {_logUnauthorized(); return false; }
+exports.getHostsMatchingProcessorArchitecture = async (processor_architecture) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) { _logUnauthorized(); return false; }
 
     const query = "select * from hosts where processorarchitecture=? collate nocase";
     const hosts = await _db().getQuery(query, [processor_architecture]);
@@ -107,7 +107,7 @@ exports.getHostsMatchingProcessorArchitecture = async(processor_architecture) =>
  * @returns true on success or false otherwise
  */
 exports.addHostResource = async (name, uri, processor_architecture, description, extra, type) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false; }
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) { _logUnauthorized(); return false; }
 
     const query = "replace into hostresources(name, uri, processorarchitecture, description, extrainfo, type) values (?,?,?,?,?,?)";
     return await _db().runCmd(query, [name, uri, processor_architecture, description, extra, type]);
@@ -119,7 +119,7 @@ exports.addHostResource = async (name, uri, processor_architecture, description,
  * @return host resource object on success or null otherwise
  */
 exports.getHostResource = async name => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) {_logUnauthorized(); return false; }
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) { _logUnauthorized(); return false; }
     const query = "select * from hostresources where name=? collate nocase";
     const resources = await _db().getQuery(query, [name]);
     if ((!resources) || (!resources.length)) return null; else return resources[0];
@@ -132,11 +132,11 @@ exports.getHostResource = async name => {
  * @return host resource object on success or null otherwise
  */
 exports.getHostResourceForProject = async (name, type) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) { _logUnauthorized(); return false; }
 
-    const query = type?"select * from hostresources where name=? collate nocase and type = ? collate nocase":
+    const query = type ? "select * from hostresources where name=? collate nocase and type = ? collate nocase" :
         "select * from hostresources where name=? collate nocase";
-    const resources = await _db().getQuery(query, type?[name,type]:[name]);
+    const resources = await _db().getQuery(query, type ? [name, type] : [name]);
     if ((!resources) || (!resources.length)) return null; else return resources[0];
 }
 
@@ -146,10 +146,10 @@ exports.getHostResourceForProject = async (name, type) => {
  * @return All registered host resources or null on errors.
  */
 exports.getHostResources = async type => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) { _logUnauthorized(); return false; }
 
-    const query = type?"select * from hostresources where type = ? collate nocase":"select * from hostresources";
-    const resources = await _db().getQuery(query, type?[type]:[]);
+    const query = type ? "select * from hostresources where type = ? collate nocase" : "select * from hostresources";
+    const resources = await _db().getQuery(query, type ? [type] : []);
     if ((!resources) || (!resources.length)) return null; else return resources;
 }
 
@@ -159,7 +159,7 @@ exports.getHostResources = async type => {
  * @return true on success or false otherwise
  */
 exports.deleteHostResource = async (name) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false; }
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) { _logUnauthorized(); return false; }
 
     const query = "delete from hostresources where name = ? collate nocase";
     return await _db().runCmd(query, [name]);
@@ -173,7 +173,7 @@ exports.deleteHostResource = async (name) => {
  * @return {hostname, rootid, rootpw, hostkey} or null
  */
 exports.getHostEntry = async hostname => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) { _logUnauthorized(); return false; }
 
     const hosts = await _db().getQuery("select * from hosts where hostname = ? collate nocase", hostname);
     if (!hosts || !hosts.length) return null;
@@ -199,10 +199,10 @@ exports.getHostEntry = async hostname => {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @return true on success or false otherwise
  */
-exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory, disks, creation_cmd="undefined", 
-        name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory, disks, creation_cmd = "undefined",
+    name_raw, vmtype, ips = '', project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
 
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${name}`;
@@ -210,8 +210,8 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory
     return await _db().runCmd(query, [id, name, description, hostname, org, _getProjectID(), os, cpus, memory, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
 }
 
-exports.addOrUpdateBucketToDB = async (name_raw, name, userid, description, size, vm_name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.addOrUpdateBucketToDB = async (name_raw, name, userid, description, size, vm_name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const bucketid = `${org}_${project}_${name}`;
@@ -228,15 +228,15 @@ exports.addOrUpdateBucketToDB = async (name_raw, name, userid, description, size
  * @param {string} org The org, if skipped is auto picked from the environment
  * @return VM object or null
  */
-exports.getVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+exports.getVM = async (name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
-    const vmid = `${org}_${project}_${name}`, 
+    const vmid = `${org}_${project}_${name}`,
         results = await _db().getQuery("select * from vms where id = ? collate nocase", [vmid]);
     if ((!results) || (!results.length)) return null;
-    
-    const vm = results[0]; try {vm.disks = JSON.parse(vm.disksjson);} catch (err) {
+
+    const vm = results[0]; try { vm.disks = JSON.parse(vm.disksjson); } catch (err) {
         KLOUD_CONSTANTS.LOGERROR(`Unable to parse disks for VM ${vm.name}`); vm.disks = [];
     };
     return vm;
@@ -253,15 +253,15 @@ exports.getVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANT
  * @param {string} newproject The new project, if skipped is set to the original project
  * @return true on success or false otherwise
  */
-exports.renameVM = async (name, newname, newname_raw, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org, newproject) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
-    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org); 
-        newproject = roleman.getNormalizedProject(newproject||project);
+exports.renameVM = async (name, newname, newname_raw, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org, newproject) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    newproject = roleman.getNormalizedProject(newproject || project);
 
     const vm = await exports.getVM(name, project, org); if (!vm) return false;
-    if (!await exports.addOrUpdateVMToDB(newname, vm.description, vm.hostname, vm.os, vm.cpus, vm.memory, 
+    if (!await exports.addOrUpdateVMToDB(newname, vm.description, vm.hostname, vm.os, vm.cpus, vm.memory,
         JSON.parse(vm.disksjson), vm.creation_cmd, newname_raw, vm.vmtype, vm.ips, newproject, org)) return false;
-    return await exports.deleteVM(name, project, org); 
+    return await exports.deleteVM(name, project, org);
 }
 
 /**
@@ -272,15 +272,15 @@ exports.renameVM = async (name, newname, newname_raw, project=KLOUD_CONSTANTS.en
  * @param {string} org The org, if skipped is auto picked from the environment
  * @return true on success or false otherwise
  */
-exports.deleteVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.deleteVM = async (name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const vm = await exports.getVM(name, project, org); if (!vm) return true; // doesn't exist in the DB anyways
 
     const vmid = `${org}_${project}_${name}`;
     const deletionResult = await _db().runCmd("delete from vms where id = ? collate nocase", [vmid]);
-    if (deletionResult) if (!await this.addObjectToRecycleBin(vmid, vm, project, org)) 
+    if (deletionResult) if (!await this.addObjectToRecycleBin(vmid, vm, project, org))
         KLOUD_CONSTANTS.LOGWARN(`Unable to add VM ${name} to the recycle bin.`);
     return deletionResult;
 }
@@ -292,7 +292,7 @@ exports.deleteVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONST
  * @returns true on success or false otherwise
  */
 exports.updateVMHost = async (vmid, newHostname) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false;}
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) { _logUnauthorized(); return false; }
 
     const updateResult = await _db().runCmd("update vms set hostname = ? where id = ? collate nocase", [newHostname, vmid]);
     return updateResult;
@@ -306,24 +306,25 @@ exports.updateVMHost = async (vmid, newHostname) => {
  * @param {string} project The project, if skipped is auto picked from the environment if needed
  * @return The list of VMs
  */
-exports.listVMsForOrgOrProject = async (types, org=KLOUD_CONSTANTS.env.org, project) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+exports.listVMsForOrgOrProject = async (types, org = KLOUD_CONSTANTS.env.org, project) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     if (project) project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
-    if ((!project) && (!roleman.isOrgAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) project=KLOUD_CONSTANTS.env.prj;
+    if ((!project) && (!roleman.isOrgAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) project = KLOUD_CONSTANTS.env.prj;
 
-    const projectid = _getProjectID(project, org), sqltypes = (Array.isArray(types)?types:[types]);
-    const sqltypesPlaceholders = sqltypes.map(_=>"?").join(",");
+    const projectid = _getProjectID(project, org), sqltypes = (Array.isArray(types) ? types : [types]);
+    const sqltypesPlaceholders = sqltypes.map(_ => "?").join(",");
     const returnAllVMTypes = types.length == 1 && types[0].trim() == "*";
 
-    const query = returnAllVMTypes ? (project ? "select * from vms where projectid = ? collate nocase and org = ? collate nocase ":
-            "select * from vms where org = ? collate nocase ") : 
-        (project?`select * from vms where projectid = ? collate nocase and org = ? collate nocase and vmtype in (${sqltypesPlaceholders}) collate nocase `:
+    const query = returnAllVMTypes ? (project ? "select * from vms where projectid = ? collate nocase and org = ? collate nocase " :
+        "select * from vms where org = ? collate nocase ") :
+        (project ? `select * from vms where projectid = ? collate nocase and org = ? collate nocase and vmtype in (${sqltypesPlaceholders}) collate nocase ` :
             `select * from vms where org = ? collate nocase and vmtype in (${sqltypesPlaceholders}) collate nocase`);
 
-    const results = await _db().getQuery(query, returnAllVMTypes ? (project?[projectid,org]:[org]) : 
-        (project?[projectid,org,...sqltypes]:[org,...sqltypes]));
-    if (results) for (const vm of results) try {vm.disks = JSON.parse(vm.disksjson);} catch (err) {
-        KLOUD_CONSTANTS.LOGERROR(`Unable to parse disks for VM ${vm.name}`); vm.disks = [];}
+    const results = await _db().getQuery(query, returnAllVMTypes ? (project ? [projectid, org] : [org]) :
+        (project ? [projectid, org, ...sqltypes] : [org, ...sqltypes]));
+    if (results) for (const vm of results) try { vm.disks = JSON.parse(vm.disksjson); } catch (err) {
+        KLOUD_CONSTANTS.LOGERROR(`Unable to parse disks for VM ${vm.name}`); vm.disks = [];
+    }
     return results;
 }
 
@@ -335,21 +336,22 @@ exports.listVMsForOrgOrProject = async (types, org=KLOUD_CONSTANTS.env.org, proj
  * @return The list of VMs
  */
 exports.listVMsForCloudAdmin = async (types, hostname) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) {_logUnauthorized(); return false;}
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) { _logUnauthorized(); return false; }
 
-    const sqltypes = (Array.isArray(types)?types:[types]), sqltypesPlaceholders = sqltypes.map(_=>"?").join(",");
+    const sqltypes = (Array.isArray(types) ? types : [types]), sqltypesPlaceholders = sqltypes.map(_ => "?").join(",");
 
     const returnAllVMTypes = types.length == 1 && types[0].trim() == "*";
 
-    const query = returnAllVMTypes ? (hostname ? "select * from vms where hostname = ? collate nocase" : 
-            "select * from vms") : 
-        (hostname ? `select * from vms where hostname = ? collate nocase and vmtype in (${sqltypesPlaceholders}) collate nocase` : 
+    const query = returnAllVMTypes ? (hostname ? "select * from vms where hostname = ? collate nocase" :
+        "select * from vms") :
+        (hostname ? `select * from vms where hostname = ? collate nocase and vmtype in (${sqltypesPlaceholders}) collate nocase` :
             `select * from vms where vmtype in (${sqltypesPlaceholders}) collate nocase`);
 
-    const results = await _db().getQuery(query, 
-        returnAllVMTypes ? (hostname?[hostname]: []) : (hostname?[hostname, ...sqltypes]:[...sqltypes]));
-    if (results) for (const vm of results) try {vm.disks = JSON.parse(vm.disksjson);} catch (err) {
-        KLOUD_CONSTANTS.LOGERROR(`Unable to parse disks for VM ${vm.name}`); vm.disks = [];}
+    const results = await _db().getQuery(query,
+        returnAllVMTypes ? (hostname ? [hostname] : []) : (hostname ? [hostname, ...sqltypes] : [...sqltypes]));
+    if (results) for (const vm of results) try { vm.disks = JSON.parse(vm.disksjson); } catch (err) {
+        KLOUD_CONSTANTS.LOGERROR(`Unable to parse disks for VM ${vm.name}`); vm.disks = [];
+    }
     return results;
 }
 
@@ -361,10 +363,10 @@ exports.listVMsForCloudAdmin = async (types, hostname) => {
  * @param {string} orgIn The owning org, if skipped is auto detected 
  * @return true on success or false otherwise
  */
-exports.addProject = async(name, description="", orgIn=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) {_logUnauthorized(); return false;}
+exports.addProject = async (name, description = "", orgIn = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) { _logUnauthorized(); return false; }
     const project = roleman.getNormalizedProject(name), org = roleman.getNormalizedOrg(orgIn), id = _getProjectID(project, org);
-        
+
     if (!await exports.getProject(name)) return await _db().runCmd(
         "insert into projects (id, name, org, description) values (?,?,?,?)", [id, name, org, description]);
     else return true;
@@ -376,7 +378,7 @@ exports.addProject = async(name, description="", orgIn=KLOUD_CONSTANTS.env.org) 
  * @returns The currently logged in or the given user's projects.
  */
 exports.getUserProjects = async userid => {
-    if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource))) {_logUnauthorized(); return false;}
+    if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource))) { _logUnauthorized(); return false; }
     if (!userid) userid = KLOUD_CONSTANTS.env.userid;
     const query = "select * from projects where id in (select projectid from projectusermappings where userid=? collate nocase)";
     const results = await _db().getQuery(query, userid);
@@ -388,19 +390,19 @@ exports.getUserProjects = async userid => {
  * projects they are mapped to, and for admins it goes across org projects
  * @param {string} name Project name
  */
-exports.getProject = async (name, org=KLOUD_CONSTANTS.env.org) => {
-    const userid = KLOUD_CONSTANTS.env.userid, projectid = `${(name||"undefined").toLocaleLowerCase()}_${org}`;
-    org = roleman.getNormalizedOrg(org); 
+exports.getProject = async (name, org = KLOUD_CONSTANTS.env.org) => {
+    const userid = KLOUD_CONSTANTS.env.userid, projectid = `${(name || "undefined").toLocaleLowerCase()}_${org}`;
+    org = roleman.getNormalizedOrg(org);
 
     let results;
     if (roleman.isCloudAdminLoggedIn() || roleman.isOrgAdminLoggedIn()) {
-        if (name) results = await _db().getQuery("select * from projects where id=? collate nocase and org=? collate nocase", 
+        if (name) results = await _db().getQuery("select * from projects where id=? collate nocase and org=? collate nocase",
             [projectid, org]);
         else results = await _db().getQuery("select * from projects where org=? collate nocase)", [org]);
     }
     else {
         if (name) results = await _db().getQuery("select * from projects where id in \
-            (select projectid from projectusermappings where userid=? collate nocase) collate nocase and name=? collate nocase", [userid,name]);
+            (select projectid from projectusermappings where userid=? collate nocase) collate nocase and name=? collate nocase", [userid, name]);
         else results = await _db().getQuery("select * from projects where id in \
             (select projectid from projectusermappings where userid=? collate nocase) collate nocase", [userid]);
     }
@@ -414,14 +416,14 @@ exports.getProject = async (name, org=KLOUD_CONSTANTS.env.org) => {
  * @param {string} org The project org - only honored for cloud admins, else current org is used
  * @return true on success or false otherwise
  */
-exports.deleteProject = async (name, org=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) {_logUnauthorized(); return false; }
+exports.deleteProject = async (name, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) { _logUnauthorized(); return false; }
     org = roleman.getNormalizedOrg(org); name = roleman.getNormalizedProject(name);
 
     const id = _getProjectID(name, org);
     const commandsToUpdate = [
         {
-            cmd: "delete from projects where id = ? collate nocase", 
+            cmd: "delete from projects where id = ? collate nocase",
             params: [id]
         },
         {
@@ -442,10 +444,10 @@ exports.deleteProject = async (name, org=KLOUD_CONSTANTS.env.org) => {
  *                     cloud admins, else the current org is used
  * @return true on succes, false otherwise
  */
-exports.changeUserRole = async function(email, role, org) {
-    if ((!roleman.isCloudAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) {_logUnauthorized(); return false;}
+exports.changeUserRole = async function (email, role, org) {
+    if ((!roleman.isCloudAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) { _logUnauthorized(); return false; }
 
-    const query = "update users set role = ? where id = ? collate nocase and org = ? collate nocase", 
+    const query = "update users set role = ? where id = ? collate nocase and org = ? collate nocase",
         orgFixed = roleman.getNormalizedOrg(org), roleFixed = roleman.getNormalizedRole(role);
     return await _db().runCmd(query, [roleFixed, email, orgFixed]);
 }
@@ -460,11 +462,12 @@ exports.changeUserRole = async function(email, role, org) {
  *                     cloud or org admins, else the user role is used.
  * @return true on succes, false otherwise
  */
-exports.addUserToDB = async (email, name, org=KLOUD_CONSTANTS.env.org, role=KLOUD_CONSTANTS.ROLES.USER) => {
+exports.addUserToDB = async (email, name, org = KLOUD_CONSTANTS.env.org, role = KLOUD_CONSTANTS.ROLES.USER) => {
     if ((!await roleman.isSetupMode()) && (!roleman.checkAccess(roleman.ACTIONS.add_user_to_org))) {
-        _logUnauthorized(); return false; }
+        _logUnauthorized(); return false;
+    }
 
-    const query = "insert into users(id, name, org, role) values (?,?,?,?)", 
+    const query = "insert into users(id, name, org, role) values (?,?,?,?)",
         orgFixed = roleman.getNormalizedOrg(org), roleFixed = roleman.getNormalizedRole(role);
     return await _db().runCmd(query, [email.toLocaleLowerCase(), name, orgFixed, roleFixed]);
 }
@@ -478,17 +481,18 @@ exports.addUserToDB = async (email, name, org=KLOUD_CONSTANTS.env.org, role=KLOU
  *                     cloud admins, else the current org is used.
  * @return true on succes, false otherwise
  */
-exports.removeUserFromDB = async (email, org=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.removeUserFromDB = async (email, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
 
     const orgFixed = roleman.getNormalizedOrg(org), userid = email.toLocaleLowerCase();
     const userToDelete = await exports.getUserForEmail(email);
     if (roleman.isNormalUserLoggedIn() && (userToDelete.role != KLOUD_CONSTANTS.ROLES.USER)) {  // can't delete admins by users
-        _logUnauthorized(); return false; }  
+        _logUnauthorized(); return false;
+    }
 
     const commandsToUpdate = [
         {
-            cmd: "delete from users where id=? collate nocase and org=? collate nocase", 
+            cmd: "delete from users where id=? collate nocase and org=? collate nocase",
             params: [userid, orgFixed]
         },
         {
@@ -508,8 +512,8 @@ exports.removeUserFromDB = async (email, org=KLOUD_CONSTANTS.env.org) => {
  * @param {string} org The org, only honored for cloud admins.
  * @returns true on succes, false otherwise
  */
-exports.addUserToProject = async (userid, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.addUserToProject = async (userid, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const query = "insert into projectusermappings(userid, projectid) values (?,?)"
@@ -526,8 +530,8 @@ exports.addUserToProject = async (userid, project=KLOUD_CONSTANTS.env.prj, org=K
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on succes, false otherwise
  */
-exports.removeUserFromProject = async (user, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.removeUserFromProject = async (user, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const query = "delete from projectusermappings where userid=? collate nocase and projectid=? collate nocase"
@@ -541,13 +545,13 @@ exports.removeUserFromProject = async (user, project=KLOUD_CONSTANTS.env.prj, or
  *                      honored if a cloud admin is logged in, else the org of the currently logged
  *                      in user will be used.
  */
-exports.getAllAdmins = async (org=KLOUD_CONSTANTS.env.org) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_org)) {_logUnauthorized(); return false;}
+exports.getAllAdmins = async (org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_org)) { _logUnauthorized(); return false; }
     org = roleman.getNormalizedOrg(org);
 
     const users = await _db().getQuery(
-        `select * from users where org = ? collate nocase and role = ${KLOUD_CONSTANTS.ROLES.ORG_ADMIN} collate nocase`, 
-        [roleman.isCloudAdminLoggedIn()?org:KLOUD_CONSTANTS.env.org]);
+        `select * from users where org = ? collate nocase and role = ${KLOUD_CONSTANTS.ROLES.ORG_ADMIN} collate nocase`,
+        [roleman.isCloudAdminLoggedIn() ? org : KLOUD_CONSTANTS.env.org]);
     return users;
 }
 
@@ -560,11 +564,11 @@ exports.getAllAdmins = async (org=KLOUD_CONSTANTS.env.org) => {
  *            in user will be used.
  * @return The account object or null on error
  */
-exports.getUserForEmail = async (email, org=KLOUD_CONSTANTS.env.org) => {
+exports.getUserForEmail = async (email, org = KLOUD_CONSTANTS.env.org) => {
     org = roleman.getNormalizedOrg(org);
 
-    const users = await _db().getQuery("select * from users where id = ? collate nocase and org = ? collate nocase", 
-        [email.toLocaleLowerCase(), roleman.isCloudAdminLoggedIn()?org:KLOUD_CONSTANTS.env.org]);
+    const users = await _db().getQuery("select * from users where id = ? collate nocase and org = ? collate nocase",
+        [email.toLocaleLowerCase(), roleman.isCloudAdminLoggedIn() ? org : KLOUD_CONSTANTS.env.org]);
     if (users && users.length) return users[0]; else return null;
 }
 
@@ -574,7 +578,7 @@ exports.getUserForEmail = async (email, org=KLOUD_CONSTANTS.env.org) => {
  * @param {string} project The project the user will work on
  * @return true on success and false otherwise
  */
-exports.loginUser = async (email, project=KLOUD_CONSTANTS.DEFAULT_PROJECT) => {
+exports.loginUser = async (email, project = KLOUD_CONSTANTS.DEFAULT_PROJECT) => {
     const users = await _db().getQuery("select * from users where id = ? collate nocase", email.toLocaleLowerCase());
     if (!users || !users.length) return false;  // bad ID   
     return users[0];
@@ -587,13 +591,13 @@ exports.loginUser = async (email, project=KLOUD_CONSTANTS.DEFAULT_PROJECT) => {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true if the user belongs to the given project, else false
  */
-exports.checkUserBelongsToProject = async function (userid=KLOUD_CONSTANTS.env.userid, 
-        project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.checkUserBelongsToProject = async function (userid = KLOUD_CONSTANTS.env.userid,
+    project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
 
     org = roleman.getNormalizedOrg(org);
 
     const projectid = _getProjectID(project, org);
-    const check = await _db().getQuery("select projectid from projectusermappings where userid = ? collate nocase and projectid = ? collate nocase", 
+    const check = await _db().getQuery("select projectid from projectusermappings where userid = ? collate nocase and projectid = ? collate nocase",
         [userid, projectid]);
     if (!check || !check.length) return false;  // user isn't part of this project
     else return true;
@@ -607,13 +611,13 @@ exports.checkUserBelongsToProject = async function (userid=KLOUD_CONSTANTS.env.u
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.addObjectToRecycleBin = async function(objectid, object, project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
-            
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.addObjectToRecycleBin = async function (objectid, object, project = KLOUD_CONSTANTS.env.prj,
+    org = KLOUD_CONSTANTS.env.org) {
+
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
-    const id = `${org}_${project}_${objectid.toString()+"_"+Date.now()+Math.random().toString().split(".")[1]}`,
+    const id = `${org}_${project}_${objectid.toString() + "_" + Date.now() + Math.random().toString().split(".")[1]}`,
         objectJSON = JSON.stringify(object);
     const query = "insert into recyclebin (id, resourceid, object, org, projectid) values (?,?,?,?,?)";
     return await _db().runCmd(query, [id, objectid, objectJSON, org, project]);
@@ -627,18 +631,19 @@ exports.addObjectToRecycleBin = async function(objectid, object, project=KLOUD_C
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The objects, if found, else null. Can be one or more if the same object was deleted multiple times.
  */
-exports.getObjectsFromRecycleBin = async function(objectid, idstamp="", project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
-            
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+exports.getObjectsFromRecycleBin = async function (objectid, idstamp = "", project = KLOUD_CONSTANTS.env.prj,
+    org = KLOUD_CONSTANTS.env.org) {
+
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
     if (idstamp && (!idstamp.startsWith(`${org}_${project}_${objectid.toString()}`))) { // don't let users get other org or project resources
-        _logUnauthorized(); return false;}
+        _logUnauthorized(); return false;
+    }
 
-    const id = idstamp||`${org}_${project}_${objectid.toString()}`; // if exact idstamp was provided then use it
+    const id = idstamp || `${org}_${project}_${objectid.toString()}`; // if exact idstamp was provided then use it
     const query = idstamp ? "select * from recyclebin where id=? collate nocase" :
         "select * from recyclebin where id like ? collate nocase";
-    const results = await _db().getQuery(query, [idstamp?id:id+"%"]);
+    const results = await _db().getQuery(query, [idstamp ? id : id + "%"]);
     if (results) for (const result of results) result.object = JSON.parse(result.object);
     return results;
 }
@@ -651,18 +656,19 @@ exports.getObjectsFromRecycleBin = async function(objectid, idstamp="", project=
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteObjectsFromRecyclebin = async function(objectid, idstamp="", project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
+exports.deleteObjectsFromRecyclebin = async function (objectid, idstamp = "", project = KLOUD_CONSTANTS.env.prj,
+    org = KLOUD_CONSTANTS.env.org) {
 
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
     if (idstamp && (!idstamp.startsWith(`${org}_${project}_${objectid.toString()}`))) { // don't let users delete other org or project resources
-        _logUnauthorized(); return false;}
+        _logUnauthorized(); return false;
+    }
 
-    const id = idstamp||`${org}_${project}_${objectid.toString()}`;
-    const query = idstamp ? "delete from recyclebin where id=? collate nocase" : 
+    const id = idstamp || `${org}_${project}_${objectid.toString()}`;
+    const query = idstamp ? "delete from recyclebin where id=? collate nocase" :
         "delete from recyclebin where id like ? collate nocase";
-    return await _db().runCmd(query, [idstamp?id:id+"%"]);
+    return await _db().runCmd(query, [idstamp ? id : id + "%"]);
 }
 
 /**
@@ -673,15 +679,15 @@ exports.deleteObjectsFromRecyclebin = async function(objectid, idstamp="", proje
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteVnet = async function(resource_id, snapshot_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.deleteVnet = async function (resource_id, snapshot_id, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${resource_id}_${snapshot_id}`;
     const commandsToRun = [
         {
-            cmd: "delete from snapshots where id=? collate nocase", 
-            params:  [id]
+            cmd: "delete from snapshots where id=? collate nocase",
+            params: [id]
         },
         {
             cmd: "delete from relationships where pk1=? collate nocase and pk2=? collate nocase",
@@ -699,8 +705,8 @@ exports.deleteVnet = async function(resource_id, snapshot_id, project=KLOUD_CONS
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteAllSnapshotsForResource = async function(resource_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.deleteAllSnapshotsForResource = async function (resource_id, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const query = "delete from snapshots where id in (select pk1 from relationships where pk2=? collate nocase)";
@@ -716,20 +722,21 @@ exports.deleteAllSnapshotsForResource = async function(resource_id, project=KLOU
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure 
  */
-exports.addOrUpdateSnapshot = async function(resource_id, snapshot_id, extrainfo="", project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
+exports.addOrUpdateSnapshot = async function (resource_id, snapshot_id, extrainfo = "", project = KLOUD_CONSTANTS.env.prj,
+    org = KLOUD_CONSTANTS.env.org) {
 
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${resource_id}_${snapshot_id}`, projectid = _getProjectID(project, org)
     if (await exports.getSnapshot(snapshot_id, project, org)) { // don't allow adding same snapshot ID twice
-        KLOUD_CONSTANTS.LOGERROR(`Snapshot with ID ${snapshot_id} already exists`); return false;}
+        KLOUD_CONSTANTS.LOGERROR(`Snapshot with ID ${snapshot_id} already exists`); return false;
+    }
 
     const commandsToRun = [
         {
-            cmd: "replace into snapshots (id, snapshotname, extrainfo, org, projectid) values (?,?,?,?,?)", 
-            params:  [id, snapshot_id, extrainfo, org, projectid]
+            cmd: "replace into snapshots (id, snapshotname, extrainfo, org, projectid) values (?,?,?,?,?)",
+            params: [id, snapshot_id, extrainfo, org, projectid]
         },
         {
             cmd: "replace into relationships (pk1, pk2, type) values (?,?,'snapshopt')",
@@ -748,8 +755,8 @@ exports.addOrUpdateSnapshot = async function(resource_id, snapshot_id, extrainfo
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The snapshot object, if found, else null.
  */
-exports.getSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+exports.getSnapshot = async function (resource_id, snapshot_id, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${resource_id}_${snapshot_id}`;
@@ -765,8 +772,8 @@ exports.getSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CON
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The list requested or null if none exist
  */
-exports.listSnapshots = async function(resource_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+exports.listSnapshots = async function (resource_id, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const query = "select * from snapshots where id in (select pk1 from relationships where pk2=? collate nocase and type='snapshot')";
@@ -782,8 +789,8 @@ exports.listSnapshots = async function(resource_id, project=KLOUD_CONSTANTS.env.
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteVnet = async function(resource_id, snapshot_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.deleteVnet = async function (resource_id, snapshot_id, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${resource_id}_${snapshot_id}`;
@@ -799,18 +806,19 @@ exports.deleteVnet = async function(resource_id, snapshot_id, project=KLOUD_CONS
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure 
  */
-exports.addOrUpdateVnet = async function(vnet_id, description="", project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
+exports.addOrUpdateVnet = async function (vnet_id, description = "", project = KLOUD_CONSTANTS.env.prj,
+    org = KLOUD_CONSTANTS.env.org) {
 
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${vnet_id}`, projectid = _getProjectID(project, org)
     if (await exports.getVnet(vnet_id, project, org)) { // don't allow adding same vnet twice
-        KLOUD_CONSTANTS.LOGERROR(`Vnet with ID ${vnet_id} already exists`); return false;}
+        KLOUD_CONSTANTS.LOGERROR(`Vnet with ID ${vnet_id} already exists`); return false;
+    }
 
-    const cmd = "replace into vnets (id, name, description, org, projectid) values (?,?,?,?,?)", 
-        params =  [id, vnet_id, description, org, projectid];
+    const cmd = "replace into vnets (id, name, description, org, projectid) values (?,?,?,?,?)",
+        params = [id, vnet_id, description, org, projectid];
     const insertResult = await _db().runCmd(cmd, params);
     return insertResult;
 }
@@ -822,8 +830,8 @@ exports.addOrUpdateVnet = async function(vnet_id, description="", project=KLOUD_
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The vnet object, if found, else null.
  */
-exports.getVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+exports.getVnet = async function (vnet_id, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${vnet_id}`;
@@ -838,8 +846,8 @@ exports.getVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, org=K
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The list requested or null if none exist
  */
-exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+exports.listVnets = async function (project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const query = "select * from vnets where org=? and projectid=?";
@@ -854,8 +862,8 @@ exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CO
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+exports.deleteVnet = async function (vnet_id, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${vnet_id}`;
@@ -871,13 +879,13 @@ exports.deleteVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, or
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.addOrUpdateVMToVnet = async function(vnet_id, vm_name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
-    
+exports.addOrUpdateVMToVnet = async function (vnet_id, vm_name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+
     const id = `${org}_${project}_${vnet_id}`;
     const vm = exports.getVM(vm_name, project, org), vm_id = vm.id;
 
-    const cmd = "replace into relationships (pk1, pk2, type) values (?,?,'vnet')", params =  [id, vm_id];
+    const cmd = "replace into relationships (pk1, pk2, type) values (?,?,'vnet')", params = [id, vm_id];
     const insertResult = await _db().runCmd(cmd, params);
     return insertResult;
 }
@@ -890,13 +898,13 @@ exports.addOrUpdateVMToVnet = async function(vnet_id, vm_name, project=KLOUD_CON
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteVMFromVnet = async function(vnet_id, vm_name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
-    
+exports.deleteVMFromVnet = async function (vnet_id, vm_name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+
     const id = `${org}_${project}_${vnet_id}`;
     const vm = exports.getVM(vm_name, project, org), vm_id = vm.id;
 
-    const cmd = "delete from relationships pk1=? and pk2=? and type='vnet'", params =  [id, vm_id];
+    const cmd = "delete from relationships pk1=? and pk2=? and type='vnet'", params = [id, vm_id];
     const deleteResult = await _db().runCmd(cmd, params);
     return deleteResult;
 }
@@ -908,9 +916,9 @@ exports.deleteVMFromVnet = async function(vnet_id, vm_name, project=KLOUD_CONSTA
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The list of project VMs allocated to the given Vnet
  */
-exports.getVMsForVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
-    
+exports.getVMsForVnet = async function (vnet_id, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+
     const id = `${org}_${project}_${vnet_id}`;
 
     const query = "select from relationships pk1=? and type='vnet'";
@@ -923,36 +931,73 @@ exports.getVMsForVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj,
  * @param sql The SQL to run on the DB.
  * @return The results of the SQL.
  */
-exports.runSQL = async function(sql) {
-    if (!roleman.isCloudAdminLoggedIn()) {_logUnauthorized(); return false;}
+exports.runSQL = async function (sql) {
+    if (!roleman.isCloudAdminLoggedIn()) { _logUnauthorized(); return false; }
     if (sql.toLocaleLowerCase().startsWith("select")) return await _db().getQuery(sql);
     else return await _db().runCmd(sql);
 }
 
 exports.getDockerVM = async (vmtype) => {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     const results = await _db().getQuery("select * from vms where vmtype = ? collate nocase", [vmtype]);
     if ((!results) || (!results.length)) return null;
-    const vm = results[0]; 
+    const vm = results[0];
     return vm;
 }
 
-exports.getUserFromS3storage = async (userid) =>{
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+exports.getUserFromS3storage = async (userid) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
     results = await _db().getQuery("select * from s3storage where userid = ? collate nocase", [userid]);
     if ((!results) || (!results.length)) return false;
     return true;
 }
 
+exports.listS3storageForOrgOrProject = async (org = KLOUD_CONSTANTS.env.org, project) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    if (project) project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    if ((!project) && (!roleman.isOrgAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) project = KLOUD_CONSTANTS.env.prj;
+
+    const projectid = _getProjectID(project, org)
+    const userid = KLOUD_CONSTANTS.env.userid;
+    const query = (project ? "select * from s3storage where projectid = ? collate nocase and org = ? collate nocase and userid = ? collate nocase" : "select * from s3storage where org = ? collate nocase ");
+    const results = await _db().getQuery(query, [projectid, org, userid]);
+    return results;
+}
+
+exports.getS3storageBucket = async (name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const bucketid = `${org}_${project}_${name}`,
+        results = await _db().getQuery("select * from s3storage where id = ? collate nocase", [bucketid]);
+    if ((!results) || (!results.length)) return null;
+
+    const bucket = results[0];
+    return bucket;
+}
+
+exports.deleteS3storageBucket = async (name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const bucket = await exports.getS3storageBucket(name, project, org); if (!bucket) return true;
+
+    const bucketid = `${org}_${project}_${name}`;
+    const deletionResult = await _db().runCmd("delete from s3storage where id = ? collate nocase", [bucketid]);
+    if (deletionResult) if (!await this.addObjectToRecycleBin(bucketid, bucket, project, org))
+        KLOUD_CONSTANTS.LOGWARN(`Unable to add bucket ${name} to the recycle bin.`);
+    return deletionResult;
+}
+
 const _logUnauthorized = _ => KLOUD_CONSTANTS.LOGERROR("User is not authorized.");
 
-const _getProjectID = (project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => 
+const _getProjectID = (project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) =>
     `${roleman.getNormalizedProject(project)}_${roleman.getNormalizedOrg(org)}`;
 
 async function _initMonkshuGlobalAndGetDBModuleAsync() {
     const monkshuDBWrapped = await monkshubridge.initMonkshuGlobalAndGetModuleAsync("db");
     const dbDriverMonkshu = await monkshuDBWrapped.getDBDriver("sqlite", KLOUDUST_MAIN_DBFILE, dbschema);
-    const monkshuDBDriverWrapped = kdutils.wrapObjectInNewContext(dbDriverMonkshu, {CONSTANTS, LOG});
+    const monkshuDBDriverWrapped = kdutils.wrapObjectInNewContext(dbDriverMonkshu, { CONSTANTS, LOG });
     const db = monkshuDBDriverWrapped; await db.init(); return db;
 }
 
