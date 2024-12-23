@@ -1,106 +1,117 @@
 {
 "id": "createobjectstorage",
-"command": "createVM",
+"command": "createObjectStorage",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["vm_name", "vm_description", "cores", "memory", "disk", "creation_image_name", 
-    "cloudinit_data", "force_overwrite"],
+"kloudust_cmdline_params": ["bucket_name", "bucket_description", "bucket_size", "password", "cloudinit_data", "vmtype"],
 
-"title": "{{{i18n.VMCreateTitle}}}",
+"title": "{{{i18n.BucketCreateTitle}}}",
 
 "i18n": {
     "en": {
-        "VMCreateTitle": "Create Object storage",
-        "VMCreateDescription": "Add a new Object storage instance to the cloud. Complete the required tab then submit or review advanced tab for full customization.",
+        "BucketName" : "Bucket Name",
+        "BucketCreateTitle": "Create Object storage",
+        "BucketCreateDescription": "Add a new Object storage instance to the cloud. Complete the required tab then submit or review advanced tab for full customization.",
         "VMName": "Object storage instance name",
-        "VMDescription": "Description",
-        "VMCores": "Cores",
-        "VMMemory": "Memory in megabytes",
-        "VMDisk": "Disk in gigabytes",
+        "BucketDescription": "Description",
+        "BucketCores": "Cores",
+        "BucketMemory": "Memory in megabytes",
+        "BucketSize": "Bucket Size in GB",
+        "password":"Password (if you already created a password then this will ignored)",
         "FieldValidationErrorGeneric": "Validation error",
-        "FieldValidationErrorMin40": "Minimum disk size is 40 GB",
-        "CreateVMSubmitLabel": "Create",
-        "VMYes": "Yes",
-        "VMNo": "No",
-        "VMAdvanced": "Advanced",
-        "VMOverwriteForce": "Overwrite if an object storage instance by the same name exists?"
+        "FieldValidationErrorMin20": "Minimum disk size is 20 GB",
+        "CreateBucketSubmitLabel": "Create",
+        "BucketYes": "Yes",
+        "BucketNo": "No",
+        "BucketAdvanced": "Advanced",
+        "VMCloudInitData": "Cloudinit data",
+        "BucketOverwriteForce": "Overwrite if an object storage instance by the same name exists?"
     },
     "hi": {
-        "VMCreateTitle": "Create Object storage",
-        "VMCreateDescription": "Add a new Object storage instance to the cloud. Complete the required tab then submit or review advanced tab for full customization.",
-        "VMName": "Object storage instance name",
-        "VMDescription": "Description",
-        "VMCores": "Cores",
-        "VMMemory": "Memory in megabytes",
-        "VMDisk": "Disk in gigabytes",
+        "BucketName" : "Bucket Name",
+        "BucketCreateTitle": "Create Object storage",
+        "BucketCreateDescription": "Add a new Object storage instance to the cloud. Complete the required tab then submit or review advanced tab for full customization.",
+        "BucketDescription": "Description",
+        "BucketCores": "Cores",
+        "BucketMemory": "Memory in megabytes",
+        "BucketSize": "Bucket Size in GB",
+        "password":"Password (If you already created a password then this will ignored)",
         "FieldValidationErrorGeneric": "Validation error",
-        "FieldValidationErrorMin40": "Minimum disk size is 40 GB",
-        "CreateVMSubmitLabel": "Create",
-        "VMYes": "Yes",
-        "VMNo": "No",
-        "VMAdvanced": "Advanced",
-        "VMOverwriteForce": "Overwrite if an object storage instance by the same name exists?"
+        "FieldValidationErrorMin20": "Minimum disk size is 20 GB",
+        "CreateBucketSubmitLabel": "Create",
+        "BucketYes": "Yes",
+        "BucketNo": "No",
+        "BucketAdvanced": "Advanced",
+        "VMCloudInitData": "Cloudinit data",
+        "BucketOverwriteForce": "Overwrite if an object storage instance by the same name exists?"
     },
     "ja": {
-        "VMCreateTitle": "Create Object storage",
-        "VMCreateDescription": "Add a new Object storage instance to the cloud. Complete the required tab then submit or review advanced tab for full customization.",
-        "VMName": "Object storage instance name",
-        "VMDescription": "Description",
-        "VMCores": "Cores",
-        "VMMemory": "Memory in megabytes",
-        "VMDisk": "Disk in gigabytes",
+        "BucketName" : "Bucket Name",
+        "BucketCreateTitle": "Create Object storage",
+        "BucketCreateDescription": "Add a new Object storage instance to the cloud. Complete the required tab then submit or review advanced tab for full customization.",
+        "BucketDescription": "Description",
+        "BucketCores": "Cores",
+        "BucketMemory": "Memory in megabytes",
+        "BucketSize": "Bucket Size in GB",
+        "password":"Password (If you already created a password then this will ignored)",
         "FieldValidationErrorGeneric": "Validation error",
-        "FieldValidationErrorMin40": "Minimum disk size is 40 GB",
-        "CreateVMSubmitLabel": "Create",
-        "VMYes": "Yes",
-        "VMNo": "No",
-        "VMAdvanced": "Advanced",
-        "VMOverwriteForce": "Overwrite if an object storage instance by the same name exists?"
+        "FieldValidationErrorMin20": "Minimum disk size is 20 GB",
+        "CreateBucketSubmitLabel": "Create",
+        "BucketYes": "Yes",
+        "BucketNo": "No",
+        "BucketAdvanced": "Advanced",
+        "VMCloudInitData": "Cloudinit data",
+        "BucketOverwriteForce": "Overwrite if an object storage instance by the same name exists?"
     },
     "zh": {
-        "VMCreateTitle": "Create Object storage",
-        "VMCreateDescription": "Add a new Object storage instance to the cloud. Complete the required tab then submit or review advanced tab for full customization.",
-        "VMName": "Object storage instance name",
-        "VMDescription": "Description",
-        "VMCores": "Cores",
-        "VMMemory": "Memory in megabytes",
-        "VMDisk": "Disk in gigabytes",
+        "BucketName" : "Bucket Name",
+        "BucketCreateTitle": "Create Object storage",
+        "BucketCreateDescription": "Add a new Object storage instance to the cloud. Complete the required tab then submit or review advanced tab for full customization.",
+        "BucketDescription": "Description",
+        "BucketCores": "Cores",
+        "BucketMemory": "Memory in megabytes",
+        "BucketSize": "Bucket Size in GB",
+        "password":"Password (If you already created a password then this will ignored)",
         "FieldValidationErrorGeneric": "Validation error",
-        "FieldValidationErrorMin40": "Minimum disk size is 40 GB",
-        "CreateVMSubmitLabel": "Create",
-        "VMYes": "Yes",
-        "VMNo": "No",
-        "VMAdvanced": "Advanced",
-        "VMOverwriteForce": "Overwrite if an object storage instance by the same name exists?"
+        "FieldValidationErrorMin20": "Minimum disk size is 20 GB",
+        "CreateBucketSubmitLabel": "Create",
+        "BucketYes": "Yes",
+        "BucketNo": "No",
+        "BucketAdvanced": "Advanced",
+        "VMCloudInitData": "Cloudinit data",
+        "BucketOverwriteForce": "Overwrite if an object storage instance by the same name exists?"
     }
 },
 
 "form": {
-    "description": "{{{i18n.VMCreateDescription}}}",
+    "description": "{{{i18n.BucketCreateDescription}}}",
 
     "required_label": "{{{i18n.Required}}}",
     "required_fields": [
-    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
+    {"id": "bucket_name", "type": "text", "placeholder": "{{{i18n.BucketName}}}", "required": true, 
         "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
-    {"id": "vm_description", "type": "text", "placeholder": "{{{i18n.VMDescription}}}", "required": true},
-    {"id": "cores", "type": "hidden", "value": 2},
-    {"id": "memory", "type": "hidden", "value": 2048},
-    {"id": "disk", "type": "number", "placeholder": "{{{i18n.VMDisk}}}", "required": true, "min": 40,
-        "validation_error": "{{{i18n.FieldValidationErrorMin40}}}"},
-
-    {"id": "adminid", "type": "hidden", "value": "storageadm"},
-    {"id": "adminpass", "type": "hidden", "value": "storageadm"},
-    {"id": "creation_image_name", "type": "hidden", "value": "ubuntulinux-storage_22_04_amd64"}
+    {"id": "bucket_description", "type": "text", "placeholder": "{{{i18n.BucketDescription}}}", "required": true},
+    {"id": "bucket_size", "type": "number", "placeholder": "{{{i18n.BucketSize}}}", "required": true, "min": 20,
+        "validation_error": "{{{i18n.FieldValidationErrorMin20}}}"},
+        {"id": "adminid", "type": "hidden", "value": "storageadm"},
+        {"id": "adminpass", "type": "hidden", "value": "storageadm"},
+        {"id": "vmtype", "type": "hidden", "value": "kdobjectstorage"},
+        {"id": "cloudinit_data", "type": "hidden", "value":""},
+        {"id": "password", "type": "password", "placeholder": "{{{i18n.password}}}", "required": false, "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
     ],
 
-    "optional_label": "{{{i18n.VMAdvanced}}}",
-    "optional_fields": [
-    {"id": "force_overwrite", "multioption": true, "type": "select", "label": "{{{i18n.VMOverwriteForce}}}", 
-        "options":[{"value":"false", "label":"{{{i18n.VMNo}}}"}, {"value":"true", "label":"{{{i18n.VMYes}}}"}]}
-    ],
 
-    "submitlabel": "{{{i18n.CreateVMSubmitLabel}}}",
-
-    "submit_javascript": "const retObject = arguments[0]||{};\r\n\r\nif (retObject.cloudinit_data && (retObject.cloudinit_data.trim() != \"\")) {\r\n    LOG.info(`Not overriding existing cloudinit which is: ${retObject.cloudinit_data}`); return true; }\r\n\r\nconst cloudinitTemplate = \"{system_info: {default_user: {name: \\u{007B}\\u{007B}\\u{007B}adminid\\u{007D}\\u{007D}\\u{007D}, home: /home/\\u{007B}\\u{007B}\\u{007B}adminid\\u{007D}\\u{007D}\\u{007D}, sudo: 'ALL=(ALL) NOPASSWD:ALL'}}, password: \\u{007B}\\u{007B}\\u{007B}adminpass\\u{007D}\\u{007D}\\u{007D}, chpasswd: {expire: false}, hostname: \\u{007B}\\u{007B}\\u{007B}vm_name\\u{007D}\\u{007D}\\u{007D}, ssh_pwauth: true, package_upgrade: true, packages: [net-tools], runcmd: null}\";\r\n\r\nconst router = (await import(\"/framework/js/router.mjs\")).router;\r\nconst mustache = await router.getMustache();\r\nconst cloudInit = mustache.render(cloudinitTemplate, retObject);\r\nLOG.info(`Generated cloudinit is: ${cloudInit}`);\r\n\r\nretObject.cloudinit_data = cloudInit;\r\nreturn true;"
+    "load_javascript": [ 
+        "const form = arguments[0]||{};",
+        "const userResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, ",
+        "   'POST', {cmd: 'checkS3storageUser'}, true);",
+        "if (userResult.result) {",
+        "   const passwordField = form.required_fields[form.required_fields.length-1];",
+        "   passwordField.type = 'hidden' }",
+        "return form;"
+        ],
+        "submit_javascript": "const retObject = arguments[0]||{};\r\n\r\nif (retObject.cloudinit_data && (retObject.cloudinit_data.trim() != \"\")) {\r\n    LOG.info(`Not overriding existing cloudinit which is: ${retObject.cloudinit_data}`); return true; }\r\n\r\nconst cloudinitTemplate = \"{system_info: {default_user: {name: \\u{007B}\\u{007B}\\u{007B}adminid\\u{007D}\\u{007D}\\u{007D}, home: /home/\\u{007B}\\u{007B}\\u{007B}adminid\\u{007D}\\u{007D}\\u{007D}, sudo: 'ALL=(ALL) NOPASSWD:ALL'}}, password: \\u{007B}\\u{007B}\\u{007B}adminpass\\u{007D}\\u{007D}\\u{007D}, chpasswd: {expire: false}, hostname: \\u{007B}\\u{007B}\\u{007B}vm_name\\u{007D}\\u{007D}\\u{007D}, ssh_pwauth: true, package_upgrade: true, packages: [net-tools], runcmd: null}\";\r\n\r\nconst router = (await import(\"/framework/js/router.mjs\")).router;\r\nconst mustache = await router.getMustache();\r\nconst cloudInit = mustache.render(cloudinitTemplate, retObject);\r\nLOG.info(`Generated cloudinit is: ${cloudInit}`);\r\n\r\nretObject.cloudinit_data = cloudInit;\r\nreturn true;",
+    
+    "submitlabel": "{{{i18n.CreateVMSubmitLabel}}}"
 }
 
 }
