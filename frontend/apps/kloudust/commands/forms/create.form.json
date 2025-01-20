@@ -9,6 +9,7 @@
     {"id": "addimage", "label": "{{{i18n.AddImage}}}", "logo": "img/addimage.svg"}
 ],
 "*": [
+    {"id": "assignipvm", "label": "{{{i18n.AssignIPtoVM}}}", "logo": "img/assignipvm.svg"},
     {"id": "createvm", "label": "{{{i18n.CreateVirtualMachine}}}", "logo": "img/createvm.svg"},
     {"id": "createvnet", "label": "{{{i18n.CreateVirtualNetwork}}}", "logo": "img/createvnet.svg"},
     {"id": "createfirewall", "label": "{{{i18n.CreateFirewall}}}", "logo": "img/createfirewall.svg"},
@@ -26,6 +27,7 @@
 "en": {
     "AddHost": "Add host",
     "AddImage": "Add image",
+    "AssignIPtoVM": "Assign IP to VM",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
     "CreateFirewall": "Firewall Ruleset",
@@ -40,6 +42,7 @@
 "hi": {
     "AddHost": "Add host",
     "AddImage": "Add image",
+    "AssignIPtoVM": "Assign IP to VM",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
     "CreateFirewall": "Firewall Ruleset",
@@ -53,6 +56,7 @@
 "ja": {
     "AddHost": "Add host",
     "AddImage": "Add image",
+    "AssignIPtoVM": "Assign IP to VM",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
     "CreateFirewall": "Firewall Ruleset",
@@ -67,6 +71,7 @@
 "zh": {
     "AddHost": "Add host",
     "AddImage": "Add image",
+    "AssignIPtoVM": "Assign IP to VM",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
     "CreateFirewall": "Firewall Ruleset",
