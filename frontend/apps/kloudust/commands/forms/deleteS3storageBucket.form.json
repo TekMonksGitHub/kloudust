@@ -1,0 +1,54 @@
+{
+"id": "deleteS3storageBucket",
+"command": "deleteS3storageBucket",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["bucket_name"],
+
+"title": "{{{i18n.BucketDeleteTitle}}}",
+
+"i18n": {
+    "en": {
+        "BucketDeleteTitle": "Delete Bucket",
+        "BucketDeleteDescription": "Delete a bucket from the cloud. The bucket disk will also be deleted and lost forever. Complete the required tab then submit.",
+        "BucketName": "bucket name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteBucketSubmitLabel": "Delete"
+    },
+    "hi": {
+        "BucketDeleteTitle": "Delete Bucket",
+        "BucketDeleteDescription": "Delete a bucket from the cloud. The bucket disk will also be deleted and lost forever. Complete the required tab then submit.",
+        "BucketName": "वीएम नाम",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteBucketSubmitLabel": "Delete"
+    },
+    "ja": {
+        "BucketDeleteTitle": "Delete Bucket",
+        "BucketDeleteDescription": "Delete a bucket from the cloud. The bucket disk will also be deleted and lost forever. Complete the required tab then submit.",
+        "BucketName": "Bucket名",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteBucketSubmitLabel": "Delete"
+    },
+    "zh": {
+        "BucketDeleteTitle": "Delete Bucket",
+        "BucketDeleteDescription": "Delete a bucket from the cloud. The bucket disk will also be deleted and lost forever. Complete the required tab then submit.",
+        "BucketName": "虚拟机名称",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteVMSubmitLabel": "Delete"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.BucketDeleteDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "bucket_name", "type": "text", "placeholder": "{{{i18n.BucketName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._objectstorage_form_data.name_raw}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._objectstorage_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._objectstorage_form_data.name_raw}}"}
+    ],
+
+    "submitlabel": "{{{i18n.DeleteBucketSubmitLabel}}}"
+}
+
+}

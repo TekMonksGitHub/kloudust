@@ -210,6 +210,17 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory
     return await _db().runCmd(query, [id, name, description, hostname, org, _getProjectID(), os, cpus, memory, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
 }
 
+exports.addOrUpdateBucketToDB = async (name_raw, name, userid, description, size, vm_name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const bucketid = `${org}_${project}_${name}`;
+    const vmid = `${org}_${project}_${vm_name}`
+    const query = "insert into s3storage(id, bucketname, userid, description, size, bucketname_raw, vmid, org, projectid) values (?,?,?,?,?,?,?,?,?)";
+    const ans = await _db().runCmd(query, [bucketid, name, userid, description, size, name_raw, vmid, org, _getProjectID()]);
+    return ans;
+}
+
 /**
  * Returns the VM for the current user, org and project given its name. 
  * @param {string} name The VM Name
@@ -916,6 +927,58 @@ exports.runSQL = async function(sql) {
     if (!roleman.isCloudAdminLoggedIn()) {_logUnauthorized(); return false;}
     if (sql.toLocaleLowerCase().startsWith("select")) return await _db().getQuery(sql);
     else return await _db().runCmd(sql);
+}
+
+exports.getDockerVM = async (vmtype) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    const results = await _db().getQuery("select * from vms where vmtype = ? collate nocase", [vmtype]);
+    if ((!results) || (!results.length)) return null;
+    const vm = results[0];
+    return vm;
+}
+
+exports.getUserFromS3storage = async (userid) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    results = await _db().getQuery("select * from s3storage where userid = ? collate nocase", [userid]);
+    if ((!results) || (!results.length)) return false;
+    return true;
+}
+
+exports.listS3storageForOrgOrProject = async (org=KLOUD_CONSTANTS.env.org, project) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    if (project) project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    if ((!project) && (!roleman.isOrgAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) project = KLOUD_CONSTANTS.env.prj;
+
+    const projectid = _getProjectID(project, org)
+    const userid = KLOUD_CONSTANTS.env.userid;
+    const query = (project ? "select * from s3storage where projectid = ? collate nocase and org = ? collate nocase and userid = ? collate nocase" : "select * from s3storage where org = ? collate nocase ");
+    const results = await _db().getQuery(query, [projectid, org, userid]);
+    return results;
+}
+
+exports.getS3storageBucket = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const bucketid = `${org}_${project}_${name}`,
+        results = await _db().getQuery("select * from s3storage where id = ? collate nocase", [bucketid]);
+    if ((!results) || (!results.length)) return null;
+
+    const bucket = results[0];
+    return bucket;
+}
+
+exports.deleteS3storageBucket = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const bucket = await exports.getS3storageBucket(name, project, org); if (!bucket) return true;
+
+    const bucketid = `${org}_${project}_${name}`;
+    const deletionResult = await _db().runCmd("delete from s3storage where id = ? collate nocase", [bucketid]);
+    if (deletionResult) if (!await this.addObjectToRecycleBin(bucketid, bucket, project, org))
+        KLOUD_CONSTANTS.LOGWARN(`Unable to add bucket ${name} to the recycle bin.`);
+    return deletionResult;
 }
 
 const _logUnauthorized = _ => KLOUD_CONSTANTS.LOGERROR("User is not authorized.");

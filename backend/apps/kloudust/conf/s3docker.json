@@ -1,0 +1,18 @@
+{
+    "DOCKER_VM_PARAM":{
+        "VM_NAME":"kds3storage",
+        "VM_DESC":"Docker VM",
+        "VM_CORE":"2",
+        "VM_MEMORY":"2048",
+        "VM_DISK":"100",
+        "VM_IMG":"ubuntujammy_22_04_amd64",
+        "VM_RUNCMD":"[['sh','-c','wget -qO- http://192.168.122.1:8000/servicescripts/install_docker.sh | sudo bash -s -- http://192.168.122.1:8000/servicescripts/{{{dockerImageName}}} {{{hostPort}}} {{{containerPort}}} {{{dockerBuildName}}}']]"
+    },
+    "S3STORAGE_DOCKER_BUILD":"tekmonks/minio",
+    "S3STORAGE_DEFAULT_PORT":9000,
+    "PYTHON_HTTP_SERVER_PORT":8000,
+    "MINIO_ROOT_USER": "c990df3fcd37555b16227cf56ee570fb0a96",
+    "MINIO_ROOT_PASSWORD": "c350324a427ab63978d4694442fcd147b0e3",
+    "MINIO_DOCKER_IMG": "minio.dockerfile",
+    "minioDockerFile": "FROM ubuntu\nRUN apt -y update\nRUN apt -y upgrade\nRUN apt -y install wget\nRUN mkdir /minio\nRUN mkdir /s3\nRUN wget https://dl.min.io/server/minio/release/linux-amd64/minio -O /minio/minio\nRUN chmod ugoa+x /minio/minio\n\nENTRYPOINT [\"/minio/minio\", \"server\", \"/s3\", \"--console-address\", \":9001\"]"
+}

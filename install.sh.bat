@@ -4,3 +4,4 @@ npm install sqlite3
 npm install commander
 npm install shelljs
 npm install colors
+npm install minio

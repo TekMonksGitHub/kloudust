@@ -4,6 +4,11 @@
 
 [
     "BEGIN TRANSACTION",
+
+    //  s3storage table
+    "CREATE TABLE s3storage(id varchar not null primary key, bucketname varchar not null, \
+        userid varchar not null, description varchar, size integer not null, bucketname_raw varchar not null, vmid varchar not null, org varchar not null, projectid varchar not null, \
+        timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
     
     // this is a users table - authentication is via Tekmonks' unified login
     "CREATE TABLE users(id varchar not null primary key, name varchar not null, \

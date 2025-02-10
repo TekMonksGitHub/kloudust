@@ -1,0 +1,72 @@
+{
+    "id": "objectstorage",
+    "command": "tablelist",
+    "type": "table_display",
+    
+    "i18n": {
+    "en": {
+        "s3storage_name_raw": "Name",
+        "s3storage_description": "Description",
+        "s3storage_disk": "Size (GB)",
+        "s3storage_datetime": "Date created"
+    },
+    
+    "hi": {
+        "s3storage_name_raw": "Name",
+        "s3storage_description": "Description",
+        "s3storage_disk": "OS Disk (GB)",
+        "s3storage_datetime": "Date created"
+    },
+    
+    "ja": {
+        "s3storage_name_raw": "Name",
+        "s3storage_description": "Description",
+        "s3storage_disk": "OS Disk (GB)",
+        "s3storage_datetime": "Date created"
+    },
+    
+    "zh": {
+        "s3storage_name_raw": "Name",
+        "s3storage_description": "Description",
+        "s3storage_disk": "OS Disk (GB)",
+        "s3storage_datetime": "Date created"
+    }
+    },
+    
+    "tabledef": {
+        "popupform": {
+        "rolelist": {
+            "*":[
+                {"id": "deleteS3storageBucket", "label": "{{{i18n.s3storageDelete}}}", "logo": "img/deletes3storage.svg"}
+            ]
+        }
+        },
+    
+        "style": "div#tablebottombar{display: none;}",
+    
+        "i18nPrefix": "s3storage",
+    
+        "onclickrow_html": [
+            "<style>div#onclick_html{background-color: #F8F8F8; width: auto;} div#close{display: none !important}</style>",
+            "<style>div#onclickrow_html{height: 3.5em;} div#body{background-color: #F8F8F8 !important}</style>",
+            "<style>div#buttons{margin: 0 !important; justify-content: space-between !important; height: 100% !important; gap: 3em !important;}</style>",
+            "<style>div#button{height: 100% !important; max-height: 100% !important; margin: 0 !important; color: #BC5205 !important; width: 5em !important; font-size: 0.8em !important;}</style>",
+            "<style>div#button img {width: 3em !important; height: 3em !important;}</style>"
+        ],
+    
+        "clickrow_javascript": [
+            "const data = arguments[0]; APP_CONSTANTS.ENV._objectstorage_form_data = data;"
+        ],
+    
+        "load_javascript": [
+            "const buckets = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+                "cmd: `listS3storageForOrgOrProject \"${$$.libsession.get(APP_CONSTANTS.USERORG)}\" \"${$$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}\" \"${APP_CONSTANTS.VM_TYPE_VM}\"`, ",
+                "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+            "for (const bucket of buckets.buckets) {bucket.datetime = new Date(bucket.timestamp).toLocaleDateString(); bucket.name_raw = bucket.bucketname_raw; bucket.disk = bucket.size;}",
+            "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
+            "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
+            "tabledef.onclickrow_html.push(html);",
+            "return {keys: ['name_raw','description','disk','datetime'], table: buckets.buckets};"
+        ]
+    }
+    }
