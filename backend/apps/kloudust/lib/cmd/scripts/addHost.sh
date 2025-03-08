@@ -148,6 +148,7 @@ printf "\n\nSetting up the host firewall\n"
 if ! ufw --force reset; then exitFailed; fi
 if ! ufw default deny incoming; then exitFailed; fi
 if ! ufw default allow outgoing; then exitFailed; fi
+if ! ufw default allow routed; then exitFailed; fi
 if ! ufw allow $NEW_SSH_PORT; then exitFailed; fi
 if ! systemctl enable ufw; then exitFailed; fi
 if ! ufw --force enable; then exitFailed; fi

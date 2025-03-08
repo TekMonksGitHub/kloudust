@@ -2,7 +2,7 @@
 "id": "createvnet",
 "command": "createVnet",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["vnet_name", "vnet_description", "force_overwrite"],
+"kloudust_cmdline_params": ["vnet_name", "vnet_description", "override_host"],
 
 "title": "{{{i18n.VMCreateTitle}}}",
 
@@ -21,7 +21,9 @@
         "VnetNo": "No",
         "VnetAdvanced": "Advanced",
         "VnetInternetRouting": "Add internet routing NAT gateway support",
-        "VnetOverwriteForce": "Overwrite if a virtual network by the same name exists?"
+        "VnetOverwriteForce": "Overwrite if a virtual network by the same name exists?",
+        "VnetHostname": "Hostname to force host (else leave blank)",
+        "VMAdvanced": "Advanced"
     },
     "hi": {
         "VnetCreateTitle": "Create virtual network",

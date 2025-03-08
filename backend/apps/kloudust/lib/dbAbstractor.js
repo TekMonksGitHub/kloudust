@@ -96,6 +96,14 @@ exports.getHostsMatchingProcessorArchitecture = async(processor_architecture) =>
     return hosts;
 }
 
+exports.getlistOfHosts = async () => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) { _logUnauthorized(); return false; }
+
+    const query = "select hostname from hosts ";
+    const hosts = await _db().getQuery(query);
+    return hosts;
+}
+
 /**
  * Adds the given host resources to the tracking DB
  * @param {string} name Unique name
@@ -125,6 +133,13 @@ exports.getHostResource = async name => {
     if ((!resources) || (!resources.length)) return null; else return resources[0];
 }
 
+exports.getlistOfVlans = async (project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) { _logUnauthorized(); return false; }
+    const projectid = `${project}_${org}`;
+    const query = "select name from vlan where projectid=? collate nocase";
+    const resources = await _db().getQuery(query, [projectid]);
+    if ((!resources) || (!resources.length)) return null; else return resources;
+}
 /**
  * Returns the given host resource for project
  * @param {string} name The resource name
@@ -199,16 +214,59 @@ exports.getHostEntry = async hostname => {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @return true on success or false otherwise
  */
-exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory, disks, creation_cmd="undefined", 
-        name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory, disks, creation_cmd = "undefined",
+    name_raw, vmtype, ips = '',publicip='', project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${name}`;
-    const query = "replace into vms(id, name, description, hostname, org, projectid, os, cpus, memory, disksjson, creationcmd, name_raw, vmtype, ips) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    return await _db().runCmd(query, [id, name, description, hostname, org, _getProjectID(), os, cpus, memory, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
+    const query = "replace into vms(id, name, description, hostname, org, projectid, os, cpus, memory, disksjson, creationcmd, name_raw, vmtype, ips,publicip) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    return await _db().runCmd(query, [id, name, description, hostname, org, _getProjectID(), os, cpus, memory, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips,publicip]);
 }
+
+exports.addOrUpdateFirewallRulesToDB = async (name, rules, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const id = `${org}_${project}_${name}`;
+    const query = "replace into firewallrulesets(id,name,rules) values (?,?,?)";
+    return await _db().runCmd(query, [id, name, rules]);
+}
+
+exports.addOrUpdateVxlanToDB = async (vni, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const id = `vxlan${vni}`;
+    const query = "replace into vxlan(id,vni) values (?,?)";
+    return await _db().runCmd(query, [id, vni]);
+}
+
+exports.addOrUpdateVxlanHostMappingToDB = async (vxlanid, hostid1, hostid2, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const id = `vxlan${vxlanid}`;
+    const query = "replace INTO vxlanhostmapping (vxlanid,hostid) VALUES (?,?),(?,?);";
+    return await _db().runCmd(query, [id, hostid1, id, hostid2]);
+}
+
+exports.addOrUpdateVlanToDB = async (name, description, vlanid, vlangateway, hostname, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    const id = `${org}_${project}_${name}`;
+
+    return await _db().runCmd(
+        "REPLACE INTO vlan(id, name, description, vlanid, org, projectid, hostname,vlangateway) VALUES (?, ?, ?, ?, ?,?, ?, ?)",
+        [id, name, description, vlanid, org, _getProjectID(), hostname, vlangateway]
+    );
+};
+
+
 
 /**
  * Returns the VM for the current user, org and project given its name. 
@@ -229,6 +287,113 @@ exports.getVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANT
         KLOUD_CONSTANTS.LOGERROR(`Unable to parse disks for VM ${vm.name}`); vm.disks = [];
     };
     return vm;
+}
+
+exports.getVmsForHost = async (hostname, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    results = await _db().getQuery("select * from vms where hostname = ? collate nocase", [hostname]);
+    if ((!results) || (!results.length)) return null;
+
+    return results;
+}
+
+exports.getVmIps = async (vmtype, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    results = await _db().getQuery("select ips from vms where vmtype = ? collate nocase", [vmtype]);
+    if (!results.length) return [];
+    return results.map(obj => obj.ips);
+}
+
+exports.getVlanId = async (name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    results = await _db().getQuery("SELECT vlanid  FROM vlan where vlanid != '' ORDER BY vlanid  DESC  LIMIT 1");
+    if ((!results) || (!results.length)) return 1;
+    const unique_id = results[0]['vlanid'];
+    return unique_id;
+}
+
+
+exports.getVlanGateway = async (project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+
+    results = await _db().getQuery("SELECT vlangateway FROM vlan where vlangateway != ''  ORDER BY vlanid DESC  LIMIT 1");
+    if ((!results) || (!results.length)) return 1;
+
+    return results[0].vlangateway;
+}
+
+exports.isVlanExist = async (project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    results = await _db().getQuery("select * from vlan where projectid = ? collate nocase", [project]);
+    if ((!results) || (!results.length)) return null;
+
+    const vlan = results[0];
+    return vlan;
+}
+
+exports.getVlan = async (name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const id = `${org}_${project}_${name}`,
+        results = await _db().getQuery("select * from vlan where id = ? collate nocase", [id]);
+    if ((!results) || (!results.length)) return null;
+
+    const vlan = results[0];
+    return vlan;
+}
+
+exports.getVlanHostnameFromGateway =  async (gateway, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+        results = await _db().getQuery("select hostname from vlan where vlangateway = ? collate nocase", [gateway]);
+    if ((!results) || (!results.length)) return null;
+
+    const hostname = results[0];
+    return hostname;
+}
+
+exports.getFirewallRuleSets = async (firewallName, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    results = await _db().getQuery("select rules from firewallrulesets where name = ? collate nocase", [firewallName]);
+    if ((!results) || (!results.length)) return null;
+
+    return results[0].rules;
+}
+
+exports.getVxlan = async (hostname1, hostname2, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    results = await _db().getQuery("SELECT DISTINCT v1.vxlanid FROM vxlanhostmapping v1 JOIN vxlanhostmapping v2 ON v1.vxlanid = v2.vxlanid WHERE v1.hostid = ? AND v2.hostid = ?;", [hostname1, hostname2]);
+    if ((!results) || (!results.length)) return null;
+
+    const vlan = results[0];
+    return vlan;
+}
+
+exports.getVxlanId = async (project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    results = await _db().getQuery("SELECT vni  FROM vxlan  ORDER BY vni DESC  LIMIT 1");
+    if ((!results) || (!results.length)) return 1;
+
+    const unique_id = results[0]['vni'];
+    return unique_id + 1;
 }
 
 /**
