@@ -28,10 +28,8 @@ module.exports.exec = async function(params) {
         };
     });
     const dbUpdateSuccess = await dbAbstractor.addOrUpdateFirewallRulesToDB(name, JSON.stringify(ruleSets));
-    if (!dbUpdateSuccess) {
-        params.consoleHandlers.LOGERROR("DB failed");
-        return { ...results, result: false };
-    }
+    if (dbUpdateSuccess) return { result: true };
 
-    return results;
+    params.consoleHandlers.LOGERROR("DB failed");
+    return CMD_CONSTANTS.FALSE_RESULT();
 }
