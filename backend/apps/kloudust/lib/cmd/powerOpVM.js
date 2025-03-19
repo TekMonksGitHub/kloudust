@@ -32,6 +32,9 @@ module.exports.exec = async function(params) {
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
     
+    const gateway = vm.ips.replace(/\d+$/, '1');
+    const vlan = await dbAbstractor.getVlanFromGateway(gateway);
+
     const hostInfo = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
@@ -42,7 +45,7 @@ module.exports.exec = async function(params) {
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/powerOpVM.sh`,
-            vm_name, POWER_OP_PARAMS_MAP[power_op]
+            vm_name, POWER_OP_PARAMS_MAP[power_op],vlan.vlanid
         ] 
     }
 

@@ -2,13 +2,14 @@
 "id": "assignipvm",
 "command": "assignIPToVM",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["vm_name", "ip"],
+"kloudust_cmdline_params": ["vm_name", "ip","ips"],
 
 "title": "{{{i18n.VMAssignIPTitle}}}",
 
 "i18n": {
     "en": {
         "VMAssignIPTitle": "Assign or unassign IP to a virtual machine",
+        "ips":"select ip to assign",
         "VMAssignIPDescription": "Assign or unassign IP to a virtual machine on the cloud. Complete the required tab then submit.",
         "VMName": "Virtual machine name",
         "VMAssignIPCommand": "IP address to assign or unassign",
@@ -62,9 +63,8 @@
         "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
         "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
         "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
-    {"id": "ip", "type": "text", "placeholder": "{{{i18n.VMAssignIPCommand}}}", "required": true, 
-        "pattern":"[0-9.]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}", "list": "iplist"},
-    {"id":"iplist", "inputtype": "datalist"},
+    {"id": "ip", "multioption": true, "type": "select", "label": "{{{i18n.VMAssignIPCommand}}}", 
+        "options":[]},
     {"id": "type", "multioption": true, "type": "select", "label": "{{{i18n.VMAssignIPCommandType}}}", 
     "options":[
         {"value":"assign", "label":"{{{i18n.VMAssignIPAssign}}}"}, 
@@ -72,6 +72,15 @@
     ]
     }
     ],
+    "load_javascript": [
+        "const form = arguments[0]||{};",
+        "const vmName = form.required_fields[0].value",
+        "const assignips = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, ",
+        "   'POST', {cmd: `listIps ${vmName}`}, true);",
+        "if (assignips.result) for (const v of assignips.resources) { ",
+        "   const ip = form.required_fields[form.required_fields.length-2];",
+        "   ip.options.push({value: v.internalip,label: v.externalip}); }",
+        "return form;"],
 
     "rendered_javascript": [
         "const form = arguments[0], shadowroot = form._form_shadowroot;",

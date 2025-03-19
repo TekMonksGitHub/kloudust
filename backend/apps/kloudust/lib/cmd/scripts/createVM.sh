@@ -37,7 +37,10 @@ MAX_VCPUS={14}
 MAX_MEMORY={15}
 VIRT_INSTALL_PARAMS="{16}"
 NO_GUEST_AGENT={17}
-SHUTDOWN_WAIT={18}
+VLAN_ID={18}
+VM_IP={19}
+VLAN_GATEWAY_IP={20}
+SHUTDOWN_WAIT={21}
 SHUTDOWN_WAIT="${SHUTDOWN_WAIT:-20}"    # Default it to 90 seconds if not provided
 
 function exitFailed() {
@@ -104,14 +107,32 @@ fi
 
 printf "Creating VM $NAME\n"
 
+cloud_config=$(cat <<EOF
+#cloud-config
+network:
+  version: 2
+  ethernets:
+    enp1s0:
+      dhcp4: no
+      addresses:
+        - "$VM_IP/24"
+      gateway4: "$VLAN_GATEWAY_IP"
+      nameservers:
+        addresses:
+          - 8.8.8.8
+          - 8.8.4.4
+EOF
+)   
+
 DISK="path=/kloudust/disks/$NAME.qcow2,discard=unmap,format=qcow2"
 BOOTCMD="--boot hd"
-CLOUD_INIT="--cloud-init user-data=/kloudust/temp/ci_$NAME.yaml"
+CLOUD_INIT="--cloud-init user-data=/kloudust/temp/ci_$NAME.yaml,network-config=/kloudust/temp/network_$NAME"
 if [ "$CLOUD_IMAGE" == "true" ]; then # this is a cloud image file in QCow2 format, convert and load, else it is a CD-ROM ISO file
     if ! qemu-img convert -f qcow2 -O qcow2 /kloudust/catalog/$INSTALL_DISK /kloudust/disks/$NAME.qcow2; then exitFailed; fi
     if ! qemu-img resize /kloudust/disks/$NAME.qcow2 "$DISK_SIZE"G; then exitFailed; fi
     if [ "$CLOUDINIT_USERDATA" != "undefined" ] && [ -n "$CLOUDINIT_USERDATA" ]; then # check if a cloud init is provided 
         if ! printf "#cloud-config\n\n$CLOUDINIT_USERDATA" > /kloudust/temp/ci_$NAME.yaml; then exitFailed; fi
+        printf "%s\n" "$cloud_config" > /kloudust/temp/network_$NAME
     else
         CLOUD_INIT=""
         echo !WARNING! $NAME is a cloud image but no cloud init was provided. Image may not boot or work properly.
@@ -164,7 +185,7 @@ if ! virt-install --name $NAME --metadata name=$NAME --metadata title="$DESCRIPT
     --memory currentMemory=$MEMORY,maxmemory=$MAX_MEMORY \
     --disk $DISK \
     --os-variant $OS_VARIANT \
-    --network network=default \
+    --network bridge=br0 \
     --controller type=scsi,model=virtio-scsi \
     --noautoconsole \
     --virt-type kvm \
@@ -186,7 +207,7 @@ INSTALL="virt-install --name $NAME --metadata name=$NAME --metadata title=\"$DES
     --memory currentMemory=$MEMORY,maxmemory=$MAX_MEMORY \
     --disk $DISK \
     --os-variant $OS_VARIANT \
-    --network network=default \
+    --network bridge=br0 \
     --controller type=scsi,model=virtio-scsi \
     --noautoconsole \
     --virt-type kvm \
@@ -219,5 +240,17 @@ if ! virsh dumpxml $NAME > /kloudust/metadata/$NAME.xml; then exitFailed; fi
 #printf "Performing an initial restart cycle to stablize"
 #if shutdownVM $NAME; then virsh start $NAME; fi
 
+sleep 5  
+
+VNET_IFACE=$(virsh domiflist $NAME | awk '/br0/ {print $1}')
+
+if [[ -n "$VNET_IFACE" ]]; then
+    echo "Configuring VLAN for $VNET_IFACE..."
+    bridge vlan del dev $VNET_IFACE vid 1
+    bridge vlan add dev $VNET_IFACE vid $VLAN_ID pvid untagged
+else
+    echo "Failed to detect vnet interface for VM."
+    exit 1
+fi
 printf "\n\nVM created successfully\n"
 exit 0

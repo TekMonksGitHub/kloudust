@@ -23,10 +23,18 @@ module.exports.exec = async function(params) {
     const [vm_name_raw, ip] = [...params];
     const vm_name = createVM.resolveVMName(vm_name_raw);
 
+    const externalIp = await dbAbstractor.getExternalIp(ip);
+    if (!externalIp) {params.consoleHandlers.LOGERROR("external ip not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+    if(vm.publicip != externalIp){params.consoleHandlers.LOGERROR("invalid ip to unassign"); return CMD_CONSTANTS.FALSE_RESULT("invalid ip to unassign");}
 
-    const hostInfo = await dbAbstractor.getHostEntry(vm.hostname); 
+    const gateway = vm.ips.replace(/\d+$/, '1');
+    const vmHost = await dbAbstractor.getVlanHostnameFromGateway(gateway);
+
+
+    const hostInfo = await dbAbstractor.getHostEntry(vmHost.hostname); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
     const xforgeArgs = {
@@ -36,15 +44,14 @@ module.exports.exec = async function(params) {
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/unassignIPToVM.sh`,
-            vm_name, ip.trim()
+            vm.ips, ip
         ]
     }
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
-        const vmips = vm.ips.split(','), finalVMIPs = vmips.filter(ipThis => ipThis != ip.trim());
         if (await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.os, 
-            vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, finalVMIPs.join(','))) return results;
+            vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype,vm.ips,'')) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;
 }

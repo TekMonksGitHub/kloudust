@@ -21,13 +21,27 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
     const [vm_name_raw, ip] = [...params];
+
+    const allVms = await dbAbstractor.listVMsForOrgOrProject('vm');
+    const ans = allVms.filter(a=>a.publicip == ip )
+    if(ans.length) {
+        params.consoleHandlers.LOGERROR("ip already assigned"); return CMD_CONSTANTS.FALSE_RESULT("ip already assigned");
+    }
+
     const vm_name = createVM.resolveVMName(vm_name_raw);
 
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
-    const hostInfo = await dbAbstractor.getHostEntry(vm.hostname); 
+    const gateway = vm.ips.replace(/\d+$/, '1');
+    const vmHost = await dbAbstractor.getVlanHostnameFromGateway(gateway);
+    if (!vmHost) {params.consoleHandlers.LOGERROR("Bad gateway or gateway not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+
+    const hostInfo = await dbAbstractor.getHostEntry(vmHost.hostname); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+
+    const externalIp = await dbAbstractor.getExternalIp(ip);
+    if (!externalIp) {params.consoleHandlers.LOGERROR("external ip not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
@@ -36,15 +50,14 @@ module.exports.exec = async function(params) {
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/assignIPToVM.sh`,
-            vm_name, ip.trim()
+            vm.ips, ip
         ]
     }
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
-        const vmips = vm.ips.trim() != '' ? vm.ips.split(',') : [], finalVMIPs = [...vmips, ip];
         if (await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.os, 
-            vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, finalVMIPs.join(','))) return results;
+            vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype,vm.ips,externalIp)) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;
 }
