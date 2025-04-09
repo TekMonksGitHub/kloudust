@@ -30,7 +30,7 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
 
-    const [hostname, hostip, ostype, adminid, adminpass, hostsshkey, oldsshport_raw, cores, memory, disk, netspeed, 
+    const [hostname, hostip, ostype, adminid, adminpass, hostsshkey, oldsshport_raw,hostInternalIp, cores, memory, disk, netspeed, 
         processor, processorarchitecture, sockets, nochangepassword] = [...params];
     const oldsshport = oldsshport_raw && oldsshport_raw.trim() != "" ? oldsshport_raw : 22;
     const newsshport = Math.floor(Math.random() * (KLOUD_CONSTANTS.CONF.SSH_RANGE.MAX - KLOUD_CONSTANTS.CONF.SSH_RANGE.MIN + 1) + KLOUD_CONSTANTS.CONF.SSH_RANGE.MIN);
@@ -40,6 +40,11 @@ module.exports.exec = async function(params) {
 
     if (await dbAbstractor.getHostEntry(hostname)) {  // check if the host already exists
         const error = `Host with the name ${hostname} exists already. Please delete it first.`;
+        params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error);
+    }
+
+    if (!await dbAbstractor.addOrUpdateHostIpMappingToDB(hostname,hostip,hostInternalIp)) {  // check if the host already exists
+        const error = `Host with the name ${hostname} has issue with internal ip`;
         params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error);
     }
 

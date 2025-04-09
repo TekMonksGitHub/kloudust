@@ -6,7 +6,7 @@ import {util} from "/framework/js/util.mjs";
 import {monkshu_component} from "/framework/js/monkshu_component.mjs";
 
 const COMPONENT_PATH = util.getModulePath(import.meta), INPUT_NODES = ["input", "select"];
-
+let data ;
 function elementConnected(host) {
 	Object.defineProperty(host, "value", {get: _=>JSON.stringify(_getValue(host)), 
 		set: value=>_setValue(JSON.parse(value), host)});
@@ -27,6 +27,8 @@ function addRow(callingRow) {
 	if (callingRow.nextSibling) callingRow.parentNode.insertBefore(nodesToInject, callingRow.nextSibling);
 	else callingRow.parentNode.appendChild(nodesToInject);
 	console.debug(JSON.stringify(_getValue(firewall_rules.getHostElementByContainedElement(callingRow))));
+	data = _getValue(firewall_rules.getHostElementByContainedElement(callingRow));
+	console.log(data);
 }
 
 function removeRow(callingRow) {
@@ -71,5 +73,10 @@ function _addFirstFirewallRuleRow(shadowRoot) {
 	rulesContainer.appendChild(nodesToInject);
 }
 
-export const firewall_rules = {trueWebComponentMode: true, elementConnected, elementRendered, addRow, removeRow}
+function values(){
+	const rules = data.map(obj => Object.values(obj).join(",")).join("|");	
+	return rules ;
+}
+
+export const firewall_rules = {trueWebComponentMode: true, elementConnected,values, elementRendered,_getValue, addRow, removeRow}
 monkshu_component.register("firewall-rules", `${COMPONENT_PATH}/firewall-rules.html`, firewall_rules);

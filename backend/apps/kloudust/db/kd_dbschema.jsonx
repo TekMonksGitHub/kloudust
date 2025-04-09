@@ -50,7 +50,7 @@
         projectid varchar not null, os varchar not null, cpus integer not null, \
         memory integer not null, disksjson varchar not null, creationcmd varchar not null, \
         name_raw varchar not null, vmtype varchar default 'vm', ips varchar not null default '', \
-        snapshots_json varchar not null default '', vnets_json varchar not null default '', \
+        publicip varchar not null default '', snapshots_json varchar not null default '', vnets_json varchar not null default '', \
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
     // Vnets container table
@@ -58,9 +58,31 @@
         description varchar, org varchar not null, projectid varchar not null, \
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
+     // vlan container table
+    "CREATE TABLE vlan(id varchar not null , name varchar not null, \
+        description varchar,vlanid integer not null, org varchar not null, projectid varchar not null, \
+        hostname varchar,vlangateway varchar, timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
+
     // Snapshots of any cloud resource
     "CREATE TABLE snapshots(id varchar not null primary key, snapshotname varchar not null, \
         org varchar not null, projectid varchar not null, \
+        timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
+
+    // firewallrulesets table
+    "CREATE TABLE firewallrulesets(id varchar not null primary key, name varchar, \
+        projectid varchar,rules varchar not null, \
+        timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
+
+    // vxlan table
+    "CREATE TABLE vxlan(id varchar not null primary key, vni integer, \
+        timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
+
+    // vxlanhostmapping table
+    "CREATE TABLE vxlanhostmapping(vxlanid varchar not null , hostid integer not null, \
+        timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
+
+    // hostipmapping table
+    "CREATE TABLE hostipmapping(host varchar , internalip varchar ,externalip varchar UNIQUE, \
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
     "COMMIT TRANSACTION"

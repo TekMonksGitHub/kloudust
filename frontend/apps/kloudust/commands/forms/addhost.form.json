@@ -2,7 +2,7 @@
 "id": "addhost",
 "command": "addHost",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["hostname", "hostip", "ostype", "adminid", "adminpass", "hostsshkey", "sshport", "cores", 
+"kloudust_cmdline_params": ["hostname", "hostip","ostype", "adminid", "adminpass", "hostsshkey", "sshport","hostinternalip", "cores", 
     "memory", "disk", "netspeed", "processor", "processorarch", "sockets", "nochangepassword"],
 
 "title": "{{{i18n.RegisterHost}}}",
@@ -11,6 +11,7 @@
     "en": {
         "Hostname": "Cloud name for this host",
         "HostNetworkAddressOrIp": "Host IP or DNS",
+        "hostInternalIpAddress":"Enter Internal Ip adress of Host",
         "HostOSType": "Choose host OS",
         "HostRootID": "Host administrator's login ID",
         "HostRootPassword": "Host administrator's password",
@@ -116,6 +117,8 @@
 
     "optional_label": "{{{i18n.Advanced}}}",
     "optional_fields": [
+    {"id": "hostinternalip", "type": "text", "placeholder": "{{{i18n.hostInternalIpAddress}}}", "required": true, 
+        "pattern":"\\s*[0-9\\.]+\\s*","value":"", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
     {"id": "cores", "type": "number", "placeholder": "{{{i18n.HostCores}}}"},
     {"id": "memory", "type": "number", "placeholder": "{{{i18n.HostMemory}}}"},
     {"id": "disk", "type": "number", "placeholder": "{{{i18n.HostDisk}}}"},
