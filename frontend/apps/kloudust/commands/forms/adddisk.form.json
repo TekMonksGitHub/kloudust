@@ -1,0 +1,64 @@
+{
+"id": "adddisk",
+"command": "adddisk",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vm_name", "disk", "disk_name"],
+
+"title": "{{{i18n.AddDiskTitle}}}",
+
+"i18n": {
+    "en": {
+        "AddDiskTitle": "Add disk to Virtual Machine",
+        "AddDiskDescription": "Add a new disk to an existing virtual machine in the cloud. Complete the required tab then submit or review the advanced tab for full customization.",
+        "VMName": "Virtual machine name",
+        "VMNewDisk": "New disk size in gigabytes",
+        "VMNewDiskName": "New disk image name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "AddDiskSubmitLabel": "Add Disk"
+    },
+    "hi": {
+        "AddDiskTitle": "Add disk to Virtual Machine",
+        "AddDiskDescription": "Add a new disk to an existing virtual machine in the cloud. Complete the required tab then submit or review the advanced tab for full customization.",
+        "VMName": "Virtual machine name",
+        "VMNewDisk": "New disk size in gigabytes",
+        "VMNewDiskName": "New disk image name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "AddDiskSubmitLabel": "Add Disk"
+    },
+    "ja": {
+        "AddDiskTitle": "Add disk to Virtual Machine",
+        "AddDiskDescription": "Add a new disk to an existing virtual machine in the cloud. Complete the required tab then submit or review the advanced tab for full customization.",
+        "VMName": "Virtual machine name",
+        "VMNewDisk": "New disk size in gigabytes",
+        "VMNewDiskName": "New disk image name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "AddDiskSubmitLabel": "Add Disk"
+    },
+    "zh": {
+        "AddDiskTitle": "Add disk to Virtual Machine",
+        "AddDiskDescription": "Add a new disk to an existing virtual machine in the cloud. Complete the required tab then submit or review the advanced tab for full customization.",
+        "VMName": "Virtual machine name",
+        "VMNewDisk": "New disk size in gigabytes",
+        "VMNewDiskName": "New disk image name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "AddDiskSubmitLabel": "Add Disk"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.AddDiskDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
+        "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}", 
+        "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
+    {"id": "disk", "type": "number", "placeholder": "{{{i18n.VMNewDisk}}}", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "disk_name", "type": "text", "placeholder": "{{{i18n.VMNewDiskName}}}", "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+    ],
+
+    "submitlabel": "{{{i18n.AddDiskSubmitLabel}}}"
+}
+
+}

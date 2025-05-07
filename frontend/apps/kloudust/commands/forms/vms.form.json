@@ -19,7 +19,8 @@
     "VMSVNet": "Virtual Network",
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
-    "VMSResize": "Resize"
+    "VMSResize": "Resize",
+    "VMSADDDISK": "Add Disk"
 },
 
 "hi": {
@@ -37,7 +38,8 @@
     "VMSVNet": "Virtual Network",
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
-    "VMSResize": "Resize"
+    "VMSResize": "Resize",
+    "VMSADDDISK": "Add Disk"
 },
 
 "ja": {
@@ -55,7 +57,8 @@
     "VMSVNet": "Virtual Network",
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
-    "VMSResize": "Resize"
+    "VMSResize": "Resize",
+    "VMSADDDISK": "Add Disk"
 },
 
 "zh": {
@@ -73,7 +76,8 @@
     "VMSVNet": "Virtual Network",
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
-    "VMSResize": "Resize"
+    "VMSResize": "Resize",
+    "VMSADDDISK": "Add Disk"
 }
 },
 
@@ -86,7 +90,8 @@
             {"id": "vnetvm", "label": "{{{i18n.VMSVNet}}}", "logo": "img/vnet.svg"},
             {"id": "poweropvm", "label": "{{{i18n.VMSPowerOpVM}}}", "logo": "img/poweropvm.svg"},
             {"id": "deletevm", "label": "{{{i18n.VMSDelete}}}", "logo": "img/deletevm.svg"},
-            {"id": "resizevm", "label": "{{{i18n.VMSResize}}}", "logo": "img/resizevm.svg"} 
+            {"id": "resizevm", "label": "{{{i18n.VMSResize}}}", "logo": "img/resizevm.svg"},
+            {"id": "adddisk", "label": "{{{i18n.VMSADDDISK}}}", "logo": "img/adddisk.svg"}
         ]
     }
     },

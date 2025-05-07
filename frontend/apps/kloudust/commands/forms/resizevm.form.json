@@ -14,7 +14,7 @@
         "VMCores": "Cores",
         "VMMemory": "Memory in megabytes",
         "VMNewDisk": "New disk size in gigabytes",
-        "VMNewDiskName": "New disk image name (needed if a new disk is specified)",
+        "DiskNameLabel": "Select disk name for resize",
         "VMResizeRestart": "Restart the machine?",
         "FieldValidationErrorGeneric": "Validation error",
         "ResizeVMSubmitLabel": "Resize",
@@ -30,7 +30,7 @@
         "VMCores": "Cores",
         "VMMemory": "Memory in megabytes",
         "VMNewDisk": "New disk size in gigabytes",
-        "VMNewDiskName": "New disk image name (needed if a new disk is specified)",
+        "DiskNameLabel": "Select disk name for resize",
         "VMResizeRestart": "Restart the machine?",
         "FieldValidationErrorGeneric": "Validation error",
         "ResizeVMSubmitLabel": "Resize",
@@ -46,7 +46,7 @@
         "VMCores": "Cores",
         "VMMemory": "Memory in megabytes",
         "VMNewDisk": "New disk size in gigabytes",
-        "VMNewDiskName": "New disk image name (needed if a new disk is specified)",
+        "DiskNameLabel": "Select disk name for resize",
         "VMResizeRestart": "Restart the machine?",
         "FieldValidationErrorGeneric": "Validation error",
         "ResizeVMSubmitLabel": "Resize",
@@ -62,7 +62,7 @@
         "VMCores": "Cores",
         "VMMemory": "Memory in megabytes",
         "VMNewDisk": "New disk size in gigabytes",
-        "VMNewDiskName": "New disk image name (needed if a new disk is specified)",
+        "DiskNameLabel": "Select disk name for resize",
         "VMResizeRestart": "Restart the machine?",
         "FieldValidationErrorGeneric": "Validation error",
         "ResizeVMSubmitLabel": "Resize",
@@ -85,11 +85,22 @@
     {"id": "cores", "type": "number", "placeholder": "{{{i18n.VMCores}}}", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
     {"id": "memory", "type": "number", "placeholder": "{{{i18n.VMMemory}}}", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
     {"id": "disk", "type": "number", "placeholder": "{{{i18n.VMNewDisk}}}", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
-    {"id": "resize_disk_inplace", "multioption": true, "type": "select", "label": "{{{i18n.VMResizeInplaceDisk}}}", 
-        "options":[{"value":"false", "label":"{{{i18n.VMNo}}}"}, {"value":"true", "label":"{{{i18n.VMYes}}}"}]},
-    {"id": "disk_name", "type": "text", "placeholder": "{{{i18n.VMNewDiskName}}}", "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "disk_name", "multioption": true, "type": "select", "label": "{{{i18n.DiskNameLabel}}}", "options":[]},
+    {"id": "resize_disk_inplace", "type": "text", "vissible": false, "value": "true", "readonly": true},
     {"id": "restart", "multioption": true, "type": "select", "label": "{{{i18n.VMResizeRestart}}}", 
         "options":[{"value":"false", "label":"{{{i18n.VMNo}}}"}, {"value":"true", "label":"{{{i18n.VMYes}}}"}]}
+    ],
+
+    
+    "load_javascript": [
+        "const form = arguments[0]||{};",
+        "const diskResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, ",
+        "'POST', {cmd: 'getDiskInfo {{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}', ",
+        "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+        "if (diskResult.result) for (const d of diskResult.disks) { ",
+        "   const disk_name = form.required_fields[form.required_fields.length-3];",
+        "   disk_name.options.push({value: d.diskname, label: `${d.diskname} (${d.size}GB)`}); }",
+        "return form;"
     ],
 
     "submitlabel": "{{{i18n.ResizeVMSubmitLabel}}}"
