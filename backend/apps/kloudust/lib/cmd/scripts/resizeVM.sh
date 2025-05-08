@@ -70,6 +70,35 @@ function shutdownVM() {
     return 0
 }
 
+function restartVM(){
+    VMNAME=$1
+    STATE=$(virsh domstate "$VMNAME" 2>/dev/null | tr -d '[:space:]')
+    case "$STATE" in
+    shutoff)
+        echo "VM '$VMNAME' is shut off. Starting..."
+        virsh start "$VMNAME"
+        ;;
+    *)
+        echo "Trying to reboot VM '$VMNAME'"
+        virsh reboot "$VMNAME"
+        ;;
+    esac
+}
+
+function startVM(){
+    VMNAME=$1
+    STATE=$(virsh domstate "$VMNAME" 2>/dev/null | tr -d '[:space:]')
+    case "$STATE" in
+    shutoff)
+        echo "VM '$VMNAME' is shut off. Starting..."
+        virsh start "$VMNAME"
+        ;;
+    *)
+        echo "VM '$VMNAME' is already running."
+        ;;
+    esac
+}
+
 SPACE_PATTERN=" |'"
 if [[ $NAME =~ $SPACE_PATTERN ]]; then 
     exitFailed "VM name $NAME can't have spaces.\n"
@@ -137,21 +166,37 @@ if [ "$ATTACH_DISK" == "true" ]; then
 fi
 
 if [ "$INPLACE_DISK_RESIZE" == "true" ]; then
-    if ! shutdownVM $NAME; then exitFailed Unable to shutdown $NAME; fi
-    VM_DISK=`virsh dumpxml $NAME | grep -oP "source\sfile=\s*'\K\/kloudust\/disks\/$NAME.+?(?=')"`
-    if [ -z $VM_DISK ]; then
-        echo Error!! Unable to find VM disk. 
+    if ! shutdownVM "$NAME"; then exitFailed "Unable to shutdown $NAME"; fi
+
+    DISK_FILE=/kloudust/disks/"$NAME"_"$DISK_NAME".qcow2
+    # disk file must exist AND be attached to the VM
+    if [ ! -f "$DISK_FILE" ] || ! virsh dumpxml "$NAME" | grep -q "<source file='$DISK_FILE'"; then
+        echo "Error!! Disk file $DISK_FILE either does not exist or is not attached to VM $NAME."
+        startVM "$NAME"  # Restart the VM on failure as it was shutdown
         exitFailed
     fi
-    if ! qemu-img resize $VM_DISK "$ADDITIONAL_DISK"G; then exitFailed; fi
-    echo VM disk located at $VM_DISK, resized successfully.
+
+    # Get current disk size in bytes and target size in bytes
+    CURRENT_SIZE=$(qemu-img info --output=json "$DISK_FILE" | grep '"virtual-size"' | awk '{print $2}' | tr -d ',')
+    TARGET_SIZE=$((ADDITIONAL_DISK * 1024 * 1024 * 1024))
+    if [ "$TARGET_SIZE" -le "$CURRENT_SIZE" ]; then
+        echo "Warning: Target size ($ADDITIONAL_DISK G) is less than or equal to current disk size ($((CURRENT_SIZE / 1024 / 1024 / 1024)) G)."
+        echo "Shrinking is not allowed. Aborting."
+        startVM "$NAME" # Restart the VM on failure as it was shutdown
+        exitFailed
+    fi
+
+    # Resizing the disk using qemu-img
+    if ! qemu-img resize "$DISK_FILE" "$ADDITIONAL_DISK"G; then 
+        echo "Error!! Unable to resize the VM disk using qemu-img."
+        startVM "$NAME" # Restart the VM on failure as it was shutdown
+        exitFailed
+    fi
+
+    echo "Disk $DISK_FILE resized successfully for VM $NAME."
 fi
 
-
-if [ "$RESTART" == "true" ]; then
-    echo Restaring $NAME
-    virsh reboot $NAME
-fi
+if [ "$RESTART" == "true" ]; then restartVM "$NAME"; fi
 
 printf "\n\nResize of $NAME completed successfully.\n"
 exit 0

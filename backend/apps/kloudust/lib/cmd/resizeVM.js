@@ -27,7 +27,7 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
     const [vm_name_raw, cores, memory, disk_new_gb, disk_name, inplace_disk_resize, restart] = [...params];
     const vm_name = createVM.resolveVMName(vm_name_raw);
-    if (disk_new_gb && (!disk_name)) { params.consoleHandlers.LOGERROR(
+    if (disk_new_gb && inplace_disk_resize.toString().toLowerCase() != 'true' && !disk_name) { params.consoleHandlers.LOGERROR(
         "Disk name is needed if adding a new disk"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
     const vm = await dbAbstractor.getVM(vm_name);
@@ -44,19 +44,19 @@ module.exports.exec = async function(params) {
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/resizeVM.sh`,
             vm_name, cores||"", memory||"", parseInt(disk_new_gb)||"", disk_name, "false", "false",
-            inplace_disk_resize?.toLowerCase()||"false", restart?.toLowerCase()||"false"
+            inplace_disk_resize?.toLowerCase()||"false", restart?.toLowerCase()||"false", 90
         ]
     }
 
     const results = await xforge(xforgeArgs);
 
-    if (disk_name && disk_new_gb && (inplace_disk_resize.toString().toLowerCase() == 'true')) {
-        vm.disks = vm.disks.filter(disk => disk.diskname != createVM.DEFAULT_DISK); // pop old disk so we can replace it's value
-        vm.disks.push({diskname: createVM.DEFAULT_DISK, size: parseInt(disk)});
+    if (disk_name && disk_new_gb) {
+       vm.disks = vm.disks.filter(disk => disk.diskname != disk_name); // pop old disk so we can replace it's value
+       vm.disks.push({diskname: disk_name, size: parseInt(disk_new_gb)}); // add new disk with new size
     }
     
     if (results.result) await dbAbstractor.addOrUpdateVMToDB(vm_name, vm.description, vm.hostname, vm.os, 
-        cores, memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, vm.ips);
+        cores==""?vm.cpus:cores, memory==""?vm.memory:memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, vm.ips);
 
     return results;
 }
