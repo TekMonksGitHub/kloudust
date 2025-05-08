@@ -13,6 +13,7 @@
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
     "VMS_state": "State",
+    "VMS_vmstatus": "Status",
 
     "VMSFirewall": "Firewall",
     "VMSAssignIP": "Assign IP",
@@ -31,6 +32,7 @@
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
     "VMS_state": "State",
+    "VMS_vmstatus": "Status",
 
     "VMSFirewall": "Firewall",
     "VMSAssignIP": "Assign IP",
@@ -49,6 +51,7 @@
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
     "VMS_state": "State",
+    "VMS_vmstatus": "Status",
 
     "VMSFirewall": "Firewall",
     "VMSAssignIP": "Assign IP",
@@ -67,6 +70,7 @@
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
     "VMS_state": "State",
+    "VMS_vmstatus": "Status",
 
     "VMSFirewall": "Firewall",
     "VMSAssignIP": "Assign IP",
@@ -119,7 +123,7 @@
         "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
         "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
         "tabledef.onclickrow_html.push(html);",
-        "return {keys: ['name_raw','description','os','disk','cpus','memory','datetime'], table: vms.vms||[]};"
+        "return {keys: ['name_raw','description','os','disk','cpus','memory', 'vmstatus' ,'datetime'], table: vms.vms||[]};"
     ]
 }
 }

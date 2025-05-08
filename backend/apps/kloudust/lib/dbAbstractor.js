@@ -908,6 +908,19 @@ exports.getVMsForVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj,
 }
 
 /**
+ * Update the state of the VM in the vms table
+ * @param {string} vm_id The ID of the vm
+ * @param {string} vm_status state of the vm
+ * @returns {boolean} true if the entry is successful else false
+ */
+exports.updateVMStatus = async function(vm_id,vm_status) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const query = "update vms set vmstatus = ? where id = ?;"
+    const results = await _db().getQuery(query, [vm_status,vm_id]);
+    return results;
+}
+
+/**
  * Runs the given SQL on the DB blindly. Must be very careful. Only cloud admins can run this.
  * @param sql The SQL to run on the DB.
  * @return The results of the SQL.
