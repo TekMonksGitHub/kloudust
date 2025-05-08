@@ -15,7 +15,7 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 const statusCheck = {};
 
 /**
- * Resizes the given VM
+ * Registers a job to refresh VMs' states at a certain interval
  * @param {array} params The incoming params, see above for param documentation.
  */
 module.exports.exec = async function(params) {
