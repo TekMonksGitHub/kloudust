@@ -10,6 +10,7 @@
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const deleteVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVM.js`);
+const assignIPToVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/assignIPToVM.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
@@ -30,6 +31,12 @@ module.exports.exec = async function(params) {
 
     const hostToInfo = await dbAbstractor.getHostEntry(hostToName); 
     if (!hostToInfo) {params.consoleHandlers.LOGERROR("Bad hostname for host to."); return CMD_CONSTANTS.FALSE_RESULT();}
+
+    const isVxlanSetup = await assignIPToVM.setupVxlanIfNeeded(params, vm.hostname, hostToName);
+    if (!isVxlanSetup) {
+        params.consoleHandlers.LOGERROR(`VXLAN setup failed, Check if the host IP is assigned; if not, add an internal IP. If the internal IP is already added, ensure that the IPs are correct,check the ips of ${vmHostname} or ${vlanDetails.hostname}`);
+        return CMD_CONSTANTS.FALSE_RESULT("Vm creation failed, Check if the host IP is assigned; if not, add an internal IP. If the internal IP is already added, ensure that the IPs are correct");
+    }
 
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
@@ -59,3 +66,5 @@ module.exports.exec = async function(params) {
         } else return results;
     } else return results;
 }
+
+

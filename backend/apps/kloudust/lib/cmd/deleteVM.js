@@ -11,6 +11,7 @@
 
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
+const unassignIPToVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/unassignIPToVM.js`)
 const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
@@ -26,6 +27,13 @@ module.exports.exec = async function(params) {
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
+    if(vm.publicip){
+    const unassignIpParam = [...params];
+    unassignIpParam.push(vm.publicip);
+    unassignIpParam.consoleHandlers = params.consoleHandlers
+    const isIpUnassigned = await unassignIPToVM.exec(unassignIpParam);;
+    if(!isIpUnassigned.result){params.consoleHandlers.LOGERROR("IP unassigment Failed"); return CMD_CONSTANTS.FALSE_RESULT();}
+    }
     const hostInfo = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 

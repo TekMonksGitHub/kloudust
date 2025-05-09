@@ -21,7 +21,9 @@
         "VnetNo": "No",
         "VnetAdvanced": "Advanced",
         "VnetInternetRouting": "Add internet routing NAT gateway support",
-        "VnetOverwriteForce": "Overwrite if a virtual network by the same name exists?"
+        "VnetOverwriteForce": "Overwrite if a virtual network by the same name exists?",
+        "VnetHostname": "Hostname to force host (else leave blank)",
+        "VMAdvanced": "Advanced"
     },
     "hi": {
         "VnetCreateTitle": "Create virtual network",
@@ -80,13 +82,8 @@
     "required_fields": [
     {"id": "vnet_name", "type": "text", "placeholder": "{{{i18n.VnetName}}}", "required": true, 
         "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
-    {"id": "vnet_description", "type": "text", "placeholder": "{{{i18n.VnetDescription}}}"}
-    ],
-
-    "optional_label": "{{{i18n.VnetAdvanced}}}",
-    "optional_fields": [
-    {"id": "force_overwrite", "multioption": true, "type": "select", "label": "{{{i18n.VnetOverwriteForce}}}", 
-        "options":[{"value":"false", "label":"{{{i18n.VnetNo}}}"}, {"value":"true", "label":"{{{i18n.VnetYes}}}"}]}
+    {"id": "vnet_description", "type": "text", "placeholder": "{{{i18n.VnetDescription}}}"},
+    {"id": "force_overwrite", "type": "hidden", "value":"","placeholder": "{{{i18n.VnetDescription}}}"}
     ],
 
     "submitlabel": "{{{i18n.CreateVMSubmitLabel}}}"

@@ -32,8 +32,13 @@ module.exports.exec = async function(params) {
     const vmtypes = vmtypes_raw ? vmtypes_raw.split(",") : [createVM.VM_TYPE_VM];
     const vms = await dbAbstractor.listVMsForOrgOrProject(vmtypes, org, project);
 
-    const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push({...vm, creationcmd: undefined});
-
+    const vms_ret = []; 
+        if (vms) {
+            for (const vm of vms) {
+                const vlan = await dbAbstractor.getVlanNameFromVMID(vm.id);
+                vms_ret.push({...vm, creationcmd: undefined,vlanName: vlan[0]?.name})
+            };
+        }
     let out = "VM information from the database follows.";
     for (const vm of vms_ret) out += "\n"+JSON.stringify(vm);
 

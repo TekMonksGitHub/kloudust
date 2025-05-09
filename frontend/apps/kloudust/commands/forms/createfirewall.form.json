@@ -1,6 +1,6 @@
 {
-"id": "addfirewall",
-"command": "addFirewall",
+"id": "createfirewall",
+"command": "createFirewall",
 "type": "kloudust_cmdline",
 "kloudust_cmdline_params": ["firewall_name", "firewall_settings"],
 
@@ -43,13 +43,19 @@
     "required_label": "{{{i18n.Required}}}",
     "required_fields": [
     {"id": "firewall_name", "type": "text", "placeholder": "{{{i18n.FirewallName}}}", "required": true, 
-        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+        "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
     {"id": "firewall_settings", "type": "hidden", "value":"[]"},
     {"id": "firewallRulesComponent", "inputtype": "firewall-rules", 
         "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
     ],
 
-    "submitlabel": "{{{i18n.FirewallSubmitLabel}}}"
+    "submitlabel": "{{{i18n.FirewallSubmitLabel}}}",
+    "submit_javascript":[
+        "const retObject = arguments[0]||{};",
+        "const ans = monkshu_env.components['firewall-rules'].values()",
+        "retObject.firewall_settings = ans",
+        "return true"
+    ]
 }
 
 }

@@ -12,6 +12,7 @@
             "VMFirewallDescription": "Firewall a virtual machine. Complete the required fields and then submit to firewall the virtual machine.",
             "VMFirewallName": "Firewall ruleset name",
             "VMName": "Virtual machine name",
+            "ruleSet":"select rulset",
             "FieldValidationErrorGeneric": "Validation error",
             "FirewallVMSubmitLabel": "Firewall"
         },
@@ -43,16 +44,26 @@
     
     "form": {
         "description": "{{{i18n.VMFirewallDescription}}}",
-    
+
         "required_label": "{{{i18n.Required}}}",
         "required_fields": [
         {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
-            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
             "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
             "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
-        {"id": "firewall_ruleset_name", "type": "text", "placeholder": "{{{i18n.VMFirewallName}}}", 
-            "required": true, "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+        {"id": "firewall_ruleset_name", "multioption": true, "type": "select", "label": "{{{i18n.ruleSet}}}", 
+            "options":[]}
         ],
+
+        "load_javascript": [
+        "const form = arguments[0]||{};",
+        "const ruleResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, ",
+        "   'POST', {cmd: 'listRules'}, true);",
+        "if (ruleResult.result) for (const v of ruleResult.resources) { ",
+        "   const rule = form.required_fields[form.required_fields.length-1];",
+        "   rule.options.push({value: v.name,label: v.name}); }",
+        "return form;"
+    ],
     
         "submitlabel": "{{{i18n.FirewallVMSubmitLabel}}}"
     }

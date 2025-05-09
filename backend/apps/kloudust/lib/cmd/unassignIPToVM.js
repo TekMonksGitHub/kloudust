@@ -25,9 +25,23 @@ module.exports.exec = async function(params) {
 
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+    if(vm.publicip != ip){params.consoleHandlers.LOGERROR("invalid ip to unassign"); return CMD_CONSTANTS.FALSE_RESULT("invalid ip to unassign");}
 
-    const hostInfo = await dbAbstractor.getHostEntry(vm.hostname); 
+    const gateway = vm.ips.replace(/\d+$/, '1');
+
+    const ipHostname = await dbAbstractor.getAssignedIpHostname(ip);
+    if (!ipHostname) {params.consoleHandlers.LOGERROR("Bad gateway or gateway not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+
+    const vlanName = await dbAbstractor.getVlanFromGateway(gateway);
+    if (!vlanName) { params.consoleHandlers.LOGERROR("Not found the vlan with this gatway"); return CMD_CONSTANTS.FALSE_RESULT(); }
+
+    const hostInfo = await dbAbstractor.getHostEntry(ipHostname.host); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+
+    let vlanGateway;
+    const vlanDetail = await dbAbstractor.getVlanFromHostname(vlanName.name, ipHostname.host);
+    if (!vlanDetail) { params.consoleHandlers.LOGERROR("Not found the vlan with this gatway"); return CMD_CONSTANTS.FALSE_RESULT(); }
+    vlanGateway = vlanDetail.vlangateway;
 
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
@@ -36,15 +50,14 @@ module.exports.exec = async function(params) {
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/unassignIPToVM.sh`,
-            vm_name, ip.trim()
+            vm.ips, ip,vlanGateway
         ]
     }
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
-        const vmips = vm.ips.split(','), finalVMIPs = vmips.filter(ipThis => ipThis != ip.trim());
         if (await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.os, 
-            vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, finalVMIPs.join(','))) return results;
+            vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype,vm.ips,'')) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;
 }
