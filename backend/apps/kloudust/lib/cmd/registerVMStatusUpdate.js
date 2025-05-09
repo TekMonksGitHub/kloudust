@@ -13,7 +13,7 @@ const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 const statusCheck = {};
-
+let refreshInterval;
 /**
  * Registers a job to refresh VMs' states at a certain interval
  * @param {array} params The incoming params, see above for param documentation.
@@ -27,7 +27,9 @@ module.exports.exec = async function(params) {
         if (!statusCheck[vm.hostname].some(rvm => rvm.id === vm.id)) statusCheck[vm.hostname].push({name:vm.name,id:vm.id});  
     }
 
-    setInterval(()=>_refreshRegisteredVMStatus(params.consoleHandlers), KLOUD_CONSTANTS.CONF.VM_STATUS_REFRESH_TIME);
+    clearInterval(refreshInterval);
+    
+    refreshInterval = setInterval(()=>_refreshRegisteredVMStatus(params.consoleHandlers), KLOUD_CONSTANTS.CONF.VM_STATUS_REFRESH_TIME);
 
     return true;
 }
