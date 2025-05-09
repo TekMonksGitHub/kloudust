@@ -1,0 +1,79 @@
+{
+"id": "exportvm",
+"command": "exportVM",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vm_name", "sftp_user", "sftp_host", "sftp_pass", "destination_dir", "sftp_port"],
+
+"title": "{{{i18n.VMExportTitle}}}",
+
+"i18n": {
+    "en": {
+        "VMExportTitle": "Export Virtual Machine to SFTP",
+        "VMExportDescription": "Export an existing virtual machine in the cloud to an external SFTP. Complete the required tab then submit",
+        "VMName": "Virtual machine name",
+        "SFTPUser": "SFTP user name",
+        "SFTPHost": "SFTP host name",
+        "SFTPPassword": "SFTP password",
+        "DestinationDir": "Destination directory",
+        "SFTPPort": "SFTP port",
+        "FieldValidationErrorGeneric": "Validation error",
+        "ExportVMSubmitLabel": "Export"
+    },
+    "hi": {
+        "VMExportTitle": "Export Virtual Machine to SFTP",
+        "VMExportDescription": "Export an existing virtual machine in the cloud to an external SFTP. Complete the required tab then submit",
+        "VMName": "Virtual machine name",
+        "SFTPUser": "SFTP user name",
+        "SFTPHost": "SFTP host name",
+        "SFTPPassword": "SFTP password",
+        "DestinationDir": "Destination directory",
+        "SFTPPort": "SFTP port",
+        "FieldValidationErrorGeneric": "Validation error",
+        "ExportVMSubmitLabel": "Export"
+    },
+    "ja": {
+        "VMExportTitle": "Export Virtual Machine to SFTP",
+        "VMExportDescription": "Export an existing virtual machine in the cloud to an external SFTP. Complete the required tab then submit",
+        "VMName": "Virtual machine name",
+        "SFTPUser": "SFTP user name",
+        "SFTPHost": "SFTP host name",
+        "SFTPPassword": "SFTP password",
+        "DestinationDir": "Destination directory",
+        "SFTPPort": "SFTP port",
+        "FieldValidationErrorGeneric": "Validation error",
+        "ExportVMSubmitLabel": "Export"
+    },
+    "zh": {
+        "VMExportTitle": "Export Virtual Machine to SFTP",
+        "VMExportDescription": "Export an existing virtual machine in the cloud to an external SFTP. Complete the required tab then submit",
+        "VMName": "Virtual machine name",
+        "SFTPUser": "SFTP user name",
+        "SFTPHost": "SFTP host name",
+        "SFTPPassword": "SFTP password",
+        "DestinationDir": "Destination directory",
+        "SFTPPort": "SFTP port",
+        "FieldValidationErrorGeneric": "Validation error",
+        "ExportVMSubmitLabel": "Export"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.VMExportDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+        {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
+        "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}", 
+        "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
+    {"id": "sftp_user", "type": "text", "placeholder": "{{{i18n.SFTPUser}}}", "required": true, "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "sftp_host", "type": "text", "placeholder": "{{{i18n.SFTPHost}}}", "required": true, "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "sftp_pass", "type": "text", "placeholder": "{{{i18n.SFTPPassword}}}", "required": true, "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "destination_dir", "type": "text", "placeholder": "{{{i18n.DestinationDir}}}", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "sftp_port", "type": "text", "placeholder": "{{{i18n.SFTPPort}}}", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+    ],
+    
+    "submitlabel": "{{{i18n.ExportVMSubmitLabel}}}"
+}
+
+}
