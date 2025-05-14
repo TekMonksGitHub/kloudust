@@ -18,7 +18,8 @@
 # {15} Max memory
 # {16} Additional virt-install params
 # {17} No guest agent - By default QEMU Guest Agent is enabled, if this is true it is disabled
-# {18} Restart wait - time to wait for the first restart to stabalize
+# {18} Default disk name - name of the disk to be created while creating the VM 
+# {19} Restart wait - time to wait for the first restart to stabalize
 
 NAME="{1}"
 DESCRIPTION="{2}"
@@ -37,7 +38,8 @@ MAX_VCPUS={14}
 MAX_MEMORY={15}
 VIRT_INSTALL_PARAMS="{16}"
 NO_GUEST_AGENT={17}
-SHUTDOWN_WAIT={18}
+DEFAULT_DISK_NAME={18}
+SHUTDOWN_WAIT={19}
 SHUTDOWN_WAIT="${SHUTDOWN_WAIT:-20}"    # Default it to 90 seconds if not provided
 
 function exitFailed() {
@@ -51,7 +53,7 @@ function waitProcessKilled() {
 
     WAITED_SO_FAR=0
     while [ $WAITED_SO_FAR -lt $TIME_TO_WAIT ]; do
-        ps --pid $PID
+        ps --pid $PID > /dev/null 2>&1
         if [ "$?" == "1" ]; then return 0; 
         else 
             sleep 5
@@ -63,7 +65,7 @@ function waitProcessKilled() {
 
 function shutdownVM() {
     VMNAME=$1
-    VMPID=`ps ax | grep $VMNAME | grep kvm | tr -s " " | xargs  | cut -d" " -f1`
+    VMPID=$(ps ax | grep "[k]vm" | grep "$VMNAME" | awk '{print $1}' | head -n1)
     if ! virsh shutdown $VMNAME; then exitFailed; fi
     waitProcessKilled $VMPID $SHUTDOWN_WAIT
     if [ "$?" == "1" ]; then  
@@ -82,36 +84,44 @@ function shutdownVM() {
 
 SPACE_PATTERN=" |'"
 if [[ $NAME =~ $SPACE_PATTERN ]]; then 
-    printf "VM name $NAME can't have spaces.\n"
+    echo "VM name $NAME can't have spaces."
     exitFailed
 fi
 
-if virsh list --all | grep "$NAME"; then
-    if [ "FORCE_OVERWRITE" == "true" ]; then
-        printf "WARNING!! Deleting existing VM, force overwrite was true.\n"
+if virsh dominfo "$NAME" > /dev/null 2>&1; then
+    if [ "$FORCE_OVERWRITE" = "true" ]; then
+        echo "WARNING!! Deleting existing VM, force overwrite was true."
         if ! virsh destroy $NAME; then exitFailed; fi
         if ! virsh undefine $NAME --nvram; then exitFailed; fi
     else
-        printf "VM already exists. Use a different name.\n"
+        echo "VM already exists. Use a different name."
         exitFailed
     fi
 fi
 
 if [ ! -f /kloudust/catalog/$INSTALL_DISK ]; then
-    printf "VM install disk not found cached locally. Downloading first.\n"
-    if ! curl $INSTALL_URI > /kloudust/catalog/$INSTALL_DISK; then exitFailed; fi
+    echo "VM install disk not found cached locally. Downloading first."
+    TMPFILE=$(mktemp)
+    if ! curl -fSL "$INSTALL_URI" -o "$TMPFILE"; then
+        echo "Download failed"
+        rm -f "$TMPFILE"
+        exitFailed
+    fi
+    mv "$TMPFILE" "/kloudust/catalog/$INSTALL_DISK"
 fi
 
-printf "Creating VM $NAME\n"
+echo "Creating VM $NAME"
 
-DISK="path=/kloudust/disks/$NAME.qcow2,discard=unmap,format=qcow2"
+DISK_PATH=/kloudust/disks/${NAME}_${DEFAULT_DISK_NAME}.qcow2
+YAML_PATH=/kloudust/temp/ci_${NAME}.yaml
+DISK="path=$DISK_PATH,discard=unmap,format=qcow2"
 BOOTCMD="--boot hd"
-CLOUD_INIT="--cloud-init user-data=/kloudust/temp/ci_$NAME.yaml"
+CLOUD_INIT="--cloud-init user-data=$YAML_PATH"
 if [ "$CLOUD_IMAGE" == "true" ]; then # this is a cloud image file in QCow2 format, convert and load, else it is a CD-ROM ISO file
-    if ! qemu-img convert -f qcow2 -O qcow2 /kloudust/catalog/$INSTALL_DISK /kloudust/disks/$NAME.qcow2; then exitFailed; fi
-    if ! qemu-img resize /kloudust/disks/$NAME.qcow2 "$DISK_SIZE"G; then exitFailed; fi
-    if [ "$CLOUDINIT_USERDATA" != "undefined" ] && [ -n "$CLOUDINIT_USERDATA" ]; then # check if a cloud init is provided 
-        if ! printf "#cloud-config\n\n$CLOUDINIT_USERDATA" > /kloudust/temp/ci_$NAME.yaml; then exitFailed; fi
+    if ! qemu-img convert -f qcow2 -O qcow2 /kloudust/catalog/$INSTALL_DISK $DISK_PATH; then exitFailed; fi
+    if ! qemu-img resize "$DISK_PATH" "$DISK_SIZE"G; then exitFailed; fi
+    if [ "$CLOUDINIT_USERDATA" != "undefined" ] && [ -n "$CLOUDINIT_USERDATA" ]; then
+        if ! printf "#cloud-config\n\n$CLOUDINIT_USERDATA" > "$YAML_PATH"; then exitFailed; fi
     else
         CLOUD_INIT=""
         echo !WARNING! $NAME is a cloud image but no cloud init was provided. Image may not boot or work properly.
@@ -123,22 +133,26 @@ else
     CLOUD_INIT=""
 fi
 
+if [[ "$OS_VARIANT" = win* ]]; then
+    if [ ! -f /kloudust/drivers/virtio-win.iso ]; then
+        echo "Missing VirtIO drivers ISO at /kloudust/drivers/virtio-win.iso"
+        exitFailed
+    fi
 
-if [[ "$OS_VARIANT" = win* ]]; then 
     if [ "$CLOUD_IMAGE" != "true" ]; then
         WIN_DISK_ARGS="--disk /kloudust/drivers/virtio-win.iso,device=cdrom"
     fi
     WIN_KVM_ARGS="--features smm.state=on,kvm_hidden=on,hyperv_relaxed=on,hyperv_vapic=on,hyperv_spinlocks=on,hyperv_spinlocks_retries=8191 --clock hypervclock_present=yes"
     
     if [ "$CLOUD_IMAGE" == "true" ] && [ "$CLOUDINIT_USERDATA" != "undefined" ] && [ -n "$CLOUDINIT_USERDATA" ]; then
-        RANDOMSTR=`echo $RANDOM | md5sum | cut -d" " -f1`
-        DISKIMAGEPATH=/kloudust/temp/"$ORG"_"$PROJECT"_"$RANDOMSTR"_cidata
-        DISKPATH="$DISKIMAGEPATH"/cidata.iso
+        RANDOMSTR=$(echo $RANDOM | md5sum | cut -d" " -f1)
+        DISKIMAGEPATH="/kloudust/temp/${ORG}_${PROJECT}_${RANDOMSTR}_cidata"
+        DISKPATH="$DISKIMAGEPATH/cidata.iso"
 
-        mkdir -p $DISKIMAGEPATH
-        if ! printf "#cloud-config\n\n$CLOUDINIT_USERDATA" > "$DISKIMAGEPATH"/user-data; then exitFailed; fi
-        if ! printf "instance-id: windows-$ORG-$PROJECT-$RANDOMSTR\n" > "$DISKIMAGEPATH"/meta-data; then exitFailed; fi
-        genisoimage -output $DISKPATH -V cidata -r -J "$DISKIMAGEPATH"/user-data "$DISKIMAGEPATH"/meta-data
+        mkdir -p "$DISKIMAGEPATH"
+        if ! printf "#cloud-config\n\n$CLOUDINIT_USERDATA" > "$DISKIMAGEPATH/user-data"; then exitFailed; fi
+        if ! printf "instance-id: windows-$ORG-$PROJECT-$RANDOMSTR\n" > "$DISKIMAGEPATH/meta-data"; then exitFailed; fi
+        genisoimage -output "$DISKPATH" -V cidata -r -J "$DISKIMAGEPATH/user-data" "$DISKIMAGEPATH/meta-data"
         CLOUD_INIT="--disk path=$DISKPATH,device=cdrom"
     else
         echo !WARNING! $NAME is being initialized using a non-cloud ready image. Manual install will be required.
@@ -152,12 +166,13 @@ fi;
 QEMU_GUEST_AGENT="--channel unix,target_type=virtio,name=org.qemu.guest_agent.0"
 if [[ "$NO_GUEST_AGENT" = true ]]; then QEMU_GUEST_AGENT=""; fi
 
-BASE64_METADATA=`echo "iscloud=$CLOUD_IMAGE>>>installuri=$INSTALL_URI>>>installdisk=/kloudust/catalog/$INSTALL_DISK>>>cloudinit=\"$CLOUDINIT_USERDATA\"" | base64 -w0`
+BASE64_METADATA=$(echo "iscloud=$CLOUD_IMAGE>>>installuri=$INSTALL_URI>>>installdisk=/kloudust/catalog/$INSTALL_DISK>>>cloudinit=\"$CLOUDINIT_USERDATA\"" | base64 -w0)
 if [ -z "$BASE64_METADATA" ]; then
 	echo BASE64 metadata generation failed. >&2
 	exitFailed
 fi
 
+# Run virt-install to create the VM with specified resources, metadata, OS variant, and optional cloud-init or installation media; waits for installation to finish before exiting
 if ! virt-install --name $NAME --metadata name=$NAME --metadata title="$DESCRIPTION" \
     --metadata description=$BASE64_METADATA \
     --vcpus $VCPUS,maxvcpus=$MAX_VCPUS \
@@ -175,10 +190,10 @@ if ! virt-install --name $NAME --metadata name=$NAME --metadata title="$DESCRIPT
     $WIN_DISK_ARGS \
     $BOOTCMD $CLOUD_INIT; then exitFailed; fi
 
-printf "\n\nEnabling autostart\n"
+echo "Enabling autostart for VM $NAME"
 if ! virsh autostart $NAME; then exitFailed; fi
 
-printf "\n\nGenerating metadata\n"
+echo "Generating metadata for VM $NAME"
 cat <<EOF > /kloudust/metadata/$NAME.metadata
 INSTALL="virt-install --name $NAME --metadata name=$NAME --metadata title=\"$DESCRIPTION\" \
     --metadata description=$BASE64_METADATA \
@@ -216,8 +231,8 @@ if ! virsh dumpxml $NAME > /kloudust/metadata/$NAME.xml; then exitFailed; fi
 # this seems to stop cloudinit - we can't really do this - reason was that first
 # reboot doesn't auto restart VM - need to think a better solution
 
-#printf "Performing an initial restart cycle to stablize"
+#echo "Performing an initial restart cycle to stablize"
 #if shutdownVM $NAME; then virsh start $NAME; fi
 
-printf "\n\nVM created successfully\n"
+echo "VM created successfully"
 exit 0
