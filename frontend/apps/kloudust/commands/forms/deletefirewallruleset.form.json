@@ -1,0 +1,50 @@
+{
+    "id": "deletefirewallruleset",
+    "command": "deleteFirewall",
+    "type": "kloudust_cmdline",
+    "kloudust_cmdline_params": ["ruleset_name"],
+    
+    "title": "{{{i18n.RulesetDeleteTitle}}}",
+    
+    "i18n": {
+        "en": {
+            "RulesetDeleteTitle": "Delete Firewall Ruleset, The firewall rules will be removed from any VM using this rules",
+            "RulesetDeleteDescription": "Delete a firewall ruleset.",
+            "DeleteRulesetSubmitLabel": "Delete",
+            "RulesetName":"Ruleset Name"
+        },
+        "hi": {
+            "RulesetDeleteTitle": "Delete Firewall Ruleset, The firewall rules will be removed from any VM using this rules",
+            "RulesetDeleteDescription": "Delete a firewall ruleset.",
+            "DeleteRulesetSubmitLabel": "Delete",
+            "RulesetName":"Ruleset Name"
+        },
+        "ja": {
+            "RulesetDeleteTitle": "Delete Firewall Ruleset, The firewall rules will be removed from any VM using this rules",
+            "RulesetDeleteDescription": "Delete a firewall ruleset.",
+            "DeleteRulesetSubmitLabel": "Delete",
+            "RulesetName":"Ruleset Name"
+        },
+        "zh": {
+            "RulesetDeleteTitle": "Delete Firewall Ruleset, The firewall rules will be removed from any VM using this rules",
+            "RulesetDeleteDescription": "Delete a firewall ruleset.",
+            "DeleteRulesetSubmitLabel": "Delete",
+            "RulesetName":"Ruleset Name"
+        }
+    },
+    
+    "form": {
+        "description": "{{{i18n.RulesetDeleteDescription}}}",
+    
+        "required_label": "{{{i18n.Required}}}",
+        "required_fields": [
+        {"id": "ruleset_name", "type": "text", "placeholder": "{{{i18n.RulesetName}}}", "required": true, 
+            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "value":"{{{APP_CONSTANTS.ENV._firewallrules_form_data.name}}}", 
+            "readonly":"{{#APP_CONSTANTS.ENV._firewallrules_form_data.name}}true{{/APP_CONSTANTS.ENV._firewallrules_form_data.name}}"}
+        ],
+    
+        "submitlabel": "{{{i18n.DeleteRulesetSubmitLabel}}}"
+    }
+    
+    }

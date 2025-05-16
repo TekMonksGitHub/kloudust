@@ -39,6 +39,6 @@ for VM_DISK in "${VM_DISKS[@]}"; do
 done
 if ! mv /kloudust/metadata/$NAME.xml /kloudust/recyclebin/$NAME.$EPOCH.xml; then exitFailed; fi
 if ! mv /kloudust/metadata/$NAME.metadata /kloudust/recyclebin/$NAME.$EPOCH.metadata; then exitFailed; fi
-
+if ! mv /kloudust/vm_vlans/$NAME.vlan /kloudust/recyclebin/$NAME.$EPOCH.vlan; then exitFailed; fi
 printf "\n\nVM $NAME deleted successfully\n"
 exit 0

@@ -59,7 +59,7 @@ printf "Installing required software\n"
 if [ -f "`which yum`" ]; then 
     if ! sudo yum -y install fail2ban; then exitFailed; fi
     if ! sudo yum -y install sshpass; then exitFailed; fi
-    if ! sudo yum -y install qemu-kvm libvirt virt-top bridge-utils libguestfs-tools virt-install tuned genisoimage; then exitFailed; fi
+    if ! sudo yum -y install qemu-kvm libvirt virt-top bridge-utils ifupdown libguestfs-tools virt-install tuned genisoimage; then exitFailed; fi
     if ! sudo systemctl stop firewalld; then exitFailed; fi
     if ! sudo systemctl disable firewalld; then exitFailed; fi
     if ! sudo systemctl mask firewalld; then exitFailed; fi
@@ -69,7 +69,7 @@ else
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install fail2ban; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install sshpass; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install net-tools iptables-persistent; then exitFailed; fi
-    if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils virtinst libosinfo-bin guestfs-tools tuned genisoimage; then exitFailed; fi
+    if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils ifupdown virtinst libosinfo-bin guestfs-tools tuned genisoimage; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install ufw; then exitFailed; fi
     # Remove snapd on Ububtu as it opens outgoing connections to the snap store
     snap list | egrep -v 'base$|snapd$|Notes$' | awk '{print $1}' | xargs -I{} sudo snap remove {} --purge && sudo apt purge -y snapd && rm -rf ~/snap
@@ -119,6 +119,7 @@ if ! sudo mkdir -p /kloudust/snapshots/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/temp/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/recyclebin/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/system/; then exitFailed; fi
+if ! sudo mkdir -p /kloudust/vm_vlans; then exitFailed; fi
 
 printf "\n\nDownloading additional drivers\n"
 if [ "`cat /kloudust/drivers/virtio-win.version`" != "virtio-win-0.1.240.iso" ]; then
@@ -148,6 +149,7 @@ printf "\n\nSetting up the host firewall\n"
 if ! ufw --force reset; then exitFailed; fi
 if ! ufw default deny incoming; then exitFailed; fi
 if ! ufw default allow outgoing; then exitFailed; fi
+if ! ufw default allow routed; then exitFailed; fi
 if ! ufw allow $NEW_SSH_PORT; then exitFailed; fi
 if ! systemctl enable ufw; then exitFailed; fi
 if ! ufw --force enable; then exitFailed; fi
@@ -157,6 +159,109 @@ else
     if ! systemctl restart ssh; then exitFailed; fi
 fi
 
+# Target directory and file
+HOOK_DIR="/etc/libvirt/hooks"
+HOOK_SCRIPT="$HOOK_DIR/qemu"
+
+# Make sure the hooks directory exists
+mkdir -p "$HOOK_DIR"
+
+# Write the QEMU script to the target file
+cat << 'EOF' > "$HOOK_SCRIPT"
+#!/bin/bash
+VM_NAME="$1"
+EVENT="$2"
+SUB_EVENT="$3"
+LOG_FILE="/tmp/libvirt_hook_test.log"
+VLAN_FILE="/kloudust/vm_vlans/${VM_NAME}.vlan"
+
+echo "$(date) - Hook triggered: $VM_NAME $EVENT $SUB_EVENT" >> "$LOG_FILE"
+
+if [[ "$EVENT" == "started" && "$SUB_EVENT" == "begin" ]]; then
+  echo "[HOOK] VM $VM_NAME has begun starting..." >> "$LOG_FILE"
+
+  (
+    VLAN_ID=$(cat "$VLAN_FILE")
+    MAX_WAIT=10
+    WAITED=0
+
+    while [[ $WAITED -lt $MAX_WAIT ]]; do
+      IFACE=$(virsh domiflist "$VM_NAME" | awk '/br0/ {print $1}')
+      
+      if [[ -n "$IFACE" ]]; then
+        echo "[HOOK] Found interface: $IFACE" >> "$LOG_FILE"
+        /usr/sbin/bridge vlan del dev "$IFACE" vid 1
+        /usr/sbin/bridge vlan add dev "$IFACE" vid "$VLAN_ID" pvid untagged
+        echo "[HOOK] VLAN $VLAN_ID assigned to $IFACE" >> "$LOG_FILE"
+        break
+      else
+        echo "[HOOK] Interface not ready yet, sleeping..." >> "$LOG_FILE"
+        sleep 1
+        ((WAITED++))
+      fi
+    done
+
+    if [[ $WAITED -ge $MAX_WAIT ]]; then
+      echo "[HOOK] Gave up waiting for interface." >> "$LOG_FILE"
+    fi
+  ) >> "$LOG_FILE" 2>&1 &
+
+  exit 0
+fi
+EOF
+
+chmod +x "$HOOK_SCRIPT"
+
+printf "QEMU hook script created at: $HOOK_SCRIPT"
+
 printf "\n\nSystem initialization finished successfully, reboot needed\n"
+
+SCRIPT_PATH="/kloudust/setup_vlan.sh"
+SERVICE_PATH="/etc/systemd/system/setup-vlan.service"
+
+cat << 'EOF' > "$SCRIPT_PATH"
+#!/bin/bash
+
+ip link set dev br0 type bridge vlan_filtering 1
+
+bridge vlan del dev br0 vid 1 self
+
+bridge vlan add dev br0 vid 2-4094 self
+
+for vx in $(ip -o link show | awk -F': ' '{print $2}' | grep '^vxlan'); do
+    # Check if the VXLAN is already part of br0
+    if ! brctl show br0 | grep -q "$vx"; then
+        echo "Attaching $vx to br0..."
+        brctl addif br0 "$vx"
+	bridge vlan add dev "$vx" vid 2-4094
+    else
+        echo "$vx is already attached to br0"
+    fi
+done
+
+EOF
+
+chmod +x "$SCRIPT_PATH"
+
+cat << EOF > "$SERVICE_PATH"
+[Unit]
+Description=Configure VLANs on br0
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=$SCRIPT_PATH
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable setup-vlan.service
+systemctl start setup-vlan.service
+
+printf "VLAN setup script and service installed successfully."
+
 printConfig $JSONOUT_SPLITTER
 exit 0

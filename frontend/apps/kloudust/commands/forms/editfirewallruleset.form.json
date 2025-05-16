@@ -1,0 +1,92 @@
+{
+    "id": "editfirewallruleset",
+    "command": "updateFirewall",
+    "type": "kloudust_cmdline",
+    "kloudust_cmdline_params": ["ruleset_name", "firewall_settings","ruleset_description"],
+    
+    "title": "{{{i18n.FirewallTitle}}}",
+    
+    "i18n": {
+        "en": {
+            "FirewallTitle": "Firewall Ruleset",
+            "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+            "FirewallName": "Name",
+            "FirewallDesciption":"Description",
+            "FieldValidationErrorGeneric": "Validation error",
+            "FirewallSubmitLabel": "Save"
+        },
+        "hi": {
+            "FirewallTitle": "Firewall Ruleset",
+            "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+            "FirewallName": "नाम",
+            "FirewallDesciption":"Description",
+            "FieldValidationErrorGeneric": "Validation error",
+            "FirewallSubmitLabel": "Save"
+        },
+        "ja": {
+            "FirewallTitle": "Firewall Ruleset",
+            "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+            "FirewallName": "名",
+            "FirewallDesciption":"Description",
+            "FieldValidationErrorGeneric": "Validation error",
+            "FirewallSubmitLabel": "Save"
+        },
+        "zh": {
+            "FirewallTitle": "Firewall Ruleset",
+            "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+            "FirewallName": "姓名",
+            "FirewallDesciption":"Description",
+            "FieldValidationErrorGeneric": "Validation error",
+            "FirewallSubmitLabel": "Save"
+        }
+    },
+    
+    "form": {
+        "description": "{{{i18n.FirewallDescription}}}",
+    
+        "required_label": "{{{i18n.Required}}}",
+        "required_fields": [
+        {"id": "ruleset_name", "type": "text", "placeholder": "{{{i18n.FirewallName}}}", "required": true, 
+            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "value":"{{{APP_CONSTANTS.ENV._firewallrules_form_data.name}}}", 
+            "readonly":"{{#APP_CONSTANTS.ENV._firewallrules_form_data.name}}true{{/APP_CONSTANTS.ENV._firewallrules_form_data.name}}"},
+        {"id": "ruleset_description", "type": "text", "placeholder": "{{{i18n.FirewallDesciption}}}", "required": true, 
+            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "value":"{{{APP_CONSTANTS.ENV._firewallrules_form_data.description}}}",
+            "readonly":"{{#APP_CONSTANTS.ENV._firewallrules_form_data.description}}true{{/APP_CONSTANTS.ENV._firewallrules_form_data.description}}"},
+        {"id": "firewall_settings", "type": "hidden", "value":"[]"},
+        {"id": "firewallRulesComponent", "inputtype": "firewall-rules", 
+            "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
+        ],
+    
+        "submitlabel": "{{{i18n.FirewallSubmitLabel}}}",
+        "load_javascript": [
+            "const form = arguments[0]||{};",
+            "const rules = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+                "cmd: `listRulesetRules \"${APP_CONSTANTS.ENV._firewallrules_form_data.id}\"`, ",
+                "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+            "return form;"
+        ],
+        "rendered_javascript": [
+            "const form = arguments[0], shadowroot = form._form_shadowroot;",
+            "const rules = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+                "cmd: `listRulesetRules \"${APP_CONSTANTS.ENV._firewallrules_form_data.id}\"`, ",
+                "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+            "const firewallshadowroot = monkshu_env.components['firewall-rules'].getShadowRootByHost(shadowroot.querySelector('#firewallRulesComponent'))",
+            "for(const [idx,rule] of rules.rules.entries()) {",
+                "monkshu_env.components['firewall-rules'].addRow(firewallshadowroot.querySelectorAll('#rulesrow')[idx],rule)",
+            "}",
+            "return true;"
+        ],
+        "submit_javascript":[
+            "const retObject = arguments[0]||{}, shadowroot = arguments[1]._form_shadowroot;;",
+            "const firewallshadowroot = monkshu_env.components['firewall-rules'].getShadowRootByHost(shadowroot.querySelector('#firewallRulesComponent'))",
+            "monkshu_env.components['firewall-rules'].updateRow(firewallshadowroot.querySelector('#rulesrow'))",
+            "const ans = monkshu_env.components['firewall-rules'].values()",
+            "retObject.firewall_settings = ans",
+            "return true"
+        ]
+    }
+    
+    }
+    

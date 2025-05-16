@@ -1,0 +1,87 @@
+{
+    "id": "firewall",
+    "command": "tablelist",
+    "type": "table_display",
+    
+    "i18n": {
+    "en": {
+        "RULESETS_name": "Name",
+        "RULESETS_description": "Description",
+        "RULESETS_datetime": "Date created",
+        "RULESETSShow" : "Show",
+        "RULESETSEdit" : "Edit",
+        "RULESETSDelete" : "Delete"
+    },
+    
+    "hi": {
+        "RULESETS_name": "Name",
+        "RULESETS_description": "Description",
+        "RULESETS_datetime": "Date created",
+        "RULESETSShow" : "Show",
+        "RULESETSEdit" : "Edit",
+        "RULESETSDelete" : "Delete"
+    },
+    
+    "ja": {
+        "RULESETS_name": "Name",
+        "RULESETS_description": "Description",
+        "RULESETS_datetime": "Date created",
+        "RULESETSShow" : "Show",
+        "RULESETSEdit" : "Edit",
+        "RULESETSDelete" : "Delete"
+    },
+    
+    "zh": {
+        "RULESETS_name": "Name",
+        "RULESETS_description": "Description",
+        "RULESETS_datetime": "Date created",
+        "RULESETSShow" : "Show",
+        "RULESETSEdit" : "Edit",
+        "RULESETSDelete" : "Delete"
+    }
+    },
+    
+    "tabledef": {
+        "popupform": {
+        "rolelist": {
+            "*":[
+                {"id": "showfirewallruleset", "label": "{{{i18n.RULESETSShow}}}", "logo": "img/view.svg"},
+                {"id": "editfirewallruleset", "label": "{{{i18n.RULESETSEdit}}}", "logo": "img/edit.svg"},
+                {"id": "deletefirewallruleset", "label": "{{{i18n.RULESETSDelete}}}", "logo": "img/deletevm.svg"}
+            ]
+        }
+        },
+    
+        "style": "div#tablebottombar{display: none;}",
+    
+        "i18nPrefix": "RULESETS",
+    
+        "onclickrow_html": [
+            "<style>div#onclick_html {background-color: #F8F8F8; width: auto;} div#close{display: none !important}</style>",
+            "<style>div#onclickrow_html {height: fit-content;} div#body{background-color: #F8F8F8 !important}</style>",
+            "<style>div#buttons {margin: 0 !important; align-items: flex-start !important; height: 100% !important;}</style>",
+            "<style>div#button {height: unset !important; max-height: 100% !important; margin: 0 !important; color: #BC5205 !important;}</style>",
+            "<style>div#button {width: 6em !important; font-size: 0.8em !important; box-sizing: border-box !important!;}</style>",
+            "<style>div#button {border: 1px solid transparent; border-radius: 0.5em; padding: 0.5em;}</style>",
+            "<style>div#button img {width: 3em !important; height: 3em !important;}</style>",
+            "<style>div#button span {font-size: smaller !important; height: -webkit-fill-available;}</style>",
+            "<style>div#button:hover {border: 1px dashed #BC5205 !important;}</style>"
+        ],
+    
+        "clickrow_javascript": [
+        "const data = arguments[0]; APP_CONSTANTS.ENV._firewallrules_form_data = data;"
+        ],
+    
+        "load_javascript": [
+            "const rules = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+                "cmd: `listFirewallRulesForOrgOrProject \"${$$.libsession.get(APP_CONSTANTS.USERORG)}\" \"${$$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}\"`, ",
+                "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+            "for (const rule of rules.rules||[]) {rule.datetime = new Date(rule.timestamp).toLocaleDateString();}",
+            "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
+            "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
+            "tabledef.onclickrow_html.push(html);",
+            "return {keys: ['name','description','datetime'], table: rules.rules||[]};"
+        ]
+    }
+    }
+    

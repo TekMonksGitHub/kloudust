@@ -1,14 +1,15 @@
 {
-"id": "addfirewall",
-"command": "addFirewall",
+"id": "createfirewall",
+"command": "createFirewall",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["firewall_name", "firewall_settings"],
+"kloudust_cmdline_params": ["firewall_name", "firewall_settings", "firewall_description"],
 
 "title": "{{{i18n.FirewallTitle}}}",
 
 "i18n": {
     "en": {
         "FirewallTitle": "Firewall Ruleset",
+        "FirewallDesc" : "Firewall Description",
         "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
         "FirewallName": "Name",
         "FieldValidationErrorGeneric": "Validation error",
@@ -16,6 +17,7 @@
     },
     "hi": {
         "FirewallTitle": "Firewall Ruleset",
+        "FirewallDesc" : "Firewall Description",
         "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
         "FirewallName": "नाम",
         "FieldValidationErrorGeneric": "Validation error",
@@ -23,6 +25,7 @@
     },
     "ja": {
         "FirewallTitle": "Firewall Ruleset",
+        "FirewallDesc" : "Firewall Description",
         "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
         "FirewallName": "名",
         "FieldValidationErrorGeneric": "Validation error",
@@ -30,6 +33,7 @@
     },
     "zh": {
         "FirewallTitle": "Firewall Ruleset",
+        "FirewallDesc" : "Firewall Description",
         "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
         "FirewallName": "姓名",
         "FieldValidationErrorGeneric": "Validation error",
@@ -43,13 +47,21 @@
     "required_label": "{{{i18n.Required}}}",
     "required_fields": [
     {"id": "firewall_name", "type": "text", "placeholder": "{{{i18n.FirewallName}}}", "required": true, 
-        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
-    {"id": "firewall_settings", "type": "hidden", "value":"[]"},
+        "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "firewall_description", "type": "text", "placeholder": "{{{i18n.FirewallDesc}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+        {"id": "firewall_settings", "type": "hidden", "value":"[]"},
     {"id": "firewallRulesComponent", "inputtype": "firewall-rules", 
         "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
     ],
 
-    "submitlabel": "{{{i18n.FirewallSubmitLabel}}}"
+    "submitlabel": "{{{i18n.FirewallSubmitLabel}}}",
+    "submit_javascript":[
+        "const retObject = arguments[0]||{};",
+        "const ans = monkshu_env.components['firewall-rules'].values()",
+        "retObject.firewall_settings = ans",
+        "return true"
+    ]
 }
 
 }

@@ -2,7 +2,7 @@
     "id": "firewallvm",
     "command": "firewallvm",
     "type": "kloudust_cmdline",
-    "kloudust_cmdline_params": ["vm_name", "firewall_ruleset_name"],
+    "kloudust_cmdline_params": ["firewall_op", "vm_name", "firewall_ruleset_name"],
     
     "title": "{{{i18n.FirewallVMTitle}}}",
     
@@ -12,47 +12,82 @@
             "VMFirewallDescription": "Firewall a virtual machine. Complete the required fields and then submit to firewall the virtual machine.",
             "VMFirewallName": "Firewall ruleset name",
             "VMName": "Virtual machine name",
+            "SelectRuleSet":"Select Rulset",
             "FieldValidationErrorGeneric": "Validation error",
-            "FirewallVMSubmitLabel": "Firewall"
+            "FirewallVMSubmitLabel": "Firewall",
+            "VMApplyRuleset": "Apply",
+            "VMRemoveRuleset": "Remove",
+            "VMFirewallOperation": "Firewall Operation"
         },
         "hi": {
             "FirewallVMTitle": "Firewall virtual machine",
             "VMFirewallDescription": "Firewall a virtual machine. Complete the required fields and then submit to firewall the virtual machine.",
             "VMFirewallName": "Firewall ruleset नाम",
             "VMName": "Virtual machine name",
+            "SelectRuleSet":"Select Rulset",
             "FieldValidationErrorGeneric": "Validation error",
-            "FirewallVMSubmitLabel": "Firewall"
+            "FirewallVMSubmitLabel": "Firewall",
+            "VMApplyRuleset": "Apply",
+            "VMRemoveRuleset": "Remove",
+            "VMFirewallOperation": "Firewall Operation"
         },
         "ja": {
             "FirewallVMTitle": "Firewall virtual machine",
             "VMFirewallDescription": "Firewall a virtual machine. Complete the required fields and then submit to firewall the virtual machine.",
             "VMFirewallName": "Firewall ruleset 名",
             "VMName": "Virtual machine name",
+            "SelectRuleSet":"Select Rulset",
             "FieldValidationErrorGeneric": "Validation error",
-            "FirewallVMSubmitLabel": "Firewall"
+            "FirewallVMSubmitLabel": "Firewall",
+            "VMApplyRuleset": "Apply",
+            "VMRemoveRuleset": "Remove",
+            "VMFirewallOperation": "Firewall Operation"
         },
         "zh": {
             "FirewallVMTitle": "Firewall virtual machine",
             "VMFirewallDescription": "Firewall a virtual machine. Complete the required fields and then submit to firewall the virtual machine.",
             "VMFirewallName": "Firewall ruleset 姓名",
             "VMName": "Virtual machine name",
+            "SelectRuleSet":"Select Rulset",
             "FieldValidationErrorGeneric": "Validation error",
-            "FirewallVMSubmitLabel": "Firewall"
+            "FirewallVMSubmitLabel": "Firewall",
+            "VMApplyRuleset": "Apply",
+            "VMRemoveRuleset": "Remove",
+            "VMFirewallOperation": "Firewall Operation"
         }
     },
     
     "form": {
         "description": "{{{i18n.VMFirewallDescription}}}",
-    
+
         "required_label": "{{{i18n.Required}}}",
         "required_fields": [
         {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
-            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
             "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
             "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
-        {"id": "firewall_ruleset_name", "type": "text", "placeholder": "{{{i18n.VMFirewallName}}}", 
-            "required": true, "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+        {"id": "firewall_ruleset_name", "multioption": true, "type": "select", "label": "{{{i18n.SelectRuleSet}}}", 
+            "options":[]},
+        {"id": "firewall_op", "multioption": true, "type": "select", "label": "{{{i18n.VMFirewallOperation}}}", 
+        "options":[
+            {"value":"apply", "label":"{{{i18n.VMApplyRuleset}}}"}, 
+            {"value":"remove", "label":"{{{i18n.VMRemoveRuleset}}}"}
+        ]},
+        {"id": "rules", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
+            "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "value":"The following firewall rules are already applied : {{{APP_CONSTANTS.ENV._vms_form_data.rules}}}",
+            "readonly":"true"}
         ],
+
+        "load_javascript": [
+        "const form = arguments[0]||{};",
+        "const ruleResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, ",
+        "   'POST', {cmd: 'listRules'}, true);",
+        "if (ruleResult.result) for (const v of ruleResult.resources) { ",
+        "   const rule = form.required_fields[form.required_fields.length-3];",
+        "   rule.options.push({value: v.name,label: v.name}); }",
+        "return form;"
+    ],
     
         "submitlabel": "{{{i18n.FirewallVMSubmitLabel}}}"
     }
