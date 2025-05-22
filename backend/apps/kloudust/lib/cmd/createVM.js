@@ -59,7 +59,7 @@ module.exports.exec = async function (params) {
     const vlanDetails = await dbAbstractor.getVlanFromHostname(vlan || 'default',vmHostname);
     if (!vlanDetails) return CMD_CONSTANTS.FALSE_RESULT("Failed to retrieve VLAN data");
 
-    const vm_ip = await getNextVmIp(vlanDetails.vlangateway, await dbAbstractor.getVmIps());
+    const vm_ip = await exports.getNextVmIp(vlanDetails.vlangateway, await dbAbstractor.getVmIps());
     const isVxlanSetup = await setupVxlanIfNeeded(params,vmHostname, await dbAbstractor.getVlan(vlan || 'default'));
     if (!isVxlanSetup) {
         params.consoleHandlers.LOGERROR(`VXLAN setup failed, Check if the host IP is assigned; if not, add an internal IP. If the internal IP is already added, ensure that the IPs are correct,check the ips of ${vmHostname} or ${vlanDetails.hostname}`);
@@ -186,7 +186,7 @@ function logAndReturnError(params, message) {
     return CMD_CONSTANTS.FALSE_RESULT(message);
 }
 
-async function getNextVmIp(selectedVlanGateway, vmIps) {
+module.exports.getNextVmIp = async function(selectedVlanGateway, vmIps) {
     const vlanPrefix = selectedVlanGateway.split(".").slice(0, 3).join("."); // Extract "10.1.1"
     const gatewayLastOctet = parseInt(selectedVlanGateway.split(".")[3]); // Extract last octet of selected gateway
     const allGateways = await dbAbstractor.getAllVlanGateways();
