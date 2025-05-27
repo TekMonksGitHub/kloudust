@@ -18,7 +18,8 @@
 # {15} Max memory
 # {16} Additional virt-install params
 # {17} No guest agent - By default QEMU Guest Agent is enabled, if this is true it is disabled
-# {18} Restart wait - time to wait for the first restart to stabalize
+# {18} Default disk name - this is used to name the disk file
+# {19} Restart wait - time to wait for the first restart to stabalize
 
 NAME="{1}"
 DESCRIPTION="{2}"
@@ -38,7 +39,8 @@ MAX_VCPUS={14}
 MAX_MEMORY={15}
 VIRT_INSTALL_PARAMS="{16}"
 NO_GUEST_AGENT={17}
-SHUTDOWN_WAIT={18}
+DEFAULT_DISK_NAME="{18}"
+SHUTDOWN_WAIT={19}
 SHUTDOWN_WAIT="${SHUTDOWN_WAIT:-20}"    # Default it to 90 seconds if not provided
 
 function exitFailed() {
@@ -105,12 +107,13 @@ fi
 
 printf "Creating VM $NAME\n"
 
-DISK="path=/kloudust/disks/$NAME.qcow2,discard=unmap,format=qcow2"
+DISK_PATH="/kloudust/disks/${NAME}_${DEFAULT_DISK_NAME}.qcow2"
+DISK="path=$DISK_PATH,discard=unmap,format=qcow2"
 BOOTCMD="--boot hd"
 CLOUD_INIT="--cloud-init user-data=/kloudust/temp/ci_$NAME.yaml"
 if [ "$CLOUD_IMAGE" == "true" ]; then # this is a cloud image file in QCow2 format, convert and load, else it is a CD-ROM ISO file
-    if ! qemu-img convert -f qcow2 -O qcow2 /kloudust/catalog/$INSTALL_DISK /kloudust/disks/$NAME.qcow2; then exitFailed; fi
-    if ! qemu-img resize /kloudust/disks/$NAME.qcow2 "$DISK_SIZE"G; then exitFailed; fi
+    if ! qemu-img convert -f qcow2 -O qcow2 /kloudust/catalog/$INSTALL_DISK "$DISK_PATH"; then exitFailed; fi
+    if ! qemu-img resize "$DISK_PATH" "$DISK_SIZE"G; then exitFailed; fi
     if [ "$CLOUDINIT_USERDATA" != "undefined" ] && [ -n "$CLOUDINIT_USERDATA" ]; then # check if a cloud init is provided 
         if ! printf "#cloud-config\n\n$CLOUDINIT_USERDATA" > /kloudust/temp/ci_$NAME.yaml; then exitFailed; fi
     else

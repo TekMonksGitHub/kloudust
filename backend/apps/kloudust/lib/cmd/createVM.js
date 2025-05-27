@@ -68,7 +68,7 @@ module.exports.exec = async function(params) {
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/createVM.sh`,
             vm_name, vm_description, cores, memory, disk, creation_image_name, kdResource.uri, ostype, 
             fromCloudImg, cloudinit_data||"undefined", KLOUD_CONSTANTS.env.org, KLOUD_CONSTANTS.env.prj,
-            force_overwrite||"false", max_cores, max_memory, additional_params, no_qemu_agent
+            force_overwrite||"false", max_cores, max_memory, additional_params, no_qemu_agent, exports.DEFAULT_DISK
         ]
     }
 
