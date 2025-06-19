@@ -66,7 +66,8 @@ div#close {
     cursor: pointer;
 }
 
-input, input:-internal-autofill-previewed, input:-internal-autofill-selected {
+input, input:-internal-autofill-previewed, input:-internal-autofill-selected, 
+        input:-webkit-autofill, input:-webkit-autofill:focus, input:-webkit-autofill:active {
     width: 100%;
     border-style: none;
     outline: none;
@@ -78,7 +79,8 @@ input, input:-internal-autofill-previewed, input:-internal-autofill-selected {
     font-size: smaller;
     display: block;
     margin-bottom: 2em;
-    color: #DCDCDC;
+    color: #DCDCDC !important;
+    -webkit-text-fill-color: #DCDCDC !important;
 }
 input[type="number"]::-webkit-inner-spin-button {-webkit-appearance: none;}
 ::placeholder {color: inherit;}

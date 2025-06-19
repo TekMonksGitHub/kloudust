@@ -4,7 +4,7 @@
 "type": "kloudust_cmdline",
 "kloudust_cmdline_params": ["vnet_name", "vnet_description", "force_overwrite"],
 
-"title": "{{{i18n.VMCreateTitle}}}",
+"title": "{{{i18n.VnetCreateTitle}}}",
 
 "i18n": {
     "en": {
@@ -89,7 +89,7 @@
         "options":[{"value":"false", "label":"{{{i18n.VnetNo}}}"}, {"value":"true", "label":"{{{i18n.VnetYes}}}"}]}
     ],
 
-    "submitlabel": "{{{i18n.CreateVMSubmitLabel}}}"
+    "submitlabel": "{{{i18n.CreateVnetSubmitLabel}}}"
 }
 
 }

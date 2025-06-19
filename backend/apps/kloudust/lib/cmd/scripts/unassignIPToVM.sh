@@ -7,6 +7,8 @@
 VM_NAME="{1}"
 IP_TO_UNASSIGN="{2}"
 
+echoerr() { echo "$@" 1>&2; }
+
 function exitFailed() {
     echo Failed.
     exit 1

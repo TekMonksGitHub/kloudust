@@ -9,6 +9,7 @@ const os = require("os");
 const fs = require("fs");
 const path = require("path");
 const spawn = require("child_process").spawn;
+const {ShellCommandClient} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/pyshell/pyshellclient.js`);
 const agentConf = {
     "shellexecprefix_win32": ["cmd.exe", "/s", "/c"],
     "shellexecprefix_linux": ["/bin/sh","-c"],
@@ -25,18 +26,40 @@ const agentConf = {
  * @param {Object} streamer If set, output will be streamed to it as it happens, must have member functions 
  *                          LOGINFO, LOGERROR, LOGWARN etc.
  * @param {object} callback err = exitCode in case or error or null otherwise,stdout,stderr
+ * @param {boolean} forceSSH If true then SSH is forced and agent is skipped
  */
-exports.runRemoteSSHScript = (conf, remote_script, extra_params, streamer, callback) => {
+exports.runRemoteSSHScript = (conf, remote_script, extra_params, streamer, callback, forceSSH) => {
     const script = path.normalize(`${__dirname}/ssh_cmd.${process.platform == "win32"?"bat":"sh"}`);
 
-    _expandExtraParams(extra_params, remote_script, (err, expanded_remote_script) => {
+    _expandExtraParams(extra_params, remote_script, async (err, expanded_remote_script) => {
         if (err) {callback(1, '', err.toString()); return;}
 
         LOG.debug(`Executing remote script ${agentConf["shellexecprefix_"+process.platform].join(" ")} ${script} ${conf.user} [hostpassword] [hostkey] ${expanded_remote_script} ${conf.host}`);
-        _processExec( agentConf["shellexecprefix_"+process.platform], script, 
+        const agentExecWorked = forceSSH ? false : await _agentExec(conf, expanded_remote_script, KLOUD_CONSTANTS.KDHOST_SYSTEMDIR+"/pyshell");
+        if (!agentExecWorked) _processExec( agentConf["shellexecprefix_"+process.platform], script, 
             [conf.user, conf.password, conf.host, conf.hostkey, conf.port||22, expanded_remote_script], 
             streamer, callback );
+        else callback(agentExecWorked.exit_code, agentExecWorked.stdout, agentExecWorked.stderr);
     });
+}
+
+async function _agentExec(conf, expanded_remote_script, deployPath) {
+    const aesKey = conf.user + conf.password + 
+        (conf.user.length + conf.password.length < 30 ? 
+        new Array(30 - conf.user.length + conf.password.length).fill(0).join('') : '');
+    const agentURL = `http://${conf.host}:${parseInt(conf.port)+1}`;
+    const pyshellclient = new ShellCommandClient(agentURL, aesKey);
+    let health = {}; try {  health = await pyshellclient.healthCheck(); } catch (err) {health.status = "bad";}
+    if (health.status != "healthy") {
+        const deployResult = await pyshellclient.deploy(conf.host, conf.port||22, conf.user,
+            conf.password, deployPath, conf.user, aesKey, "0.0.0.0", (conf.port||22)+1, 
+            conf.timeout||1800);
+        if (deployResult.exit_code != 0) return false;
+    }
+    const script = await fs.promises.readFile(expanded_remote_script, "utf8");
+    const remote_script_path = `/tmp/${path.basename(expanded_remote_script)}`;
+    const result = await pyshellclient.executeScript(script, remote_script_path);
+    return result;
 }
 
 function _processExec(cmdProcessorArray, script, paramsArray, streamer, callback) {

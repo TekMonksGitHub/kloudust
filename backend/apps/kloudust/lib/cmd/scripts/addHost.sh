@@ -15,6 +15,14 @@ function exitFailed() {
     exit 1
 }
 
+function saveNFTables() {
+    iptables-save > /tmp/iptable_rules.dump
+    iptables-restore-translate -f /tmp/iptable_rules.dump > /tmp/nft_ruleset.nft
+    nft flush ruleset
+    nft -f /tmp/nft_ruleset.nft
+    nft list ruleset > /etc/nftables.conf
+}
+
 function printConfig() {
     CORESPERCPU=`lscpu | grep Core | tr -s " " | cut -d":" -f2 | xargs`
     SOCKETS=`lscpu | grep Socket | tr -s " " | cut -d":" -f2 | xargs`
@@ -46,6 +54,7 @@ $1
 ENDJSON
 }
 
+
 printf "Updating the system\n"
 if [ -f "`which yum`" ]; then 
     if ! sudo yum -y install epel-release; then exitFailed; fi
@@ -54,6 +63,7 @@ else
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y update; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y upgrade; then exitFailed; fi
 fi
+
 
 printf "Installing required software\n"
 if [ -f "`which yum`" ]; then 
@@ -64,17 +74,18 @@ if [ -f "`which yum`" ]; then
     if ! sudo systemctl disable firewalld; then exitFailed; fi
     if ! sudo systemctl mask firewalld; then exitFailed; fi
     if ! sudo yum -y install iptables-services; then exitFailed; fi
-    if ! sudo yum -y install ufw; then exitFailed; fi
 else
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install fail2ban; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install sshpass; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install net-tools iptables-persistent; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils virtinst libosinfo-bin guestfs-tools tuned genisoimage; then exitFailed; fi
-    if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install ufw; then exitFailed; fi
     # Remove snapd on Ububtu as it opens outgoing connections to the snap store
+    # Also remove ufw as we will use nftables directly 
     snap list | egrep -v 'base$|snapd$|Notes$' | awk '{print $1}' | xargs -I{} sudo snap remove {} --purge && sudo apt purge -y snapd && rm -rf ~/snap
-    apt -y autoremove && apt-mark hold snapd
+    sudo apt purge -y ufw
+    apt -y autoremove && apt-mark hold snapd ufw
 fi
+
 
 printf "\n\nSecuring the system against SSH attacks\n"
 if ! sudo cat <<EOF > /tmp/kdfail2ban.jail.local; then exitFailed; fi
@@ -100,15 +111,11 @@ if ! sudo systemctl enable --now tuned; then exitFailed; fi
 if ! tuned-adm profile virtual-host; then exitFailed; fi
 
 
-printf "\n\nEnabling virtual networking\n"
-if [ -f "`which yum`" ]; then 
-    if ! sudo yum -y install https://fedorapeople.org/groups/repos/openstack/archived/openstack-antelope/rdo-release-antelope-1.el9s.noarch.rpm; then exitFailed; fi
-    if ! sudo yum -y install openvswitch; then exitFailed; fi
-    if ! sudo systemctl enable --now openvswitch; then exitFailed; fi
-else
-    if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install openvswitch-switch openvswitch-common  openvswitch-switch-dpdk; then exitFailed; fi
-    if ! sudo systemctl enable --now openvswitch-switch; then exitFailed; fi
-fi
+printf "\n\Disabling libvirt default networking\n"
+sudo virsh net-destroy default
+sudo virsh net-autostart --network default --disable
+virsh net-undefine default
+
 
 printf "\n\nCreating Kloudust Structures\n"
 if ! sudo mkdir -p /kloudust/catalog/; then exitFailed; fi
@@ -119,12 +126,15 @@ if ! sudo mkdir -p /kloudust/snapshots/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/temp/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/recyclebin/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/system/; then exitFailed; fi
+if ! sudo mkdir -p /kloudust/etc/; then exitFailed; fi
+
 
 printf "\n\nDownloading additional drivers\n"
 if [ "`cat /kloudust/drivers/virtio-win.version`" != "virtio-win-0.1.240.iso" ]; then
     if ! sudo bash -c "curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.240-1/virtio-win-0.1.240.iso > /kloudust/drivers/virtio-win.iso"; then exitFailed; fi
     if ! sudo bash -c  'echo "virtio-win-0.1.240.iso" > /kloudust/drivers/virtio-win.version'; then exitFailed; fi
 fi;
+
 
 printf "\n\nGiving permissions to Kloudust folders to KVM"
 if [ -f "`which yum`" ]; then 
@@ -143,20 +153,26 @@ fi
 if ! sed -i 's/^#\?[ ]*[Pp]ort[ ]\+[0-9]\+[ ]*$//g' /etc/ssh/sshd_config; then exitFailed; fi
 if ! echo "Port $NEW_SSH_PORT" >> /etc/ssh/sshd_config; then exitFailed; fi
 if ! touch ~/.hushlogin; then exitFailed; fi
-
-printf "\n\nSetting up the host firewall\n"
-if ! ufw --force reset; then exitFailed; fi
-if ! ufw default deny incoming; then exitFailed; fi
-if ! ufw default allow outgoing; then exitFailed; fi
-if ! ufw allow $NEW_SSH_PORT; then exitFailed; fi
-if ! systemctl enable ufw; then exitFailed; fi
-if ! ufw --force enable; then exitFailed; fi
 if [ -f "`which yum`" ]; then 
-    if ! systemctl restart sshd; then exitFailed; fi
+    if ! sudo systemctl restart sshd; then exitFailed; fi
 else 
-    if ! systemctl restart ssh; then exitFailed; fi
+    if ! sudo systemctl restart ssh; then exitFailed; fi
 fi
 
-printf "\n\nSystem initialization finished successfully, reboot needed\n"
+
+printf "\n\nSetting up the host firewall\n"
+if ! sudo nft flush ruleset; then exitFailed; fi                                          # start with a new firewall
+if ! sudo nft add table inet kdhostfirewall; then exitFailed; fi
+if ! sudo nft add chain inet kdhostfirewall input { type filter hook input priority filter\; policy drop\; }; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input iif lo accept; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
+if ! sudo nft rule inet kdhostfirewall input tcp dport 8472 accept; then exitFailed; fi   # VxLAN port
+if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
+if ! sudo systemctl enable --now nftables; then exitFailed; fi
+if ! sudo printf "\nnet.ipv4.ip_forward=1\n" >> /etc/sysctl.conf; then exitFailed; fi
+if ! sudo sysctl -p /etc/sysctl.conf; then exitFailed; fi
+
+printf "\n\nHost initialization finished successfully, reboot needed\n"
 printConfig $JSONOUT_SPLITTER
 exit 0

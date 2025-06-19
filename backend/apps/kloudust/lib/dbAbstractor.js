@@ -29,6 +29,18 @@ exports.getUserCount = async _ => {
 }
 
 /**
+ * Returns all registered hosts.
+ * @return All registered hosts.
+ */
+exports.getHosts = async _ => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
+
+    const query = "select * from hosts";
+    const resources = await _db().getQuery(query, []);
+    if ((!resources) || (!resources.length)) return null; else return resources;
+}
+
+/**
  * Adds the given host to the catalog, if it exists, it will delete and reinsert it. 
  * Hosts are never tied to any project, org or entity and owned by the entire cloud.
  * @param {string} hostname The hostname which is any identifiable name for the host
@@ -691,9 +703,20 @@ exports.deleteVnet = async function(resource_id, snapshot_id, project=KLOUD_CONS
 exports.deleteAllSnapshotsForResource = async function(resource_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    const id = `${org}_${project}_${resource_id}_${snapshot_id}`;
 
-    const query = "delete from snapshots where id in (select pk1 from relationships where pk2=? collate nocase)";
-    return await _db().runCmd(query, [resource_id]);
+    const commandsToRun = [
+        {
+            cmd: "delete from snapshots where id in (select pk1 from relationships where pk2=? collate nocase)", 
+            params:  [resource_id]
+        },
+        {
+            cmd: "delete from relationships where pk2 = ? and type = 'snapshot",
+            params: [resource_id]
+        }
+    ];
+    const deleteResult = await _db().runTransaction(commandsToRun);
+    return deleteResult;
 }
 
 /**
@@ -784,18 +807,19 @@ exports.deleteVnet = async function(resource_id, snapshot_id, project=KLOUD_CONS
  * Adds vnet information to the database.
  * @param {string} vnet_id The vnet name or ID
  * @param {string} description Any additional description for the Vnet
+ * @param {boolean} overwrite Overwrite the Vnet if it exists
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure 
  */
-exports.addOrUpdateVnet = async function(vnet_id, description="", project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
+exports.addOrUpdateVnet = async function(vnet_id, description="", overwrite, 
+        project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
     const id = `${org}_${project}_${vnet_id}`, projectid = _getProjectID(project, org)
-    if (await exports.getVnet(vnet_id, project, org)) { // don't allow adding same vnet twice
+    if (await exports.getVnet(vnet_id, project, org) && (!overwrite)) { // don't allow adding same vnet twice
         KLOUD_CONSTANTS.LOGERROR(`Vnet with ID ${vnet_id} already exists`); return false;}
 
     const cmd = "replace into vnets (id, name, description, org, projectid) values (?,?,?,?,?)", 

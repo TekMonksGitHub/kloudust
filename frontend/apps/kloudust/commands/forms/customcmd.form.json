@@ -57,11 +57,21 @@
     {"id": "sql", "inputtype": "textarea", "type": "text", "placeholder": "{{{i18n.CloudAdminSQL}}}", 
         "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}", 
         "style":"height: 20vh; font-family: monospace; font-size: larger; background-color: #212121;"},
-    {"id": "hostname", "type": "text", "placeholder": "{{{i18n.Hostname}}}", "pattern":"\\s*[A-Za-z0-9]+\\s*",
-        "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "hostname", "multioption": true, "type": "select", "label": "{{{i18n.Hostname}}}", 
+        "options":[]},
     {"id": "hostcommand", "inputtype": "textarea", "type": "text", "placeholder": "{{{i18n.HostCommand}}}", 
         "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}", 
         "style":"height: 35vh; font-family: monospace; font-size: larger; background-color: #212121;"}
+    ],
+
+    "load_javascript": [
+        "const form = arguments[0]||{};",
+        "const hostsResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, ",
+        "   'POST', {cmd: 'listHosts'}, true);",
+        "if (hostsResult.result) for (const host of hostsResult.resources) { ",
+        "   const hostNameObject = form.required_fields[form.required_fields.length-2];",
+        "   hostNameObject.options.push({value: host.hostname, label: host.hostname}); }",
+        "return form;"
     ],
 
     "submitlabel": "{{{i18n.CloudAdminCommandRun}}}"

@@ -18,8 +18,8 @@ const REQUEST_HASH_KEY = "__org_kloudust_request_hash_",
 exports.doService = async (jsonReq={}, _servObject, headers, _url, _apiconf) => {
 	const requestHash = serverutils.hashObject(jsonReq), 
 		requestID = Date.now()+":"+Math.random().toString().split(".")[1], memory = MEMORY_PROVIDER.get(REQUEST_HASH_KEY, {});
-	if (memory[requestHash]) return _logErrorAndConstructErrorResult(requestID, 
-			`Ignoring duplicate request -> ${JSON.stringify(jsonReq)} with hash ${requestHash}`); 
+	if ((!KLOUD_CONSTANTS.CONF.DISABLE_DUPLICATE_REQUEST_CHECK) && memory[requestHash]) 
+		return _logErrorAndConstructErrorResult(requestID, `Ignoring duplicate request -> ${JSON.stringify(jsonReq)} with hash ${requestHash}`); 
 
 	if (!validateRequest(jsonReq)) return _logErrorAndConstructErrorResult(requestID, 
 		`Validation failure for the request -> ${JSON.stringify(jsonReq)}`);
@@ -43,7 +43,11 @@ function _streamHandler(id, info, warn, err) {
 
 function _setRequestActive(requestHash, active=true) {
 	const memory = MEMORY_PROVIDER.get(REQUEST_HASH_KEY, {});
-	if (active) memory[requestHash] = true; else delete memory[requestHash];
+	if (active) { 
+		memory[requestHash] = true; 
+		setTimeout(_=>_setRequestActive(requestHash, false), 					// auto-cleanup
+			KLOUD_CONSTANTS.CONF.DUPLICATE_REQUEST_CHECK_CLEANUP_INTERVAL);
+	} else delete memory[requestHash];
 	MEMORY_PROVIDER.set(REQUEST_HASH_KEY, memory);
 }
 
