@@ -12,7 +12,7 @@ const remote_ssh = require(`${__dirname}/remote_ssh_sh.js`);
 
 /**
  * XForge compatible bridge.
- * @param {Object} xforge_args We use two properties - {other - String, console - Object}. Other is the 
+ * @param {Object} xforge_args We use two properties - {other: [Strings], console: Object}. Other is the 
  *                             command line params for the remote SSH scripts in space delimited format (same
  *                             as a regular terminal command line) and console is a console handler having 
  *                             functions like LOGINFO, LOGWARN, LOGERROR, LOGUNAUTH etc for handling 
@@ -41,9 +41,9 @@ exports.xforge = async function(xforge_args) {
 function ssh_cmd(host, user, password, hostkey, port=22, shellScriptPath, scriptParams, streamer) {
     (streamer?streamer.LOGINFO:KLOUD_CONSTANTS.LOGINFO)(`[SSH_CMD]: ${user}@${host}:${port} -> ${scriptParams.join(" ")}`);
     return new Promise((resolve, reject) => {
-        remote_ssh.runRemoteSSHScript({user, password, host, hostkey, port}, shellScriptPath, scriptParams, streamer, (err,stdout,stderr) => {
-            if (!err) resolve({result: true, exitCode: 0, stdout, stderr, out: stdout, err: stderr});
-            else reject({result: false, exitCode: err, stdout, stderr, out: stdout, err: stderr});
+        remote_ssh.runRemoteSSHScript({user, password, host, hostkey, port}, shellScriptPath, scriptParams, streamer, (exit_code,stdout,stderr) => {
+            if (exit_code == 0) resolve({result: true, exitCode: 0, stdout, stderr, out: stdout, err: stderr});
+            else reject({result: false, exitCode: exit_code, stdout, stderr, out: stdout, err: stderr});
         });
     });
 }
