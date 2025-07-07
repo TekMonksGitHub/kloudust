@@ -4,7 +4,7 @@
  * License: See enclosed license.txt file.
  */
 const FRONTEND = new URL(window.location).protocol + "//" + new URL(window.location).host;
-const BACKEND = new URL(window.location).protocol + "//" + new URL(window.location).host + ":9090";
+const BACKEND = new URL(window.location).protocol + "//" + new URL(window.location).hostname + ":9090";
 const APP_NAME = "kloudust";
 const APP_PATH = `${FRONTEND}/apps/${APP_NAME}`;
 const API_PATH = `${BACKEND}/apps/${APP_NAME}`;
