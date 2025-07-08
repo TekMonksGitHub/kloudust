@@ -9,6 +9,7 @@ NEW_PASSWORD="{1}"
 JSONOUT_SPLITTER="{2}"
 CHANGED_SSH_PORT={3}
 NEW_SSH_PORT=${CHANGED_SSH_PORT:-22}
+AGENT_PORT=$((NEW_SSH_PORT + 2))
 
 function exitFailed() {
     echo Failed
@@ -167,6 +168,7 @@ if ! sudo nft add chain inet kdhostfirewall input { type filter hook input prior
 if ! sudo nft add rule inet kdhostfirewall input iif lo accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
 if ! sudo nft rule inet kdhostfirewall input tcp dport 8472 accept; then exitFailed; fi   # VxLAN port
 if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
 if ! sudo systemctl enable --now nftables; then exitFailed; fi
