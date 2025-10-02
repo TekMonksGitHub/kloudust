@@ -152,6 +152,7 @@ if ! sudo nft add chain inet kdhostfirewall input { type filter hook input prior
 if ! sudo nft add rule inet kdhostfirewall input iif lo accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
 if ! sudo nft rule inet kdhostfirewall input tcp dport 8472 accept; then exitFailed; fi   # VxLAN port
 if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
 if ! sudo systemctl enable --now nftables; then exitFailed; fi
@@ -176,21 +177,6 @@ if [ -f "`which yum`" ]; then
 else 
     if ! sudo systemctl restart ssh; then exitFailed; fi
 fi
-
-
-printf "\n\nSetting up the host firewall\n"
-if ! sudo nft flush ruleset; then exitFailed; fi                                          # start with a new firewall
-if ! sudo nft add table inet kdhostfirewall; then exitFailed; fi
-if ! sudo nft add chain inet kdhostfirewall input { type filter hook input priority filter\; policy drop\; }; then exitFailed; fi
-if ! sudo nft add rule inet kdhostfirewall input iif lo accept; then exitFailed; fi
-if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
-if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
-if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
-if ! sudo nft rule inet kdhostfirewall input tcp dport 8472 accept; then exitFailed; fi   # VxLAN port
-if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
-if ! sudo systemctl enable --now nftables; then exitFailed; fi
-if ! sudo printf "\nnet.ipv4.ip_forward=1\n" >> /etc/sysctl.conf; then exitFailed; fi
-if ! sudo sysctl -p /etc/sysctl.conf; then exitFailed; fi
 
 printf "\n\nHost initialization finished successfully, reboot needed\n"
 printConfig $JSONOUT_SPLITTER
