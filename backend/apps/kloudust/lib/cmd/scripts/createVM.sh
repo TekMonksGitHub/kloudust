@@ -18,7 +18,8 @@
 # {15} Max memory
 # {16} Additional virt-install params
 # {17} No guest agent - By default QEMU Guest Agent is enabled, if this is true it is disabled
-# {18} Restart wait - time to wait for the first restart to stabalize
+# {18} Network name - By default none is used, can be set to default if default networking is available
+# {19} Restart wait - time to wait for the first restart to stabalize
 
 NAME="{1}"
 DESCRIPTION="{2}"
@@ -38,7 +39,8 @@ MAX_VCPUS={14}
 MAX_MEMORY={15}
 VIRT_INSTALL_PARAMS="{16}"
 NO_GUEST_AGENT={17}
-SHUTDOWN_WAIT={18}
+KVM_NETWORK_NAME={18}
+SHUTDOWN_WAIT={19}
 SHUTDOWN_WAIT="${SHUTDOWN_WAIT:-20}"    # Default it to 90 seconds if not provided
 
 function exitFailed() {
@@ -160,17 +162,22 @@ if [ -z "$BASE64_METADATA" ]; then
 	exitFailed
 fi
 
+NETWORK_ARGS="--network network=$KVM_NETWORK_NAME"
+if [ "$KVM_NETWORK_NAME" == "none" ]; then
+    NETWORK_ARGS="--network none"
+fi
+
 if ! virt-install --name $NAME --metadata name=$NAME --metadata title="$DESCRIPTION" \
     --metadata description=$BASE64_METADATA \
     --vcpus $VCPUS,maxvcpus=$MAX_VCPUS \
     --memory currentMemory=$MEMORY,maxmemory=$MAX_MEMORY \
     --disk $DISK \
     --os-variant $OS_VARIANT \
-    --network network=default \
     --controller type=scsi,model=virtio-scsi \
     --noautoconsole \
     --virt-type kvm \
     --video model=qxl,heads=1 \
+    $NETWORK_ARGS \
     $ISO_VNC_ARGS \
     $VIRT_INSTALL_PARAMS \
     $QEMU_GUEST_AGENT \
@@ -189,11 +196,11 @@ INSTALL="virt-install --name $NAME --metadata name=$NAME --metadata title=\"$DES
     --memory currentMemory=$MEMORY,maxmemory=$MAX_MEMORY \
     --disk $DISK \
     --os-variant $OS_VARIANT \
-    --network network=default \
     --controller type=scsi,model=virtio-scsi \
     --noautoconsole \
     --virt-type kvm \
     --video model=qxl,heads=1 \
+    $NETWORK_ARGS \
     $ISO_VNC_ARGS \
     $VIRT_INSTALL_PARAMS \
     $QEMU_GUEST_AGENT \

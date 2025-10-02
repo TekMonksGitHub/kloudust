@@ -1,7 +1,8 @@
 /** 
  * deleteVM.js - Deletes the given VM. Will not delete the snapshots
  * of this VM. This is on purpose so that the VM could potentially be
- * recreated later from the snapshots.
+ * recreated later from the snapshots. It will also delete the Vnet 
+ * relationships in the DB for this VM.
  * 
  * Params - 0 - VM Name
  * 
@@ -13,6 +14,7 @@ const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
+const deleteVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVMVnet.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 /**
@@ -32,6 +34,8 @@ module.exports.exec = async function(params) {
     const results = await exports.deleteVMFromHost(vm_name, hostInfo, params.consoleHandlers);
     
     if (results.result) {
+        if (!await deleteVMVnet.deleteResourceRelationshipForAllVNets(vm_name, deleteVMVnet.VNET_VM_RELATION))
+            params.consoleHandlers.LOGERROR("DB failed to delete all Vnets to VM relationship for VM "+vm_name);
         if (await dbAbstractor.deleteVM(vm_name)) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;

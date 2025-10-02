@@ -5,13 +5,13 @@
 ],
 "*":[
     {"id": "create", "label": "{{{i18n.Create}}}", "logo": "img/plus.svg"},
+    {"id": "manage", "label": "{{{i18n.Manage}}}", "logo": "img/manage.svg"},
     {"id": "vms", "label": "{{{i18n.VirtualMachines}}}", "logo": "img/vms.svg"},
     {"id": "cloudservices", "label": "{{{i18n.CloudServices}}}", "logo": "img/cloudservices.svg"},
     {"id": "cloudcommand", "label": "{{{i18n.CloudCommand}}}", "logo": "img/cloudcommand.svg"},
     {"id": "alerts", "label": "{{{i18n.Alerts}}}", "logo": "img/alerts.svg"},
 
     {"id": "containers", "label": "{{{i18n.Containers}}}", "logo": "img/containers.svg"},
-    {"id": "cloudfunctions", "label": "{{{i18n.CloudFunctions}}}", "logo": "img/cloudfunctions.svg"},
     {"id": "objectstorage", "label": "{{{i18n.ObjectStorage}}}", "logo": "img/objectstorage.svg"}
 ]
 },
@@ -19,6 +19,7 @@
 "i18n": {
 "en": {
     "Create": "Create",
+    "Manage": "Manage",
     "CloudAdmin": "Manage cloud",
     "VirtualMachines": "Virtual machines",
     "CloudServices": "Cloud services",
@@ -32,6 +33,7 @@
 
 "hi": {
     "Create": "Create",
+    "Manage": "Manage",
     "CloudAdmin": "Manage cloud",
     "VirtualMachines": "Virtual machines",
     "CloudServices": "Cloud services",
@@ -41,6 +43,7 @@
 
 "ja": {
     "Create": "Create",
+    "Manage": "Manage",
     "CloudAdmin": "Manage cloud",
     "VirtualMachines": "Virtual machines",
     "CloudServices": "Cloud services",
@@ -50,6 +53,7 @@
 
 "zh": {
     "Create": "Create",
+    "Manage": "Manage",
     "CloudAdmin": "Manage cloud",
     "VirtualMachines": "Virtual machines",
     "CloudServices": "Cloud services",

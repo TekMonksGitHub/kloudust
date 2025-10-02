@@ -4,10 +4,6 @@
 "type": "frontend_module",
 
 "rolelist": {
-"cloudadmin": [
-    {"id": "addhost", "label": "{{{i18n.AddHost}}}", "logo": "img/addhost.svg"},
-    {"id": "addimage", "label": "{{{i18n.AddImage}}}", "logo": "img/addimage.svg"}
-],
 "*": [
     {"id": "createvm", "label": "{{{i18n.CreateVirtualMachine}}}", "logo": "img/createvm.svg"},
     {"id": "createvnet", "label": "{{{i18n.CreateVirtualNetwork}}}", "logo": "img/createvnet.svg"},
@@ -28,7 +24,7 @@
     "AddImage": "Add image",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
-    "CreateFirewall": "Firewall Ruleset",
+    "CreateFirewall": "Firewall ruleset",
     "CreateContainer": "New container",
     "CreateOracleManagedDB": "Create serverless Oracle",
     "CreateMariaManagedDB": "Create serverless MariaDB",
@@ -42,7 +38,7 @@
     "AddImage": "Add image",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
-    "CreateFirewall": "Firewall Ruleset",
+    "CreateFirewall": "Firewall ruleset",
     "CreateContainer": "New container",
     "CreateOracleManagedDB": "Create serverless Oracle",
     "CreateFunction": "Create cloud function",
@@ -55,7 +51,7 @@
     "AddImage": "Add image",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
-    "CreateFirewall": "Firewall Ruleset",
+    "CreateFirewall": "Firewall ruleset",
     "CreateContainer": "New container",
     "CreateOracleManagedDB": "Create serverless Oracle",
     "CreateMariaManagedDB": "Create serverless MariaDB",
@@ -69,7 +65,7 @@
     "AddImage": "Add image",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
-    "CreateFirewall": "Firewall Ruleset",
+    "CreateFirewall": "Firewall ruleset",
     "CreateContainer": "New container",
     "CreateOracleManagedDB": "Create serverless Oracle",
     "CreateMariaManagedDB": "Create serverless MariaDB",

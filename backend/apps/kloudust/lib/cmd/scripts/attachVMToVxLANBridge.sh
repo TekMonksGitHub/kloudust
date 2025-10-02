@@ -8,11 +8,12 @@
 # Init section - check params, and assigns defaults if missing
 #
 # Params
-# {1} VM Name
-# {2} VxLAN Name
+# {1} VM Name 
+# {2} VxLAN Name (not used currently)
+# {3} VxLAN ID (it is a number)
 #########################################################################################################
 VM_NAME={1}
-VLAN_NAME={2}
+VLAN_NAME=kd{3}
 BR_NAME="$VLAN_NAME"_br
 
 function exitFailed() {

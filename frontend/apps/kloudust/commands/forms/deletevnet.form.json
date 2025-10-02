@@ -1,0 +1,52 @@
+{
+"id": "deletevnet",
+"command": "deleteVnet",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vnet_name"],
+
+"title": "{{{i18n.VnetDeleteTitle}}}",
+
+"i18n": {
+    "en": {
+        "VnetDeleteTitle": "Delete virtual network",
+        "VnetDeleteDescription": "Delete a virtual network. A virtual network is comparable to VLANs and includes virtual switching. Complete the required fields and then review + delete to delete a virtual network.",
+        "VnetName": "Name",
+        "DeleteVnetSubmitLabel": "Delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "hi": {
+        "VnetDeleteTitle": "Delete virtual network",
+        "VnetDeleteDescription": "Delete a virtual network. A virtual network is comparable to VLANs and includes virtual switching. Complete the required fields and then review + delete to delete a virtual network.",
+        "VnetName": "Name",
+        "DeleteVnetSubmitLabel": "Delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "ja": {
+        "VnetDeleteTitle": "Delete virtual network",
+        "VnetDeleteDescription": "Delete a virtual network. A virtual network is comparable to VLANs and includes virtual switching. Complete the required fields and then review + delete to delete a virtual network.",
+        "VnetName": "Name",
+        "DeleteVnetSubmitLabel": "Delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "zh": {
+        "VnetDeleteTitle": "Delete virtual network",
+        "VnetDeleteDescription": "Delete a virtual network. A virtual network is comparable to VLANs and includes virtual switching. Complete the required fields and then review + delete to delete a virtual network.",
+        "VnetName": "Name",
+        "DeleteVnetSubmitLabel": "Delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.VnetDeleteDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "vnet_name", "type": "text", "placeholder": "{{{i18n.VnetName}}}", "required": true, 
+        "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+    ],
+
+    "submitlabel": "{{{i18n.DeleteVnetSubmitLabel}}}"
+}
+
+}

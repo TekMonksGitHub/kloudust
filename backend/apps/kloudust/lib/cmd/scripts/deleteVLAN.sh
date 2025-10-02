@@ -8,10 +8,11 @@
 # Init section - check params, and assigns defaults if missing
 #
 # Params
-# {1} VLAN Name
+# {1} VLAN Name (not used currently)
+# {2} VLAN ID (it is a number)
 #########################################################################################################
-VLAN_NAME={1}
-BR_NAME="$1"_br
+VLAN_NAME=kd{2}
+BR_NAME="$VLAN_NAME"_br
 
 echoerr() { echo "$@" 1>&2; }
 

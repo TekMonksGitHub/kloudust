@@ -38,7 +38,7 @@ exports.runRemoteSSHScript = async (conf, remote_script, extra_params, streamer,
     if (expandResult.err) {callback(1, '', err.toString()); return;}
     const expanded_remote_script = expandResult.result;
 
-    LOG.debug(`Executing remote script: ${expanded_remote_script.path}`);
+    LOG.info(`Executing remote script: ${expanded_remote_script.path}`);
     const agentExecWorked = forceSSH ? false : await _agentExec(conf, expanded_remote_script, KLOUD_CONSTANTS.KDHOST_SYSTEMDIR+"/pyshell");
     if (!agentExecWorked) {
         LOG.warn(`Script ${expanded_remote_script.path} is using SSH to execute. Agent exec failed, performance hit!!`);
@@ -116,6 +116,7 @@ async function _expandExtraParams(extra_params, remote_script) {
     try {
         let data = typeof remote_script === "string" ? await fs.promises.readFile(remote_script, "utf8") : remote_script.data;
         if (extra_params?.length) for (const [i,param] of extra_params.entries()) data = _replaceAll(data, "{"+i+"}", param);
+        if (KLOUD_CONSTANTS.CONF.LOG_REMOTE_SSH_FILES) fs.promises.writeFile(tmpFile, data);
         return({err: null, result: {...(typeof remote_script === "object"?remote_script:{}), path: tmpFile, data}}); 
     } catch (err) { return {err, result: null}; }
 }

@@ -1,0 +1,39 @@
+{
+"id": "create",
+"command": "iconlist",
+"type": "frontend_module",
+
+"rolelist": {
+"*": [
+    {"id": "deletevm", "label": "{{{i18n.DeleteVirtualMachine}}}", "logo": "img/deletevm_manage.svg"},
+    {"id": "deletevnet", "label": "{{{i18n.DeleteVirtualNetwork}}}", "logo": "img/deletevnet.svg"},
+    {"id": "deletefirewall", "label": "{{{i18n.DeleteFirewall}}}", "logo": "img/deletefirewall.svg"}
+]
+},
+
+"i18n": {
+"en": {
+    "DeleteVirtualMachine": "Delete virtual machine",
+    "DeleteVirtualNetwork": "Delete virtual network",
+    "DeleteFirewall": "Delete firewall ruleset"
+},
+
+"hi": {
+    "DeleteVirtualMachine": "Delete virtual machine",
+    "DeleteVirtualNetwork": "Delete virtual network",
+    "DeleteFirewall": "Delete firewall ruleset"
+},
+
+"ja": {
+    "DeleteVirtualMachine": "Delete virtual machine",
+    "DeleteVirtualNetwork": "Delete virtual network",
+    "DeleteFirewall": "Delete firewall ruleset"
+},
+
+"zh": {
+    "DeleteVirtualMachine": "Delete virtual machine",
+    "DeleteVirtualNetwork": "Delete virtual network",
+    "DeleteFirewall": "Delete firewall ruleset"
+}
+}
+}

@@ -2,9 +2,9 @@
 "id": "createvm",
 "command": "createVM",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["vm_name", "vm_description", "cores", "memory", "disk", "creation_image_name", 
+"kloudust_cmdline_params": ["vm_name", "vm_description", "cores", "memory", "disk", "vnet", "creation_image_name", 
     "cloudinit_data", "force_overwrite", "maxcores", "maxmemory", "additional_params", "vmtype", "no_qemu_agent",
-    "override_host"],
+    "host_network", "override_host"],
 
 "title": "{{{i18n.VMCreateTitle}}}",
 
@@ -19,6 +19,7 @@
         "VMDisk": "Disk in gigabytes",
         "VMImage": "Image to use",
         "VMAdministrator": "Administrator login",
+        "VMVNet": "Virtual network (will be created if it does not exist)",
         "VMAdministratorPassword": "Administrator password",
         "VMCloudInitData": "Cloudinit data",
         "FieldValidationErrorGeneric": "Validation error",
@@ -31,7 +32,8 @@
         "VMOverwriteForce": "Overwrite if a virtual machine by the same name exists?",
         "VMAdditionalParams": "Additional creation params",
         "VMNoAgent": "Do not install control agent?",
-        "VMHostname": "Hostname to force host (else leave blank)"
+        "VMHostNetwork": "Cloud admin only: Force host network (risky: leave blank)",
+        "VMHostname": "Cloud admin only: Hostname to force host (risky: leave blank)"
     },
     "hi": {
         "VMCreateTitle": "Create Virtual Machine",
@@ -43,6 +45,7 @@
         "VMDisk": "Disk in gigabytes",
         "VMImage": "Image to use",
         "VMAdministrator": "Administrator login",
+        "VMVNet": "Virtual network (will be created if it does not exist)",
         "VMAdministratorPassword": "Administrator password",
         "VMCloudInitData": "Cloudinit data",
         "FieldValidationErrorGeneric": "Validation error",
@@ -55,7 +58,8 @@
         "VMOverwriteForce": "Overwrite if a virtual machine by the same name exists?",
         "VMAdditionalParams": "Additional creation params",
         "VMNoAgent": "Do not install control agent?",
-        "VMHostname": "Hostname to force host (else leave blank)"
+        "VMHostNetwork": "Cloud admin only: Force host network (risky: leave blank)",
+        "VMHostname": "Cloud admin only: Hostname to force host (risky: leave blank)"
     },
     "ja": {
         "VMCreateTitle": "Create Virtual Machine",
@@ -67,6 +71,7 @@
         "VMDisk": "Disk in gigabytes",
         "VMImage": "Image to use",
         "VMAdministrator": "Administrator login",
+        "VMVNet": "Virtual network (will be created if it does not exist)",
         "VMAdministratorPassword": "Administrator password",
         "VMCloudInitData": "Cloudinit data",
         "FieldValidationErrorGeneric": "Validation error",
@@ -79,7 +84,8 @@
         "VMOverwriteForce": "Overwrite if a virtual machine by the same name exists?",
         "VMAdditionalParams": "Additional creation params",
         "VMNoAgent": "Do not install control agent?",
-        "VMHostname": "Hostname to force host (else leave blank)"
+        "VMHostNetwork": "Cloud admin only: Force host network (risky: leave blank)",
+        "VMHostname": "Cloud admin only: Hostname to force host (risky: leave blank)"
     },
     "zh": {
         "VMCreateTitle": "Create Virtual Machine",
@@ -91,6 +97,7 @@
         "VMDisk": "Disk in gigabytes",
         "VMImage": "Image to use",
         "VMAdministrator": "Administrator login",
+        "VMVNet": "Virtual network (will be created if it does not exist)",
         "VMAdministratorPassword": "Administrator password",
         "VMCloudInitData": "Cloudinit data",
         "FieldValidationErrorGeneric": "Validation error",
@@ -103,7 +110,8 @@
         "VMOverwriteForce": "Overwrite if a virtual machine by the same name exists?",
         "VMAdditionalParams": "Additional creation params",
         "VMNoAgent": "Do not install control agent?",
-        "VMHostname": "Hostname to force host (else leave blank)"
+        "VMHostNetwork": "Cloud admin only: Force host network (risky: leave blank)",
+        "VMHostname": "Cloud admin only: Hostname to force host (risky: leave blank)"
     }
 },
 
@@ -125,6 +133,7 @@
         "pattern":"\\s*[A-Za-z0-9]+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
     {"id": "adminpass", "type": "password", "placeholder": "{{{i18n.VMAdministratorPassword}}}", "required": true, 
        "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "vnet", "type": "text", "placeholder": "{{{i18n.VMVNet}}}"},
     {"id": "vmtype", "type": "hidden", "value": "vm"},
     {"id": "creation_image_name", "multioption": true, "type": "select", "label": "{{{i18n.VMImage}}}", 
         "options":[]}
@@ -140,6 +149,7 @@
         "options":[{"value":"false", "label":"{{{i18n.VMNo}}}"}, {"value":"true", "label":"{{{i18n.VMYes}}}"}]},
     {"id": "force_overwrite", "multioption": true, "type": "select", "label": "{{{i18n.VMOverwriteForce}}}", 
         "options":[{"value":"false", "label":"{{{i18n.VMNo}}}"}, {"value":"true", "label":"{{{i18n.VMYes}}}"}]},
+    {"id": "host_network", "type": "text", "placeholder": "{{{i18n.VMHostNetwork}}}"},
     {"id": "override_host", "type": "text", "placeholder": "{{{i18n.VMHostname}}}", "value":"",
         "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
     ],
@@ -152,7 +162,7 @@
         "   const creationImageNameObject = form.required_fields[form.required_fields.length-1];",
         "   creationImageNameObject.options.push({value: vm.name, label: vm.description}); }",
         "if (!monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager.isCloudAdminLoggedIn()) ",
-        "   form.optional_fields.splice(form.optional_fields.length-1, 1)",
+        "   form.optional_fields.splice(form.optional_fields.length-2, 2)",
         "return form;"
     ],
 

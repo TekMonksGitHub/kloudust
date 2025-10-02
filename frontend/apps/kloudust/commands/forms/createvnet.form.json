@@ -83,12 +83,6 @@
     {"id": "vnet_description", "type": "text", "placeholder": "{{{i18n.VnetDescription}}}"}
     ],
 
-    "optional_label": "{{{i18n.VnetAdvanced}}}",
-    "optional_fields": [
-    {"id": "force_overwrite", "multioption": true, "type": "select", "label": "{{{i18n.VnetOverwriteForce}}}", 
-        "options":[{"value":"false", "label":"{{{i18n.VnetNo}}}"}, {"value":"true", "label":"{{{i18n.VnetYes}}}"}]}
-    ],
-
     "submitlabel": "{{{i18n.CreateVnetSubmitLabel}}}"
 }
 

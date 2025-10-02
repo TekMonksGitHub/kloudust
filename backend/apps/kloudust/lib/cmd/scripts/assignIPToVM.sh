@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Old script - not needed for VxLAN  architecture. This one assumes IP terminates on the host of the VM.
 # Params
 # {1} The VM name
 # {2} The IP to forward to the VM

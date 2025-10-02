@@ -33,7 +33,7 @@ exports.xforge = async function(xforge_args) {
 	} catch (err) { 
 		(xforge_args.console?xforge_args.console.LOGERROR:KLOUD_CONSTANTS.LOGERROR)(
             `Build failed with remote exit code: ${err.exitCode}, due to error: ${err.stderr}`);
-        const exitCode = 1, stdout = '', stderr = err.toString();
+        const exitCode = 1, stdout = err.stdout||'', stderr = err.stderr||err.toString();
         return {result: false, exitCode, stdout, stderr, out: stdout, err: stderr}; 
 	}
 }

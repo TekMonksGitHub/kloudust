@@ -8,17 +8,17 @@
 # Init section - check params, and assigns defaults if missing
 #
 # Params
-# {1} VLAN Name
+# {1} VLAN Name (not used currently)
 # {2} VLAN ID (it is a number)
 # {3} Peer host IPs as a list eg "192.168.1.1 192.168.1.2 ..."
-# {5} Default ethernet device for VxLAN VTEP which routes VxLAN traffic between the hosts. Optional.
-# {6} The MTU for the default ethernet - default is 1500 as it works everywhere usually. Optional.
+# {4} Default ethernet device for VxLAN VTEP which routes VxLAN traffic between the hosts. Optional.
+# {5} The MTU for the default ethernet - default is 1500 as it works everywhere usually. Optional.
 #########################################################################################################
-VLAN_NAME={1}
+VLAN_NAME=kd{2}
 VLAN_ID={2}
 PEER_HOSTS={3}
-DEFAULT_ETH={5}
-DEFAULT_ETH_MTU={6}
+DEFAULT_ETH={4}
+DEFAULT_ETH_MTU={5}
 
 BR_NAME="$VLAN_NAME"_br
 DEFAULT_BR_VLAN_ID=10                                                            # Not really used
@@ -34,7 +34,6 @@ function exitFailed() {
     exit 1
 }
 
-printf "#!/bin/bash\n\n" > $VXLAN_BOOT_SCRIPT
 if [ -z "$DEFAULT_ETH" ] || [ "$DEFAULT_ETH" == "auto" ]; then                   # Assume default ethernet is the local VTEP if not given
     DEFAULT_ETH=`ip route | grep default | grep -o 'dev.*' | cut -d" " -f2`
     echo Located default ethernet for VxLAN at $DEFAULT_ETH
@@ -44,7 +43,10 @@ if [ -z "$DEFAULT_ETH" ] || [ "$DEFAULT_ETH" == "auto" ]; then
     echoerr "Could not locate default ethernet for VxLAN host VTEP"
     exitFailed
 fi
-DEFAULT_ETH_MTU=${DEFAULT_ETH_MTU:=1500}                                         # default the MTU if needed
+
+if [ -z "$DEFAULT_ETH_MTU" ] || [ "$DEFAULT_ETH_MTU" == "auto" ]; then 
+    DEFAULT_ETH_MTU=1500                                                         # default the MTU if needed
+fi                                     
 if ! ip link set mtu $DEFAULT_ETH_MTU dev $DEFAULT_ETH; then exitFailed; fi      # set the default MTU on the base interface
 echo "MTU set for $DEFAULT_ETH to $DEFAULT_ETH_MTU"
 

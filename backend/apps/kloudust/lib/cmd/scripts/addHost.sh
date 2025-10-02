@@ -144,11 +144,28 @@ else
 fi
 
 
+printf "\n\nSetting up the host firewall, packet forwarding and ARP proxy support\n"
+if ! sudo nft flush ruleset; then exitFailed; fi                                          # start with a new firewall
+if ! sudo nft add table inet kdhostfirewall; then exitFailed; fi
+if ! sudo nft add chain inet kdhostfirewall input { type filter hook input priority filter\; policy drop\; }; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input iif lo accept; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
+if ! sudo nft rule inet kdhostfirewall input tcp dport 8472 accept; then exitFailed; fi   # VxLAN port
+if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
+if ! sudo systemctl enable --now nftables; then exitFailed; fi
+if ! sudo echo 1 > /proc/sys/net/ipv4/ip_forward; then exitFailed; fi
+if ! sudo printf "\nnet.ipv4.ip_forward=1\n" >> /etc/sysctl.conf; then exitFailed; fi
+if ! sudo echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp; then exitFailed; fi
+if ! sudo printf "\nnet.ipv4.conf.all.proxy_arp=1\n" >> /etc/sysctl.conf; then exitFailed; fi
+if ! sudo sysctl -p /etc/sysctl.conf; then exitFailed; fi
+
+
 printf "\n\nChanging password and SSH ports, Kloudust is taking over the system\n"
 if [ -f "`which yum`" ]; then 
-    if ! echo '{1}' | passwd --stdin `whoami` > /dev/null; then exitFailed; fi
+    if ! echo "$NEW_PASSWORD" | passwd --stdin `whoami` > /dev/null; then exitFailed; fi
 else
-    if ! echo `whoami`':{1}' | sudo chpasswd > /dev/null; then exitFailed; fi
+    if ! echo `whoami`:"$NEW_PASSWORD" | sudo chpasswd > /dev/null; then exitFailed; fi
 fi
 if ! sed -i 's/^#\?[ ]*[Pp]ort[ ]\+[0-9]\+[ ]*$//g' /etc/ssh/sshd_config; then exitFailed; fi
 if ! echo "Port $NEW_SSH_PORT" >> /etc/ssh/sshd_config; then exitFailed; fi
@@ -159,19 +176,6 @@ else
     if ! sudo systemctl restart ssh; then exitFailed; fi
 fi
 
-
-printf "\n\nSetting up the host firewall\n"
-if ! sudo nft flush ruleset; then exitFailed; fi                                          # start with a new firewall
-if ! sudo nft add table inet kdhostfirewall; then exitFailed; fi
-if ! sudo nft add chain inet kdhostfirewall input { type filter hook input priority filter\; policy drop\; }; then exitFailed; fi
-if ! sudo nft add rule inet kdhostfirewall input iif lo accept; then exitFailed; fi
-if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
-if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
-if ! sudo nft rule inet kdhostfirewall input tcp dport 8472 accept; then exitFailed; fi   # VxLAN port
-if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
-if ! sudo systemctl enable --now nftables; then exitFailed; fi
-if ! sudo printf "\nnet.ipv4.ip_forward=1\n" >> /etc/sysctl.conf; then exitFailed; fi
-if ! sudo sysctl -p /etc/sysctl.conf; then exitFailed; fi
 
 printf "\n\nHost initialization finished successfully, reboot needed\n"
 printConfig $JSONOUT_SPLITTER
