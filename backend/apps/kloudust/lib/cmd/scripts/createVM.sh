@@ -18,8 +18,7 @@
 # {15} Max memory
 # {16} Additional virt-install params
 # {17} No guest agent - By default QEMU Guest Agent is enabled, if this is true it is disabled
-# {18} Network name - By default none is used, can be set to default if default networking is available
-# {19} Restart wait - time to wait for the first restart to stabalize
+# {18} Network name - By default vnet.KD_DEFAULT_HOST_NETWORK variable is used, set to none if no default network should be used
 
 NAME="{1}"
 DESCRIPTION="{2}"
@@ -40,8 +39,6 @@ MAX_MEMORY={15}
 VIRT_INSTALL_PARAMS="{16}"
 NO_GUEST_AGENT={17}
 KVM_NETWORK_NAME={18}
-SHUTDOWN_WAIT={19}
-SHUTDOWN_WAIT="${SHUTDOWN_WAIT:-20}"    # Default it to 90 seconds if not provided
 
 function exitFailed() {
     echo Failed
@@ -62,25 +59,6 @@ function waitProcessKilled() {
         fi
     done
     return 1
-}
-
-function shutdownVM() {
-    VMNAME=$1
-    VMPID=`ps ax | grep $VMNAME | grep kvm | tr -s " " | xargs  | cut -d" " -f1`
-    if ! virsh shutdown $VMNAME; then exitFailed; fi
-    waitProcessKilled $VMPID $SHUTDOWN_WAIT
-    if [ "$?" == "1" ]; then  
-        echo VM graceful shutdown timed out for $VMNAME after waiting $SHUTDOWN_WAIT seconds, destroying it instead. 
-        if ! virsh destroy $VMNAME; then 
-            echo VM destroy failed as well for $VMNAME.
-            return 1
-        else
-            echo VM $VMNAME was shutdown via forced destroy.
-        fi
-    else
-        echo Warning!! VM $VMNAME was shutdown gracefully.
-    fi
-    return 0
 }
 
 SPACE_PATTERN=" |'"
@@ -163,8 +141,8 @@ if [ -z "$BASE64_METADATA" ]; then
 fi
 
 NETWORK_ARGS="--network network=$KVM_NETWORK_NAME"
-if [ "$KVM_NETWORK_NAME" == "none" ]; then
-    NETWORK_ARGS="--network none"
+if [ "$KVM_NETWORK_NAME" == "none" ]; then      # special none network
+    NETWORK_ARGS="--network none" 
 fi
 
 if ! virt-install --name $NAME --metadata name=$NAME --metadata title="$DESCRIPTION" \
@@ -225,8 +203,8 @@ EOF
 if ! virsh dumpxml $NAME > /kloudust/metadata/$NAME.xml; then exitFailed; fi
 
 # this seems to stop cloudinit - we can't really do this - reason was that first
-# reboot doesn't auto restart VM - need to think a better solution
-
+# reboot doesn't auto restart VM - the solution is to add a wait in reboot command
+# or make it manually shut down and start so it does start
 #printf "Performing an initial restart cycle to stablize"
 #if shutdownVM $NAME; then virsh start $NAME; fi
 

@@ -15,6 +15,7 @@
  * License: See enclosed LICENSE file.
  */
 const cryptoMod = require("crypto");
+const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const rebootHost = require(`${KLOUD_CONSTANTS.CMDDIR}/rebootHost.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
@@ -51,7 +52,7 @@ module.exports.exec = async function(params) {
         other: [
             hostip, adminid, adminpass, hostsshkey, oldsshport,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/addHost.sh`,
-            newPassword, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, newsshport
+            newPassword, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, newsshport, vnet.KD_DEFAULT_HOST_NETWORK
         ]
     }
 

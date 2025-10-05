@@ -4,12 +4,15 @@
 # {1} The new password for this host for the ID which is logged in to run this script
 # {2} The JSON out splitter
 # {3} The new SSH port, defaults to 22 if not provided
+# {4} The default host network, defaults to kddefault if not provided
 
 NEW_PASSWORD="{1}"
 JSONOUT_SPLITTER="{2}"
 CHANGED_SSH_PORT={3}
 NEW_SSH_PORT=${CHANGED_SSH_PORT:-22}
 AGENT_PORT=$((NEW_SSH_PORT + 2))
+DEFAULT_KD_NET_IN={4}
+DEFAULT_KD_NET=${DEFAULT_KD_NET_IN:-kddefault}
 
 function exitFailed() {
     echo Failed
@@ -145,6 +148,28 @@ else
 fi
 
 
+printf "\n\nAdding the default Kloudust network"
+if [ -n "$(sudo virsh net-list --all --name | grep -xF $DEFAULT_KD_NET)" ]; then
+    if ! virsh net-destroy $DEFAULT_KD_NET; then exitFailed; fi
+    if ! virsh net-undefine $DEFAULT_KD_NET; then exitFailed; fi
+fi
+cat > /kloudust/temp/$DEFAULT_KD_NET.xml <<EOF
+<network>
+  <name>$DEFAULT_KD_NET</name>
+  <bridge name='kd0_br' stp='off'/>
+  <forward mode='nat'/>
+  <ip address='192.168.0.1' netmask='255.255.0.0'>
+    <dhcp>
+      <range start='192.168.0.2' end='192.168.255.254'/>
+    </dhcp>
+  </ip>
+</network>
+EOF
+if ! sudo virsh net-define /kloudust/temp/$DEFAULT_KD_NET.xml; then exitFailed; fi
+if ! sudo virsh net-autostart $DEFAULT_KD_NET; then exitFailed; fi
+if ! sudo virsh net-start $DEFAULT_KD_NET; then exitFailed; fi
+
+
 printf "\n\nSetting up the host firewall, packet forwarding and ARP proxy support\n"
 if ! sudo nft flush ruleset; then exitFailed; fi                                          # start with a new firewall
 if ! sudo nft add table inet kdhostfirewall; then exitFailed; fi
@@ -163,7 +188,7 @@ if ! sudo printf "\nnet.ipv4.conf.all.proxy_arp=1\n" >> /etc/sysctl.conf; then e
 if ! sudo sysctl -p /etc/sysctl.conf; then exitFailed; fi
 
 
-printf "\n\nChanging password and SSH ports, Kloudust is taking over the system\n"
+printf "\n\nChanging password and SSH ports, Kloudust is taking over the host\n"
 if [ -f "`which yum`" ]; then 
     if ! echo "$NEW_PASSWORD" | passwd --stdin `whoami` > /dev/null; then exitFailed; fi
 else

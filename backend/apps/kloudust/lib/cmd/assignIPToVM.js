@@ -3,7 +3,8 @@
  * routable to one of the Kloudust hosts by the network backbone.
  * 
  * Params - 0 - VM Name, 1 - IP, 2 - VxLAN name to use for routing, should
- *  typically not be needed
+ *  typically not be needed, 3 - DNS1 (not needed, defaults to 8.8.8.8), 
+ *  4 - DNS2 (not needed, defaults to 8.8.4.4), 5 - MTU (not needed, defaults to 1200)
  * 
  * (C) 2024 Tekmonks. All rights reserved.
  * License: See enclosed LICENSE file.
@@ -18,7 +19,7 @@ const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
-const DEFAULT_VM_MTU = 1200;
+const DEFAULT_VM_MTU = 1200, WILDCARD_IP_VTEP_HOSTNAME = "*", DNS1_DEFAULT="8.8.8.8", DNS2_DEFAULT="4.4.4.4";
 
 /**
  * Assign IP to the given VM
@@ -26,8 +27,8 @@ const DEFAULT_VM_MTU = 1200;
  */
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
-    const [vm_name_raw, ip, vnet_name_raw_in, vm_mtu_raw] = [...params];   // vm_mtu_raw is undocumented for a reason - should really NOT be used
-    const VM_MTU = vm_mtu_raw || DEFAULT_VM_MTU;
+    const [vm_name_raw, ip, vnet_name_raw_in, dns1_in, dns2_in, vm_mtu_raw] = [...params];   // vm_mtu_raw is undocumented for a reason - should really NOT be used
+    const vm_mtu = vm_mtu_raw || DEFAULT_VM_MTU, dns1 = dns1_in || DNS1_DEFAULT, dns2 = dns2_in || DNS2_DEFAULT;
     const vm_name = createVM.resolveVMName(vm_name_raw);
     const vnet_name_raw = vnet_name_raw_in || `${KLOUD_CONSTANTS.env.org}_inet_vnet`;
     const vnet_name = createVnet.resolveVnetName(vnet_name_raw);
@@ -35,15 +36,14 @@ module.exports.exec = async function(params) {
 
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
-    const is_windows = vm.creationcmd.toLowerCase().includes("window") ? "windows" : "";
 
     // resolve the two hostinfos - for VM and for IP termination host
-    const hostnameIPVtep = await dbAbstractor.getHostForIP(ip, true);
-    if (!hostnameIPVtep) {params.consoleHandlers.LOGERROR("Unable to locate Vtep host for IP "+ip); return CMD_CONSTANTS.FALSE_RESULT();}
-    const hostInfoIPVtep = await dbAbstractor.getHostEntry(hostnameIPVtep); 
-    if (!hostInfoIPVtep) {params.consoleHandlers.LOGERROR("Unable to locate Vtep hostinfo for IP "+ip); return CMD_CONSTANTS.FALSE_RESULT();}
     const hostInfoVM = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfoVM) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+    const hostnameIPVtep = await dbAbstractor.getHostForIP(ip, true);
+    if (!hostnameIPVtep) {params.consoleHandlers.LOGERROR("Unable to locate Vtep host for IP "+ip); return CMD_CONSTANTS.FALSE_RESULT();}
+    const hostInfoIPVtep = hostnameIPVtep == WILDCARD_IP_VTEP_HOSTNAME ? hostInfoVM : await dbAbstractor.getHostEntry(hostnameIPVtep);       
+    if (!hostInfoIPVtep) {params.consoleHandlers.LOGERROR("Unable to locate Vtep hostinfo for IP "+ip); return CMD_CONSTANTS.FALSE_RESULT();}
 
     // expand the Vnet to both the hosts - VM host and IP Vtep host
     const paramsAddVMVnet = [vm_name_raw, vnet_name_raw, true]; paramsAddVMVnet.consoleHandlers = params.consoleHandlers;
@@ -52,7 +52,7 @@ module.exports.exec = async function(params) {
     }
     if ((hostInfoIPVtep.hostname != hostInfoVM.hostname) &&     // no need to expand if Vtep and VM hosts are the same
             (!(await vnet.expandVnetToHost(vnet_name, hostInfoIPVtep, params.consoleHandlers, true)))) {
-        params.consoleHandlers.LOGERROR(`Unable to expand the IP Vnet ${vnet_name} to IP Vtep host ${hostnameIPVtep}`); return CMD_CONSTANTS.FALSE_RESULT();
+        params.consoleHandlers.LOGERROR(`Unable to expand the IP Vnet ${vnet_name} to IP Vtep host ${hostInfoIPVtep.hostname}`); return CMD_CONSTANTS.FALSE_RESULT();
     }
     const vnetRecord = await dbAbstractor.getVnet(vnet_name);
 
@@ -81,8 +81,8 @@ module.exports.exec = async function(params) {
         console: params.consoleHandlers,
         other: [
             hostInfoVM.hostaddress, hostInfoVM.rootid, hostInfoVM.rootpw, hostInfoVM.hostkey, hostInfoVM.port,
-            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/assignVMIPForVxLAN.sh`,
-            vm_name, vnet_name, vnetRecord.vnetnum, ip.trim(), VM_MTU, is_windows 
+            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/assignVMIPViaVxLAN.sh`,
+            vm_name, vnet_name, vnetRecord.vnetnum, ip.trim(), dns1, dns2, vm_mtu
         ]
     }
 

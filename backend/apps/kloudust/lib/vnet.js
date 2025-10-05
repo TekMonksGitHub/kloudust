@@ -10,6 +10,9 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 const VNET_HOST_RELATION = "vnethost";
 
+/** The default host network */
+exports.KD_DEFAULT_HOST_NETWORK = "kddefault";
+
 /**
  * Creates the Vnet. Doesn't touch the hosts as it is an empty Vnet. Only modifies the DB.
  * @param {string} vnet_name The vnet name, must be unique

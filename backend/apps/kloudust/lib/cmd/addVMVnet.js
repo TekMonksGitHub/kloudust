@@ -38,7 +38,7 @@ exports.exec = async function(params) {
         params.consoleHandlers.LOGERROR(`Vnet expansion to VM host ${hostInfo.hostname} failed. Aborting`); return CMD_CONSTANTS.FALSE_RESULT();
     }
 
-    // state now - vnet createdm, if needed, and expanded to the host which is hosting the VM
+    // state now - vnet created, if needed, and expanded to the host which is hosting the VM
     const vnetRecord = await dbAbstractor.getVnet(vnet_name);
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
@@ -54,7 +54,7 @@ exports.exec = async function(params) {
 
     if (results.result) {if (!await dbAbstractor.addVnetResource(vnet_name, vm_name, VNET_VM_RELATION)) params.consoleHandlers.LOGERROR(`Database error adding VM ${vm_name} to VNet ${vnet_name}.`)}
     else if (vnetExpansionResult == "added") // remove host from VxLan if this failed and if this VM was the only reason to add Vnet to the host
-        exports.deleteVnetFromHost(vnet_name, hostInfo, params.consoleHandlers);  // no need to await as this is cleanup
+        vnet.deleteVnetFromHost(vnet_name, hostInfo, params.consoleHandlers);  // no need to await as this is cleanup
 
     return results;
 }

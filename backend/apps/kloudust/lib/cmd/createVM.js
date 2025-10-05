@@ -7,12 +7,14 @@
  *  is the maximum cores we can hotplug, 10 - max memory is the max memory we can hotplug, 
  *  11 - additional creation params (optional), 12 - vm type, default is vm, or anything else
  *  13 - No QEMU agent - "true" if no needed else "false", 14 - set to true to not install qemu-agent, 
- *  15 - KVM network name (only cloud admins can do this), 16 - hostname for the VM (only cloud admins can do this)
+ *  15 - KVM network name (only cloud admins can do this) else Qemu user network, 
+ *  16 - hostname for the VM (only cloud admins can do this)
  * 
  * (C) 2020 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
  */
 
+const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const deleteVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVM.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
@@ -35,8 +37,7 @@ module.exports.exec = async function(params) {
         max_cores = parseInt(max_cores_s||cores_s) > cores ? parseInt(max_cores_s||cores_s) : cores, 
         max_memory = parseInt(max_memory_s||memory_s) > memory ? parseInt(max_memory_s||memory_s) : memory,
         no_qemu_agent = no_qemu_agent_raw?.toLowerCase() == "true" ? "true" : "false", vmtype = vmtype_raw||exports.VM_TYPE_VM,
-        kvm_network_name = roleman.isCloudAdminLoggedIn() ? network_name_raw||"none" : "none", 
-        shutdown_wait_default=20;
+        kvm_network_name = roleman.isCloudAdminLoggedIn() ? network_name_raw||vnet.KD_DEFAULT_HOST_NETWORK:vnet.KD_DEFAULT_HOST_NETWORK;
 
     if (await dbAbstractor.getVM(vm_name)) {  // VM exists
         const error = `VM with the name ${vm_name_raw} exists already for this project`;
@@ -72,8 +73,7 @@ module.exports.exec = async function(params) {
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/createVM.sh`,
             vm_name, vm_description, cores, memory, disk, creation_image_name, kdResource.uri, ostype, 
             fromCloudImg, cloudinit_data||"undefined", KLOUD_CONSTANTS.env.org, KLOUD_CONSTANTS.env.prj,
-            force_overwrite||"false", max_cores, max_memory, additional_params, no_qemu_agent, kvm_network_name,
-            shutdown_wait_default
+            force_overwrite||"false", max_cores, max_memory, additional_params, no_qemu_agent, kvm_network_name
         ]
     }
 
