@@ -62,7 +62,7 @@ module.exports.exec = async function(params) {
         file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
         console: params.consoleHandlers,
         other: [
-            hostInfoVM.hostaddress, hostInfoVM.rootid, hostInfoVM.rootpw, hostInfoVM.hostkey, hostInfoVM.port,
+            hostInfoIPVtep.hostaddress, hostInfoIPVtep.rootid, hostInfoIPVtep.rootpw, hostInfoIPVtep.hostkey, hostInfoIPVtep.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/assignIPToVxLANBridge.sh`,
             vnet_name, vnetRecord.vnetnum, ip.trim()
         ]
