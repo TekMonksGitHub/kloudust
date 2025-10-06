@@ -30,7 +30,7 @@ module.exports.exec = async function(params) {
     const [vm_name_raw, ip, vnet_name_raw_in, dns1_in, dns2_in, vm_mtu_raw] = [...params];   // vm_mtu_raw is undocumented for a reason - should really NOT be used
     const vm_mtu = vm_mtu_raw || DEFAULT_VM_MTU, dns1 = dns1_in || DNS1_DEFAULT, dns2 = dns2_in || DNS2_DEFAULT;
     const vm_name = createVM.resolveVMName(vm_name_raw);
-    const vnet_name_raw = vnet_name_raw_in || `${KLOUD_CONSTANTS.env.org}_inet_vnet`;
+    const vnet_name_raw = vnet_name_raw_in || `${KLOUD_CONSTANTS.env.org}-${KLOUD_CONSTANTS.env.project}-Internet-Backbone`;
     const vnet_name = createVnet.resolveVnetName(vnet_name_raw);
     if (!vnet_name) {params.consoleHandlers.LOGERROR("Unable to locate VxLAN for the VM"); return CMD_CONSTANTS.FALSE_RESULT();}
 

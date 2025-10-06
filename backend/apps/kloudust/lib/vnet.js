@@ -35,8 +35,9 @@ exports.createVnet = async function(vnet_name, vnet_description, consoleHandlers
 }
 
 /**
- * Deletes the Vnet, if it is empty. Doesn't touch the hosts as it is an empty Vnet. 
- * Only modifies the DB. Returns error if the Vnet is not empty.
+ * Deletes the Vnet, even if it is not empty. Will login to each host and delete 
+ * the Vnet from it as well. If any VMs are connected to this Vnet, they will lose
+ * that connection.
  * @param {string} vnet_name The vnet name, must be unique
  * @param {object} consoleHandlers The Kloudust console handlers object
  * @returns {result: true|false, our, err, stdout, stderr}
@@ -48,10 +49,15 @@ exports.deleteVnet = async function(vnet_name, consoleHandlers) {
         return {...CMD_CONSTANTS.TRUE_RESULT(), out: "", err, stdout: "", stderr: err}; // already doesn't exist so result is true anyways
     }
 
-    const vnet_resources = await dbAbstractor.getResourcesForVnet(vnet_name);
-    if (vnet_resources?.length) {
-        const err = `Vnet ${vnet_name} is not empty. Can't delete.`; consoleHandlers.LOGERROR(err); 
-        return {...CMD_CONSTANTS.FALSE_RESULT(), out: "", err, stdout: "", stderr: err};
+    const hostsForVnet = await dbAbstractor.getResourcesForVnet(vnet_name, VNET_HOST_RELATION);
+    for (const host of hostsForVnet) {
+        const hostInfo = await dbAbstractor.getHostEntry(host);
+        let result;
+        if (hostInfo) result = await exports.deleteVnetFromHost(vnet_name, hostInfo, consoleHandlers, false, true);
+        if (!result) {
+            const out = "", err = `Error deleting Vnet from host ${host}.`;
+            return {...CMD_CONSTANTS.FALSE_RESULT(), out, err, stdout: out, stderr: err};
+        }
     }
 
     const result = await dbAbstractor.deleteVnet(vnet_name);
@@ -132,9 +138,10 @@ exports.expandVnetToHost = async function (vnetName, hostInfoOrHostname, console
  * @param {object} hostInfo The hostinfo object for the host
  * @param {object} consoleHandlers Kloudust console handlers
  * @param {boolean} nodbupdate If true, the DB is not updated
+ * @param {boolean} nopeerupdate Don't update peers DB (eg if entire Vnet is being deleted)
  * @returns {boolean} If Vnet was removed - true, else false
  */
-exports.deleteVnetFromHost = async function (vnetNameOrRecord, hostInfo, consoleHandlers, nodbupdate=false) {
+exports.deleteVnetFromHost = async function (vnetNameOrRecord, hostInfo, consoleHandlers, nodbupdate=false, nopeerupdate=false) {
     const vnetName = typeof vnetNameOrRecord === "string" ? vnetNameOrRecord : vnetNameOrRecord.name;
     const vnetRecord = typeof vnetNameOrRecord === "string" ? await dbAbstractor.getVnet(vnetName) : vnetNameOrRecord;
 
@@ -161,11 +168,13 @@ exports.deleteVnetFromHost = async function (vnetNameOrRecord, hostInfo, console
     }
     const results = await xforge(xforgeArgs);
 
-    const peerHostInfos = await _getHostInfoObjects(vnetResources);
-    if (results.result) {
-        for (const peerHostInfo of peerHostInfos.filter(peerHostInfoThis => peerHostInfoThis.hostname != hostnameThis))
-            if (!await exports.runDeleteVxLANPeers(vnetName, vnetRecord.vnetnum, [hostInfo.hostaddress], peerHostInfo, consoleHandlers))
-                consoleHandlers.LOGERROR(`Vnet peer modification error for host ${hostname} for Vnet ${vnetName}.`);
+    if (!nopeerupdate) {
+        const peerHostInfos = await _getHostInfoObjects(vnetResources);
+        if (results.result) {
+            for (const peerHostInfo of peerHostInfos.filter(peerHostInfoThis => peerHostInfoThis.hostname != hostnameThis))
+                if (!await exports.runDeleteVxLANPeers(vnetName, vnetRecord.vnetnum, [hostInfo.hostaddress], peerHostInfo, consoleHandlers))
+                    consoleHandlers.LOGERROR(`Vnet peer modification error for host ${hostname} for Vnet ${vnetName}.`);
+        }
     }
 
     return results.result;
@@ -192,6 +201,28 @@ exports.runAddVxLANPeers = (vlan_name, vlan_num, peers, hostInfo, consoleHandler
  * @returns true on success, false on failure
  */
 exports.runDeleteVxLANPeers = (vlan_name, vlan_num, peers, hostInfo, consoleHandlers) => _runModifyVxLANPeers(vlan_name, vlan_num, peers, hostInfo, consoleHandlers, "delete");
+
+/**
+ * Returns the list of Vnets for the current org and project
+ * @param {string} project The project for which Vnet is needed (only org admin can override)
+ * @param {string} org The org for which Vnet is needed (only cloud admin can override)
+ * @returns The list of Vnets for the current org and project
+ */
+exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+    const vnets = await dbAbstractor.listVnets(project, org);
+    const vnetsReturn = []; if (vnets && vnets.length) for (const vnet of vnets) {
+        vnetsReturn.push({...vnet, raw_name: exports.unresolveVnetName(vnet.name)});
+    }
+    return vnetsReturn;
+}
+
+/** @return The internal name for the given raw Vnet name or null on error */
+exports.resolveVnetName = vnet_name_raw => vnet_name_raw ?
+    `${vnet_name_raw}_${KLOUD_CONSTANTS.env.org}_${KLOUD_CONSTANTS.env.prj}`.toLowerCase().replace(/\s/g,"_") : null;
+
+
+/** @return The public name for the given internal Vnet name or null on error */
+exports.unresolveVnetName = vnet_name => vnet_name ? vnet_name.split("_")[0] : null;
 
 async function _runModifyVxLANPeers(vlan_name, vlan_num, peers, hostInfo, consoleHandlers, type="add") {
     const script = `${type=="add"?"add":"delete"}VxLANPeers.sh`;

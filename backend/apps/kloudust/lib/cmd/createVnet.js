@@ -25,7 +25,8 @@ module.exports.exec = async function(params) {
     return await vnet.createVnet(vnet_name, vnet_description, params.consoleHandlers);
 }
 
-
 /** @return The internal name for the given raw Vnet name or null on error */
-exports.resolveVnetName = vnet_name_raw => vnet_name_raw ?
-    `${vnet_name_raw}_${KLOUD_CONSTANTS.env.org}_${KLOUD_CONSTANTS.env.prj}`.toLowerCase().replace(/\s/g,"_") : null;
+exports.resolveVnetName = vnet_name_raw => vnet_name_raw ? vnet.resolveVnetName(vnet_name_raw) : null;
+
+/** @return The public name for the given internal Vnet name or null on error */
+exports.unresolveVnetName = vnet_name => vnet_name ? vnet.unresolveVnetName(vnet_name) : null;

@@ -42,8 +42,19 @@
 
     "required_label": "{{{i18n.Required}}}",
     "required_fields": [
-    {"id": "vnet_name", "type": "text", "placeholder": "{{{i18n.VnetName}}}", "required": true, 
-        "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+    {"id": "vnet_name", "multioption": true, "type": "select", "label": "{{{i18n.VnetName}}}",  "options":[]}
+    ],
+
+    "load_javascript": [
+        "const form = arguments[0]||{};",
+        "if (!form.required_fields?.length) return;",
+        "const vnetResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, ",
+        "   'POST', {cmd: 'listVnets', project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+        "if (vnetResult.result)  { ",
+        "   const vnetSelectObject = form.required_fields[0];",
+        "   for (const vnet of vnetResult.resources) vnetSelectObject.options.push({value: vnet.raw_name, label: `${vnet.raw_name} - ${vnet.description}`});",
+        "}",
+        "return form;"
     ],
 
     "submitlabel": "{{{i18n.DeleteVnetSubmitLabel}}}"

@@ -799,7 +799,7 @@ exports.addOrUpdateVnet = async function(vnet_id, description="", project=KLOUD_
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
-    const id = `${org}_${project}_${vnet_id}`, projectid = _getProjectID(project, org)
+    const id = `${org}_${project}_${vnet_id}`, projectid = _getProjectID(project, org);
     const cmd = "replace into vnets (id, name, description, org, projectid) values (?,?,?,?,?)", 
         params =  [id, vnet_id, description, org, projectid];
     const insertResult = await _db().runCmd(cmd, params);
@@ -833,8 +833,9 @@ exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CO
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
+    const projectid = _getProjectID(project, org)
     const query = "select * from vnets where org=? and projectid=?";
-    const vnets = await _db().getQuery(query, [org, project]);
+    const vnets = await _db().getQuery(query, [org, projectid]);
     if (vnets && vnets.length) return vnets; else return null;
 }
 
