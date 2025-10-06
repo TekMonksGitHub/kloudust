@@ -8,9 +8,11 @@
 # Init section - check params, and assigns defaults if missing
 #
 # Params
-# {1} VLAN Name
+# {1} VLAN Name {2} VLAN ID
 #########################################################################################################
-VLAN_NAME={1}
+VLAN_NAME=kd{2}
+VLAN_ID={2}
+BR_NAME="$VLAN_NAME"_br
 VXLAN_BOOT_SCRIPT=/kloudust/system/10vxlan_"$VLAN_NAME".sh
 
 echoerr() { echo "$@" 1>&2; }

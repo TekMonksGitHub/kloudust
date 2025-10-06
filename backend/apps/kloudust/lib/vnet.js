@@ -146,7 +146,7 @@ exports.deleteVnetFromHost = async function (vnetNameOrRecord, hostInfo, console
     const vnetRecord = typeof vnetNameOrRecord === "string" ? await dbAbstractor.getVnet(vnetName) : vnetNameOrRecord;
 
     const vnetResources = await dbAbstractor.getResourcesForVnet(vnetName, VNET_HOST_RELATION);
-    if (!vnetResources.include(hostInfo.hostname)) {
+    if (!vnetResources.includes(hostInfo.hostname)) {
         consoleHandlers.LOGINFO(`Vnet ${vnetName} already not present on the host ${hostInfo.hostname}`);
         return true;  // already not on this host
     } else consoleHandlers.LOGINFO(`Vnet ${vnetName} being removed from the host ${hostInfo.hostname}`);
@@ -163,7 +163,7 @@ exports.deleteVnetFromHost = async function (vnetNameOrRecord, hostInfo, console
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/deleteVxLANBridge.sh`,
-            vnetName
+            vnetName, vnetRecord.vnetnum, 
         ]
     }
     const results = await xforge(xforgeArgs);
