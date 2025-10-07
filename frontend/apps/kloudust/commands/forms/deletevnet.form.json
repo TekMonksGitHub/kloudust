@@ -47,11 +47,16 @@
 
     "load_javascript": [
         "const form = arguments[0]||{};",
+        "const vnetSelectObject = form.required_fields[0];",
+        "if (APP_CONSTANTS.ENV._vnets_form_data) {       // show only one vnet if delete was fired for it",
+        "    const vnet = APP_CONSTANTS.ENV._vnets_form_data;",
+        "    vnetSelectObject.options.push({value: vnet.raw_name, label: `${vnet.raw_name} - ${vnet.description}`});",
+        "    return;",
+        "}",
         "if (!form.required_fields?.length) return;",
         "const vnetResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, ",
         "   'POST', {cmd: 'listVnets', project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
         "if (vnetResult.result)  { ",
-        "   const vnetSelectObject = form.required_fields[0];",
         "   for (const vnet of vnetResult.resources) vnetSelectObject.options.push({value: vnet.raw_name, label: `${vnet.raw_name} - ${vnet.description}`});",
         "}",
         "return form;"
