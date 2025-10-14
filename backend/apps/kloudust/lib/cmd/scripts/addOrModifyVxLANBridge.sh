@@ -35,7 +35,7 @@ function exitFailed() {
 }
 
 if [ -z "$DEFAULT_ETH" ] || [ "$DEFAULT_ETH" == "auto" ]; then                   # Assume default ethernet is the local VTEP if not given
-    DEFAULT_ETH=`ip route | grep default | grep -o 'dev.*' | cut -d" " -f2`
+    DEFAULT_ETH=`ip route | grep ^default | grep -o 'dev.*' | cut -d" " -f2`
     echo Located default ethernet for VxLAN at $DEFAULT_ETH
 fi
 

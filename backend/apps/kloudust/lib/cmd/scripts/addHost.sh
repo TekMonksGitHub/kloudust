@@ -13,6 +13,7 @@ NEW_SSH_PORT=${CHANGED_SSH_PORT:-22}
 AGENT_PORT=$((NEW_SSH_PORT + 2))
 DEFAULT_KD_NET_IN={4}
 DEFAULT_KD_NET=${DEFAULT_KD_NET_IN:-kddefault}
+DEFAULT_KD_NET_BRIDGE="${DEFAULT_KD_NET}_br"
 
 function exitFailed() {
     echo Failed
@@ -156,7 +157,7 @@ fi
 cat > /kloudust/temp/$DEFAULT_KD_NET.xml <<EOF
 <network>
   <name>$DEFAULT_KD_NET</name>
-  <bridge name='kd0_br' stp='off'/>
+  <bridge name='$DEFAULT_KD_NET_BRIDGE' stp='off'/>
   <forward mode='nat'/>
   <ip address='192.168.0.1' netmask='255.255.0.0'>
     <dhcp>
@@ -175,6 +176,7 @@ if ! sudo nft flush ruleset; then exitFailed; fi                                
 if ! sudo nft add table inet kdhostfirewall; then exitFailed; fi
 if ! sudo nft add chain inet kdhostfirewall input { type filter hook input priority filter\; policy drop\; }; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input iif lo accept; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input iif $DEFAULT_KD_NET_BRIDGE accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
