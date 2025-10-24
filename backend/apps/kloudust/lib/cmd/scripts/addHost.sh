@@ -199,6 +199,7 @@ fi
 if ! sed -i 's/^#\?[ ]*[Pp]ort[ ]\+[0-9]\+[ ]*$//g' /etc/ssh/sshd_config; then exitFailed; fi
 if ! echo "Port $NEW_SSH_PORT" >> /etc/ssh/sshd_config; then exitFailed; fi
 if ! touch ~/.hushlogin; then exitFailed; fi
+if ! sudo systemctl daemon-reload; then exitFailed; fi
 if [ -f "`which yum`" ]; then 
     if ! sudo systemctl restart sshd; then exitFailed; fi
 else 
