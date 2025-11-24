@@ -170,6 +170,28 @@ if ! sudo virsh net-define /kloudust/temp/$DEFAULT_KD_NET.xml; then exitFailed; 
 if ! sudo virsh net-autostart $DEFAULT_KD_NET; then exitFailed; fi
 if ! sudo virsh net-start $DEFAULT_KD_NET; then exitFailed; fi
 
+cat > "/usr/lib/systemd/system/kd-startup.service" <<EOF
+[Unit]
+Description=Run KD startup scripts on boot
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/run-parts /kloudust/system
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+if ! sudo systemctl enable kd-startup.service; then exitFailed; fi    
+
+cat > "/kloudust/system/000-start-nftables" <<EOF
+#!/bin/bash
+
+/usr/bin/systemctl restart nftables.service
+EOF
+
+if ! sudo chmod +x /kloudust/system/000-start-nftables; then exitFailed; fi    
 
 printf "\n\nSetting up the host firewall, packet forwarding and ARP proxy support\n"
 if ! sudo nft flush ruleset; then exitFailed; fi                                          # start with a new firewall
