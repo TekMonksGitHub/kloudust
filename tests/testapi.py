@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-@app.route("/dummyapi", methods=["GET"])
+@app.route("/kdapitest", methods=["GET"])
 def get_dummy_data():
     data = {
         "id": 1,
