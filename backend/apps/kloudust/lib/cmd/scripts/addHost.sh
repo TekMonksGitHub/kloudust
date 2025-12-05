@@ -177,7 +177,7 @@ After=multi-user.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/run-parts /kloudust/system
+ExecStart=/usr/bin/run-parts --regex ".*" /kloudust/system
 
 [Install]
 WantedBy=multi-user.target
