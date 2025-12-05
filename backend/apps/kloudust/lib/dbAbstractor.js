@@ -969,7 +969,7 @@ exports.getHostForIP = async function(ip, for_allocation) {
  * @param {string} hostname The hostname where this IP is routed to.
  * @returns true on success, false on failure
  */
-exports.addIPHost = async function(ip, hostname) {
+exports.addHostIP = async function(ip, hostname) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false;}
     
     const cmd = "insert into ip(ip,hostname) values(?,?)", params =  [ip,hostname];

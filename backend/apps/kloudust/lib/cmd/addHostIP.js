@@ -1,5 +1,5 @@
 /** 
- * addIPHost.js - Add the given IP to the assignable pool of IP addresses.
+ * addHostIP.js - Add the given IP to the assignable pool of IP addresses.
  * 
  * Params - 0 - IP Address, 1 - Hostname 
  * 
