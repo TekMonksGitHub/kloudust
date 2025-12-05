@@ -964,6 +964,20 @@ exports.getHostForIP = async function(ip, for_allocation) {
 }
 
 /**
+ * Adds the IP to the given Host. Which can later be allocated to VMs.
+ * @param {string} ip The IP to add
+ * @param {string} hostname The hostname where this IP is routed to.
+ * @returns true on success, false on failure
+ */
+exports.addHostIP = async function(ip, hostname) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false;}
+    
+    const cmd = "insert into ip(ip,hostname) values(?,?)", params =  [ip,hostname];
+    const insertResult = await _db().runCmd(cmd, params);
+    return insertResult;
+}
+
+/**
  * Allocates the IP to the given resource. To unallocate, set resource_allocated_to to
  * blank or null.
  * @param {string} ip The IP to allocate or unallocated
