@@ -18,15 +18,24 @@ VLAN_NAME=kd{2}
 IP_ADDRESS={3}
 BR_NAME="$VLAN_NAME"_br
 
+IP_ADDRESS_DASHED=$(echo "$IP_ADDRESS" | tr '.' '-')
+
+SCRIPT_PATH=$(readlink -f "$0")
+ASSIGN_IP_BOOT_SCRIPT="/kloudust/system/20assign_${IP_ADDRESS_DASHED}.sh"
+
 echoerr() { echo "$@" 1>&2; }
 
 function exitFailed() {
     echo Failed
+    rm $ASSIGN_IP_BOOT_SCRIPT
     exit 1
 }
 
 ip route del $IP_ADDRESS/24                                              # Remove any existing routes
 ip route del $IP_ADDRESS/32                                              # Remove any existing routes
 if ! ip route add $IP_ADDRESS/32 dev $BR_NAME; then exitFailed; fi       # Add new route
+
+cp $SCRIPT_PATH $ASSIGN_IP_BOOT_SCRIPT                                               # Ensure we survive a boot
+chmod +x $ASSIGN_IP_BOOT_SCRIPT
 
 echo Done.
