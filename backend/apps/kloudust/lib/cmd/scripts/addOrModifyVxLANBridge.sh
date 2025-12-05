@@ -80,4 +80,6 @@ if ! ip link set up dev $BR_NAME; then exitFailed; fi                           
 echo Brought up VxLAN $VLAN_NAME and bridge $BR_NAME
 
 cp $SCRIPT_PATH $VXLAN_BOOT_SCRIPT                                               # Ensure we survive a boot
+chmod +x $VXLAN_BOOT_SCRIPT
+
 echo Done.
