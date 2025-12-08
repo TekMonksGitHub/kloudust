@@ -19,7 +19,7 @@ module.exports.exec = async function(params) {
     
     const [ip,hostname] = [...params];
 
-    if (!await dbAbstractor.addIPHost(ip, hostname)) return CMD_CONSTANTS.FALSE_RESULT();
+    if (!await dbAbstractor.addHostIP(ip, hostname)) return CMD_CONSTANTS.FALSE_RESULT();
 
     return {result : true, out: "", err: ""};
 }
