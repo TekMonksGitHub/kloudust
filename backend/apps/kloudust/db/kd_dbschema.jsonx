@@ -71,7 +71,7 @@
 
     // Snapshots of any cloud resource
     "CREATE TABLE snapshots(id varchar not null primary key, snapshotname varchar not null, \
-        org varchar not null, projectid varchar not null, \
+        extrainfo varchar, org varchar not null, projectid varchar not null, \
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
     "COMMIT TRANSACTION"

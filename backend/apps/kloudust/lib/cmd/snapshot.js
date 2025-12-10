@@ -42,7 +42,7 @@ module.exports.exec = async function(params) {
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
-        if (await dbAbstractor.addSnapshot(vm_name, snapshot_name)) return results;
+        if (await dbAbstractor.addOrUpdateSnapshot(vm_name, snapshot_name)) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;
 }
