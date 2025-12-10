@@ -744,7 +744,7 @@ exports.addOrUpdateSnapshot = async function(resource_id, snapshot_id, extrainfo
             params:  [id, snapshot_id, extrainfo, org, projectid]
         },
         {
-            cmd: "replace into relationships (pk1, pk2, type) values (?,?,'snapshopt')",
+            cmd: "replace into relationships (pk1, pk2, type) values (?,?,'snapshot')",
             params: [id, resource_id]
         }
     ];
