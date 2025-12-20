@@ -60,6 +60,7 @@ cat > /etc/netplan/99-kd-ip-'${IP_ADDRESS_UNDERSCORES}'.yaml <<NETPLAN_EOF
       "primary": {
         "match": {"macaddress": "'${MAC_ADDRESS}'"},
         "dhcp4": false,
+	"mtu": 1200,
         "addresses": ["'${IP_ADDRESS}'/24"],
         "routes": [{"to": "0.0.0.0/0","scope": "link"}],
         "nameservers": {"addresses": ["'${DNS1}'","'${DNS2}'"]}
