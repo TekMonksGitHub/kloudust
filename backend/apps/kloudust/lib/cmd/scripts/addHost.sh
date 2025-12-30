@@ -202,7 +202,7 @@ if ! sudo nft add rule inet kdhostfirewall input iif $DEFAULT_KD_NET_BRIDGE acce
 if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
-if ! sudo nft rule inet kdhostfirewall input tcp dport 8472 accept; then exitFailed; fi   # VxLAN port
+if ! sudo nft rule inet kdhostfirewall input udp dport 8472 accept; then exitFailed; fi   # VxLAN port
 if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
 if ! sudo systemctl enable --now nftables; then exitFailed; fi
 if ! sudo echo 1 > /proc/sys/net/ipv4/ip_forward; then exitFailed; fi
