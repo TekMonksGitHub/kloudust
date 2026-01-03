@@ -180,11 +180,11 @@ span#submit {
 
 {{#multioption}}
 <label for="{{id}}">{{label}}</label>
-<select id="{{id}}" name="{{id}}" {{#style}}style="{{{.}}}"{{/style}}>
+<{{^selecttype}}select{{/selecttype}}{{#selecttype}}{{.}}{{/selecttype}} id="{{id}}" name="{{id}}" {{#style}}style="{{{.}}}"{{/style}}>
     {{#options}}
     <option value="{{value}}">{{label}}</option>
     {{/options}}
-</select>
+</{{^selecttype}}select{{/selecttype}}{{#selecttype}}{{.}}{{/selecttype}}>
 {{/multioption}}
 {{/required_fields}}
 </div>
