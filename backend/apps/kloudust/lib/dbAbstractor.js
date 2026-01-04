@@ -196,6 +196,20 @@ exports.getHostEntry = async hostname => {
 }
 
 /**
+ * Returns the host entry object for the given hostname. Any valid project user
+ * is authorized as VMs and other resources need host entry to access the hosting
+ * server for them.
+ * @return {hostname, rootid, rootpw, hostkey} or null
+ */
+exports.getAvailableHost = async () => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
+    const query = `SELECT h.hostname,(h.cores - IFNULL(SUM(v.cpus), 0)) AS free_cpu,(h.memory - IFNULL(SUM(v.memory) * 1024 * 1024, 0)) AS free_ram 
+    FROM hosts h LEFT JOIN vms v ON v.hostname = h.hostname GROUP BY h.hostname ORDER BY free_cpu DESC, free_ram DESC LIMIT 1;`;
+    const host = await _db().getQuery(query, []);
+    return host;
+}
+
+/**
  * Adds the given VM to the catalog.
  * @param {string} name The VM name
  * @param {string} description The VM description

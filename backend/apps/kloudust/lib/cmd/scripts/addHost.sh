@@ -31,7 +31,7 @@ function saveNFTables() {
 function printConfig() {
     CORESPERCPU=`lscpu | grep "Core(s) per socket" | tr -s " " | cut -d":" -f2 | xargs`
     SOCKETS=`lscpu | grep Socket | tr -s " " | cut -d":" -f2 | xargs`
-    CORES=`lscpu | grep CPU | tr -s " " | cut -d":" -f2 | xargs`
+    CORES=`lscpu | grep '^CPU(s):' | tr -s " " | cut -d":" -f2 | xargs`
     PROCESSORMAKER=`lscpu | grep 'Vendor ID' | tr -s " " | cut -d":" -f2 | xargs`
     PROCESSORNAME=`lscpu | grep 'Model name' | tr -s " " | cut -d":" -f2 | xargs`
     PROCESSORMODEL=`lscpu | grep 'Model:' | tr -s " " | cut -d":" -f2 | xargs`

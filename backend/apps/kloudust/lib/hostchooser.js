@@ -11,5 +11,6 @@
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 
 exports.getHostFor = async function(vcups, memory, disk) {
-    return await dbAbstractor.getHostEntry("testhost1");    // TODO: Code this properly, its a big issue.
+    const available_host = await dbAbstractor.getAvailableHost(); 
+    return await dbAbstractor.getHostEntry(available_host[0].hostname);
 }
