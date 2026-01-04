@@ -196,10 +196,8 @@ exports.getHostEntry = async hostname => {
 }
 
 /**
- * Returns the host entry object for the given hostname. Any valid project user
- * is authorized as VMs and other resources need host entry to access the hosting
- * server for them.
- * @return {hostname, rootid, rootpw, hostkey} or null
+ * Returns the host with the most available resources
+ * @return {hostname, cpu, memory} or null
  */
 exports.getAvailableHost = async () => {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
