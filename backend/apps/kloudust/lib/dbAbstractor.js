@@ -199,11 +199,10 @@ exports.getHostEntry = async hostname => {
  * Returns the host with the most available resources
  * @return {hostname, cpu, memory} or null
  */
-exports.getAvailableHost = async () => {
+exports.getAvailableHost = async (cpu,ram,arch) => {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
-    const query = `SELECT h.hostname,(h.cores - IFNULL(SUM(v.cpus), 0)) AS free_cpu,(h.memory - IFNULL(SUM(v.memory) * 1024 * 1024, 0)) AS free_ram 
-    FROM hosts h LEFT JOIN vms v ON v.hostname = h.hostname GROUP BY h.hostname ORDER BY free_cpu DESC, free_ram DESC LIMIT 1;`;
-    const host = await _db().getQuery(query, []);
+    const query = `SELECT h.hostname, (h.cores * 8 - IFNULL(SUM(v.cpus), 0)) AS free_cpu, (h.memory * 1.5 - IFNULL(SUM(v.memory) * 1024 * 1024, 0)) AS free_ram FROM hosts h LEFT JOIN vms v ON v.hostname = h.hostname WHERE h.processorarchitecture = ? GROUP BY h.hostname HAVING free_cpu >= ? and free_ram >= ? ORDER BY free_cpu DESC, free_ram DESC LIMIT 1;`;
+    const host = await _db().getQuery(query, [arch,cpu,ram]);
     return host;
 }
 
