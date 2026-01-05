@@ -12,5 +12,6 @@ const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 
 exports.getHostFor = async function(vcpus, memory, disk, imagearchitecture) {
     const available_host = await dbAbstractor.getAvailableHost(vcpus,memory,imagearchitecture); 
+    if (available_host.length == 0) {return false}
     return await dbAbstractor.getHostEntry(available_host[0].hostname);
 }
