@@ -23,7 +23,7 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
     const [vm_name_raw, ip, vnet_name_raw_in] = [...params]; 
     const vm_name = createVM.resolveVMName(vm_name_raw);
-    const vnet_name_raw = vnet_name_raw_in || `${KLOUD_CONSTANTS.env.org}-${KLOUD_CONSTANTS.env.prj}-Internet-Backbone`;
+    const vnet_name_raw = vnet_name_raw_in || createVnet.getInternetBackboneVnet();
     const vnet_name = createVnet.resolveVnetName(vnet_name_raw);
     if (!vnet_name) {params.consoleHandlers.LOGERROR("Unable to locate VxLAN for the VM"); return CMD_CONSTANTS.FALSE_RESULT();}
 
@@ -77,7 +77,7 @@ module.exports.exec = async function(params) {
 
     results = await xforge(xforgeArgsVMIPCommand);
     if (results.result) {
-        const vmips = vm.ips.trim() != '' ? vm.ips.split(',') : [], finalVMIPs = vmips.filter(assinged => assinged !== ip);
+        const vmips = vm.ips.trim() != '' ? vm.ips.split(',') : [], finalVMIPs = vmips.filter(assigned => assigned !== ip);
         if (await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.os, 
             vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, finalVMIPs.join(","))) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, ...(CMD_CONSTANTS.FALSE_RESULT())};}

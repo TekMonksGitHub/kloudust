@@ -29,8 +29,12 @@ module.exports.exec = async function(params) {
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
     
-    if (vm.ips.trim() !== "") {const allIps = vm.ips.split(",").map(ip => ip.trim());await Promise.all(allIps.map(ip =>unassignIPToVM.exec([vm_name_raw, ip])));}
-
+    if (vm.ips.trim() !== "") {
+        const allIps = vm.ips.split(",").map(ip => ip.trim());
+        for (const ip of allIps) {
+            await unassignIPToVM.exec([vm_name_raw, ip])
+        }
+    }
     const hostInfo = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
