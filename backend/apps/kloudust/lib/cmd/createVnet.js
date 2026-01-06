@@ -30,3 +30,5 @@ exports.resolveVnetName = vnet_name_raw => vnet_name_raw ? vnet.resolveVnetName(
 
 /** @return The public name for the given internal Vnet name or null on error */
 exports.unresolveVnetName = vnet_name => vnet_name ? vnet.unresolveVnetName(vnet_name) : null;
+
+exports.getInternetBackboneVnet = _ => `${KLOUD_CONSTANTS.env.org}-${KLOUD_CONSTANTS.env.prj}-Internet-Backbone`;
