@@ -204,10 +204,8 @@ exports.getHostEntry = async hostname => {
  */
 exports.getAvailableHost = async (vcpu,ram,arch) => {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
-    const cpu_factor = KLOUD_CONSTANTS.CONF.VCPU_TO_PHYSICAL_CPU_FACTOR;
-    const mem_factor = KLOUD_CONSTANTS.CONF.VMEM_TO_PHYSICAL_MEM_FACTOR;
-    const query = `SELECT h.hostname, (h.cores * ${cpu_factor} - IFNULL(SUM(v.cpus), 0)) AS free_cpu, (h.memory * ${mem_factor} - IFNULL(SUM(v.memory) * 1024 * 1024, 0)) AS free_ram FROM hosts h LEFT JOIN vms v ON v.hostname = h.hostname WHERE h.processorarchitecture = ? GROUP BY h.hostname HAVING free_cpu >= ? and free_ram >= ? ORDER BY free_cpu DESC, free_ram DESC LIMIT 1;`;
-    const host = await _db().getQuery(query, [arch,cpu,ram]);
+    const query = `SELECT h.hostname, (h.cores - IFNULL(SUM(v.cpus), 0)) AS free_cpu, (h.memory - IFNULL(SUM(v.memory), 0)) AS free_ram FROM hosts h LEFT JOIN vms v ON v.hostname = h.hostname WHERE h.processorarchitecture = ? GROUP BY h.hostname HAVING free_cpu >= ? and free_ram >= ? ORDER BY free_cpu DESC, free_ram DESC LIMIT 1;`;
+    const host = await _db().getQuery(query, [arch,vcpu,ram]);
     return host;
 }
 
