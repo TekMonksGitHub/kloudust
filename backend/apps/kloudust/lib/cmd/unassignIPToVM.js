@@ -15,6 +15,7 @@ const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
+const WILDCARD_IP_VTEP_HOSTNAME = "*";
 /**
  * unassign IP from the given VM
  * @param {array} params The incoming params, see above for param documentation.
