@@ -13,7 +13,7 @@ const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 exports.getHostFor = async function(vcpus, memory, disk, imagearchitecture) {
     const cpu_factor = KLOUD_CONSTANTS.CONF.VCPU_TO_PHYSICAL_CPU_FACTOR;
     const mem_factor = KLOUD_CONSTANTS.CONF.VMEM_TO_PHYSICAL_MEM_FACTOR;
-    vcpus = Math.ceil(vcpus/ cpu_factor);
+    vcpus = Math.ceil(vcpus / cpu_factor);
     memory = Math.ceil((memory * 1024 * 1024) / mem_factor); //convert megabytes to bytes
     const available_host = await dbAbstractor.getAvailableHost(vcpus,memory,imagearchitecture); 
     if (available_host.length == 0) {return false}
