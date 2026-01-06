@@ -978,6 +978,18 @@ exports.getHostForIP = async function(ip, for_allocation) {
 }
 
 /**
+ * Returns the the list of available ips that can be assigned to vms
+ * @returns The the list of available ips that can be assigned to vms
+ */
+exports.getAssignableIPs = async function(hostname) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const query = hostname ? "select ip from ip where allocatedto = '' and hostname = ? limit 1" : "select ip from ip where allocatedto = '' limit 1";
+    const params = hostname ? [hostname] : [];
+    const results = await _db().getQuery(query, params);
+    return results;
+}
+
+/**
  * Adds the IP to the given Host. Which can later be allocated to VMs.
  * @param {string} ip The IP to add
  * @param {string} hostname The hostname where this IP is routed to.
