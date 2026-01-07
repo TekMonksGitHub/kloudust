@@ -838,6 +838,18 @@ exports.getVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, org=K
 }
 
 /**
+ * Returns the given vnet name.
+ * @param {string} name The Vnet ID
+ * @returns The vnet name, if found, else null.
+ */
+exports.getVnetName = async function(vnet_id) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+
+    const query = "select name from vnets where id=? collate nocase";
+    const vnets = await _db().getQuery(query, [vnet_id]);
+    if (vnets && vnets.length) return vnets[0]; else return null;
+}
+/**
  * Returns the list of Vnets for the given project and org.
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment

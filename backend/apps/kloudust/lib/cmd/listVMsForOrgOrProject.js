@@ -17,6 +17,8 @@
 
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
+const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
+const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
@@ -32,8 +34,16 @@ module.exports.exec = async function(params) {
     const vmtypes = vmtypes_raw ? vmtypes_raw.split(",") : [createVM.VM_TYPE_VM];
     const vms = await dbAbstractor.listVMsForOrgOrProject(vmtypes, org, project);
 
-    const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push({...vm, creationcmd: undefined});
+    const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push({...vm, creationcmd: undefined, vnets : await addVMVnet.getVMVnets(vm.name_raw)});
 
+    for (const vm of vms_ret) {
+        vm.vnets = await Promise.all(
+            vm.vnets.map(async (vnetId) => {
+                const vnet = await dbAbstractor.getVnetName(vnetId);
+                return createVnet.unresolveVnetName(vnet.name);
+            })
+        );
+    }
     let out = "VM information from the database follows.";
     for (const vm of vms_ret) out += "\n"+JSON.stringify(vm);
 
