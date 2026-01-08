@@ -31,6 +31,8 @@ module.exports.exec = async function(params) {
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
+    //check if the ip is even assigned to the vm.
+    if(!vm.ips.trim().split(",").includes(ip)) {params.consoleHandlers.LOGERROR("No such IP assigned to the VM."); return CMD_CONSTANTS.FALSE_RESULT();}
     // resolve the two hostinfos - for VM and for IP termination host
     const hostInfoVM = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfoVM) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
@@ -39,11 +41,12 @@ module.exports.exec = async function(params) {
     const hostInfoIPVtep = hostnameIPVtep == WILDCARD_IP_VTEP_HOSTNAME ? hostInfoVM : await dbAbstractor.getHostEntry(hostnameIPVtep);       
     if (!hostInfoIPVtep) {params.consoleHandlers.LOGERROR("Unable to locate Vtep hostinfo for IP "+ip); return CMD_CONSTANTS.FALSE_RESULT();}
 
-    // remove the vm from the vnet
-    const paramsDeleteVMVnet = [vm_name_raw, vnet_name_raw, true]; paramsDeleteVMVnet.consoleHandlers = params.consoleHandlers;
-    if (!(await deleteVMVnet.exec(paramsDeleteVMVnet)).result) { // this expands the IP Vnet to the VM host and also connects the VM to it
-        params.consoleHandlers.LOGERROR(`Unable to delete the VM ${vn_name} from VNet ${vnet_name}`); return CMD_CONSTANTS.FALSE_RESULT();
-    }
+    if(vm.ips.trim().split(",").length === 1){
+        const paramsDeleteVMVnet = [vm_name_raw, vnet_name_raw, true]; paramsDeleteVMVnet.consoleHandlers = params.consoleHandlers;
+        if (!(await deleteVMVnet.exec(paramsDeleteVMVnet)).result) { // this expands the IP Vnet to the VM host and also connects the VM to it
+            params.consoleHandlers.LOGERROR(`Unable to delete the VM ${vn_name} from VNet ${vnet_name}`); return CMD_CONSTANTS.FALSE_RESULT();
+        }
+    } 
 
     const vnetRecord = await dbAbstractor.getVnet(vnet_name);
 

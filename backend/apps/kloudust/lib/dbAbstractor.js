@@ -838,6 +838,18 @@ exports.getVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, org=K
 }
 
 /**
+ * Returns the given vnet name.
+ * @param {string} name The Vnet ID
+ * @returns The vnet name, if found, else null.
+ */
+exports.getVnetName = async function(vnet_id) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+
+    const query = "select name from vnets where id=? collate nocase";
+    const vnets = await _db().getQuery(query, [vnet_id]);
+    if (vnets && vnets.length) return vnets[0]; else return null;
+}
+/**
  * Returns the list of Vnets for the given project and org.
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment
@@ -975,6 +987,18 @@ exports.getHostForIP = async function(ip, for_allocation) {
     const query = for_allocation?"select hostname from ip where ip=? and allocatedto=''":"select hostname from ip where ip=?";
     const results = await _db().getQuery(query, [ip]);
     return results[0]?.hostname;
+}
+
+/**
+ * Returns the the list of available ips that can be assigned to vms
+ * @returns The the list of available ips that can be assigned to vms
+ */
+exports.getAssignableIPs = async function(hostname) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const query = hostname ? "select ip from ip where allocatedto = '' and hostname = ? limit 1" : "select ip from ip where allocatedto = '' limit 1";
+    const params = hostname ? [hostname] : [];
+    const results = await _db().getQuery(query, params);
+    return results;
 }
 
 /**
