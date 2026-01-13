@@ -5,7 +5,7 @@
 # installed for Linux VMs for persistent IP assignments. The Linux image should have netplan support
 # available for persistent IP changes. 
 #
-# (C) 2025 Tekmonks. All rights reserved.
+# (C) 2026 Tekmonks. All rights reserved.
 # LICENSE: See LICENSE file.
 #########################################################################################################
 # Init section - check params, and assigns defaults if missing

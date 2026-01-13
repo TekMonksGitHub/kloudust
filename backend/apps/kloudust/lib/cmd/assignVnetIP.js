@@ -1,12 +1,9 @@
 /** 
- * assignIPToVM.js - Assigns the given IP to the given VM. The IP must be 
- * routable to one of the Kloudust hosts by the network backbone.
+ * assignVnetIP.js - Assigns the given IP to the given VM.
  * 
- * Params - 0 - VM Name, 1 - IP, 2 - VxLAN name to use for routing, should
- *  typically not be needed, 3 - DNS1 (not needed, defaults to 8.8.8.8), 
- *  4 - DNS2 (not needed, defaults to 8.8.4.4), 5 - MTU (not needed, defaults to 1200)
+ * Params - 0 - VM Name, 1 - IP, 2 - Vnet Name 3 - MTU (not needed, defaults to 1200)
  * 
- * (C) 2024 Tekmonks. All rights reserved.
+ * (C) 2026 Tekmonks. All rights reserved.
  * License: See enclosed LICENSE file.
  */
 
