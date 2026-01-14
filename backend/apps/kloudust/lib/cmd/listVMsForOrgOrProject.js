@@ -21,6 +21,7 @@ const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
 const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
+const getVMVnets = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMVnets.js`);
 
 /**
  * Lists the VMs
@@ -37,13 +38,11 @@ module.exports.exec = async function(params) {
     const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push({...vm, creationcmd: undefined, vnets : await addVMVnet.getVMVnets(vm.name_raw)});
 
     for (const vm of vms_ret) {
-        vm.vnets = await Promise.all(
-            vm.vnets.map(async (vnetId) => {
-                const vnet = await dbAbstractor.getVnetName(vnetId);
-                return createVnet.unresolveVnetName(vnet.name);
-            })
-        );
+        const getVMVnetsParams = [vm.name_raw]; getVMVnetsParams.consoleHandlers = params.consoleHandlers;
+        const vnet_result = await getVMVnets.exec(getVMVnetsParams);
+        vm.vnets = vnet_result.vnets;
     }
+
     let out = "VM information from the database follows.";
     for (const vm of vms_ret) out += "\n"+JSON.stringify(vm);
 
