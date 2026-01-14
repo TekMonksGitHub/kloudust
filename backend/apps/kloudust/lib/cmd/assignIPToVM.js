@@ -45,6 +45,26 @@ module.exports.exec = async function(params) {
     // resolve the two hostinfos - for VM and for IP termination host
     const hostInfoVM = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfoVM) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+    
+    //check if the guest agent is running before making any changes
+    const xforgeArgsGuestCheck = {
+        colors: KLOUD_CONSTANTS.COLORED_OUT, 
+        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        console: params.consoleHandlers,
+        other: [
+            hostInfoVM.hostaddress, hostInfoVM.rootid, hostInfoVM.rootpw, hostInfoVM.hostkey, hostInfoVM.port,
+            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/guestCheck.sh`,
+            vm.name
+        ]
+    }
+
+    let guestCheck = await xforge(xforgeArgsGuestCheck);
+
+    if (!guestCheck.result) {
+        params.consoleHandlers.LOGERROR(`QEMU Guest agent is not running inside the vm ${vm.name}`); 
+        return CMD_CONSTANTS.FALSE_RESULT();
+    }
+
     const hostnameIPVtep = await dbAbstractor.getHostForIP(ip, true);
     if (!hostnameIPVtep) {params.consoleHandlers.LOGERROR("Unable to locate Vtep host for IP "+ip); return CMD_CONSTANTS.FALSE_RESULT();}
     const hostInfoIPVtep = hostnameIPVtep == WILDCARD_IP_VTEP_HOSTNAME ? hostInfoVM : await dbAbstractor.getHostEntry(hostnameIPVtep);       
