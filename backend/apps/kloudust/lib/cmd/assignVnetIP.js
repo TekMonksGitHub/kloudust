@@ -48,7 +48,7 @@ module.exports.exec = async function(params) {
         other: [
             hostInfoVM.hostaddress, hostInfoVM.rootid, hostInfoVM.rootpw, hostInfoVM.hostkey, hostInfoVM.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/guestCheck.sh`,
-            vm.name
+            vm.name, KLOUD_CONSTANTS.CONF.MAX_GUEST_AGENT_CHECK_WAIT
         ]
     }
 
@@ -58,7 +58,7 @@ module.exports.exec = async function(params) {
         params.consoleHandlers.LOGERROR(`QEMU Guest agent is not running inside the vm ${vm.name}`); 
         return CMD_CONSTANTS.FALSE_RESULT();
     }
-    
+
     const xforgeArgsVMIPCommand = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
         file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,

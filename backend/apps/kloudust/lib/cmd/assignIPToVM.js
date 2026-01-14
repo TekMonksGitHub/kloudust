@@ -54,7 +54,7 @@ module.exports.exec = async function(params) {
         other: [
             hostInfoVM.hostaddress, hostInfoVM.rootid, hostInfoVM.rootpw, hostInfoVM.hostkey, hostInfoVM.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/guestCheck.sh`,
-            vm.name
+            vm.name, KLOUD_CONSTANTS.CONF.MAX_GUEST_AGENT_CHECK_WAIT
         ]
     }
 
