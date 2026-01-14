@@ -118,7 +118,6 @@
         "       ipinput.style.display = 'block';",
         "       const vnetresult = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD,",
         "       'POST', { cmd: `getVMVnets ${vm_name}`, project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT) }, true);",
-        "       console.log(vnetresult)",
         "       if (!vnetresult.result) {",
         "           const option = document.createElement('option');",
         "           option.value = 'novnetsfound';",
@@ -169,7 +168,6 @@
 
     "submit_javascript": [
         "const retObject = arguments[0]||{};",
-        "console.log(retObject)",
         "if (retObject.iptype == 'private' && retObject.type == 'assign') retObject._override_form_command='assignVnetIP';",
         "if (retObject.iptype == 'private' && retObject.type == 'unassign') retObject._override_form_command='unassignVnetIP';",
         "if (retObject.iptype == 'public') retObject.vnetlist = '';",
