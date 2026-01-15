@@ -22,15 +22,10 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
     const vm_name_raw = params[0];
 
-    let vnets = await addVMVnet.getVMVnets(vm_name_raw);
-
     let backbone = createVnet.resolveVnetName(createVnet.getInternetBackboneVnet());
-
-    let vnet_names = await Promise.all(vnets.map(vnet=>dbAbstractor.getVnetName(vnet)));
-
-    vnet_names = vnet_names.filter(vnet_name=>vnet_name.name!==backbone);
-
-    vnet_names = vnet_names.map(vnet_entry=>createVnet.unresolveVnetName(vnet_entry.name));
+    let vnet_names = await addVMVnet.getVMVnetNames(vm_name_raw);
+    vnet_names = vnet_names.filter(vnet_name=>vnet_name!==backbone);
+    vnet_names = vnet_names.map(vnet=>createVnet.unresolveVnetName(vnet));
 
     const out = `VM Vnets follow\n${JSON.stringify(vnet_names)}`; 
 

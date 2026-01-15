@@ -69,3 +69,16 @@ exports.getVMVnets = async function(vm_name_raw) {
     const vm_vnets = await dbAbstractor.getVnetsForResource(vm_name, VNET_VM_RELATION);
     return vm_vnets || [];
 }
+
+/**
+ * Returns a list of Vnet names this VM is part of
+ * @param {string} vm_name_raw The raw VM name
+ * @returns {array} A list of Vnet names this VM is part of
+ */
+exports.getVMVnetNames = async function(vm_name_raw) {
+    const vm_vnets = await exports.getVMVnets(vm_name_raw);
+    let vnet_names = await Promise.all(vm_vnets.map(vnet=>dbAbstractor.getVnetName(vnet)))
+    vnet_names = vnet_names.map(vnet_entry=>vnet_entry.name)
+    return vnet_names || [];
+}
+
