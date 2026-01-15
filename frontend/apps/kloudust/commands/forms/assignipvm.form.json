@@ -134,7 +134,6 @@
         "   resetFields();",
         "   const ipType = iptypeSelect.value;",
         "   const actionType = selectElement.value;",
-        "   const vm_name = shadowroot.querySelector('input#vm_name').value;",
         "   if (ipType === 'private') {",
         "       ipinput.style.display = 'block';",
         "       vnetlist.style.display = 'block';",
