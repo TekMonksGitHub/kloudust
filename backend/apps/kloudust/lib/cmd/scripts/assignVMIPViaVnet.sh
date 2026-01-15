@@ -51,7 +51,7 @@ cat > /etc/netplan/99-kd-ip-'${IP_ADDRESS_UNDERSCORES}'.yaml <<NETPLAN_EOF
     "version": 2,
     "renderer": "networkd",
     "ethernets": {
-      "private": {
+      "private_'${IP_ADDRESS_UNDERSCORES}'": {
         "match": {"macaddress": "'${MAC_ADDRESS}'"},
         "dhcp4": false,
 	      "mtu": '${MTU}',
