@@ -2,7 +2,7 @@
 "id": "assignipvm",
 "command": "assignIPToVM",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["vm_name","iplist"],
+"kloudust_cmdline_params": ["vm_name","ip","vnetlist"],
 
 "title": "{{{i18n.VMAssignIPTitle}}}",
 
@@ -15,6 +15,10 @@
         "VMAssignIPCommandType": "Assignment type",
         "VMAssignIPAssign": "Assign",
         "VMAssignIPUnassign": "Unassign",
+        "VMVNetListCommand" : "Select a VNet",
+        "VMIPType": "IP Type",
+        "VMIPTypePublic": "Public",
+        "VMIPTypePrivate": "Private",
         "FieldValidationErrorGeneric": "Validation error"
     },
     "hi": {
@@ -25,6 +29,10 @@
         "VMAssignIPCommandType": "Assignment type",
         "VMAssignIPAssign": "Assign",
         "VMAssignIPUnassign": "Unassign",
+        "VMVNetListCommand" : "Select a VNet",
+        "VMIPType": "IP Type",
+        "VMIPTypePublic": "Public",
+        "VMIPTypePrivate": "Private",
         "FieldValidationErrorGeneric": "Validation error"
     },
     "ja": {
@@ -35,6 +43,10 @@
         "VMAssignIPCommandType": "Assignment type",
         "VMAssignIPAssign": "Assign",
         "VMAssignIPUnassign": "Unassign",
+        "VMVNetListCommand" : "Select a VNet",
+        "VMIPType": "IP Type",
+        "VMIPTypePublic": "Public",
+        "VMIPTypePrivate": "Private",
         "FieldValidationErrorGeneric": "Validation error"
     },
     "zh": {
@@ -45,6 +57,10 @@
         "VMAssignIPCommandType": "Assignment type",
         "VMAssignIPAssign": "Assign",
         "VMAssignIPUnassign": "Unassign",
+        "VMVNetListCommand" : "Select a VNet",
+        "VMIPType": "IP Type",
+        "VMIPTypePublic": "Public",
+        "VMIPTypePrivate": "Private",
         "FieldValidationErrorGeneric": "Validation error"
     }
 },
@@ -58,7 +74,16 @@
         "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
         "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
         "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
+    {"id": "iptype", "multioption": true, "type": "select", "label": "{{{i18n.VMIPType}}}", 
+        "options":[
+            {"value":"private", "label":"{{{i18n.VMIPTypePrivate}}}"}, 
+            {"value":"public", "label":"{{{i18n.VMIPTypePublic}}}"}
+        ]
+    },
+    {"id": "ip", "type": "text", "placeholder": "{{{i18n.VMAssignIPCommand}}}",
+        "pattern":"^((25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\\.){3}(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})$", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
     {"id": "iplist", "multioption": true, "type": "select", "label": "{{{i18n.VMAssignIPCommand}}}", "options":[]},
+    {"id": "vnetlist", "multioption": true, "type": "select", "label": "{{{i18n.VMVNetListCommand}}}", "options":[]},
     {"id": "type", "multioption": true, "type": "select", "label": "{{{i18n.VMAssignIPCommandType}}}", 
         "options":[
             {"value":"assign", "label":"{{{i18n.VMAssignIPAssign}}}"}, 
@@ -67,37 +92,61 @@
     }
     ],
 
+    "load_javascript": [
+        "const form = arguments[0]||{};",
+        "const vm_name = form.required_fields[0].value",
+        "const vnetresult = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD,",
+        "'POST', { cmd: `getVMVnets ${vm_name}`, project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT) }, true);",
+        "if(vnetresult.result){",
+        "   for(const vnet of vnetresult.vnets) {",
+        "       const vnetlist = form.required_fields[form.required_fields.length-2];",
+        "       vnetlist.options.push({value: vnet, label: vnet});",
+        "   }",
+        "} else form.required_fields[form.required_fields.length-2].options.push({value: 'novnetsfound', label: 'No Vnets Found'});",
+        "const ipResults = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD,",
+        "'POST', { cmd: `listAssignedVMIPs ${vm_name}`, project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT) }, true);",
+        "if(ipResults.result){",
+        "   for(const ip of ipResults.ips.split(',')) {",
+        "       const iplist = form.required_fields[form.required_fields.length-3];",
+        "       iplist.options.push({value: ip, label: ip});",
+        "   }",
+        "} else form.required_fields[form.required_fields.length-3].options.push({value: 'noipassigned', label: 'No IPs Assigned'});",
+        "return form;"
+    ],
+
     "rendered_javascript": [
         "const form = arguments[0], shadowroot = form._form_shadowroot;",
         "const selectElement = shadowroot.querySelector('select#type');",
+        "const iptypeSelect = shadowroot.querySelector('select#iptype');",
+        "const ipinput = shadowroot.querySelector('input#ip');",
         "const iplist = shadowroot.querySelector('select#iplist');",
-        "const iplist_label = shadowroot.querySelector(`label[for='iplist']`);",
-        "iplist.style.display = 'none'",
-        "iplist_label.style.display = 'none'",
-        "selectElement.addEventListener('change', async _ => {",
-        "if (selectElement.value == 'unassign') {",
-        "   const vm_name = shadowroot.querySelector('input#vm_name').value;",
-        "   iplist.style.display = 'block'",
-        "   iplist_label.style.display = 'block'",
-        "   const ipResults = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {cmd: `listAssignedVMIPs ${vm_name}`, project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",    
-        "   if (!ipResults.result || ipResults.ips.trim().length == 0) {",
-        "       const option = document.createElement('option');",
-        "       option.value = 'noipsassigned'; option.text = 'No IPs Found';",
-        "       iplist.appendChild(option);",
-        "   } else {",
-        "       const assignedIPs = ipResults.ips.split(',');",
-        "       const list = shadowroot.querySelector('#iplist');",
-        "       for (const assignedIP of assignedIPs) {",
-        "           if (assignedIP.trim() == '') continue;",
-        "           const option = document.createElement('option');",
-        "           option.value = assignedIP; option.text = assignedIP;",
-        "           list.appendChild(option);",
-        "       }",
+        "const iplist_label = shadowroot.querySelector(\"label[for='iplist']\");",
+        "const vnetlist = shadowroot.querySelector('select#vnetlist');",
+
+        "const resetFields = () => {",
+        "   iplist.style.display = 'none';",
+        "   iplist_label.style.display = 'none';",
+        "   vnetlist.style.display = 'none';",
+        "   ipinput.style.display = 'none';",
+        "};",
+
+        "const updateFields = async () => {",
+        "   resetFields();",
+        "   const ipType = iptypeSelect.value;",
+        "   const actionType = selectElement.value;",
+        "   if (ipType === 'private') {",
+        "       ipinput.style.display = 'block';",
+        "       vnetlist.style.display = 'block';",
+        "       return;",
         "   }",
-        "} else if(selectElement.value == 'assign') {",
-            "iplist.style.display = 'none'",
-            "iplist_label.style.display = 'none'",
-        "} else shadowroot.querySelector('#iplist').innerHTML = ''; });",
+        "   if (ipType === 'public' && actionType === 'unassign') {",
+        "       iplist.style.display = 'block';",
+        "       iplist_label.style.display = 'block';",
+        "   }",
+        "};",
+        "iptypeSelect.addEventListener('change', updateFields);",
+        "selectElement.addEventListener('change', updateFields);",
+        "updateFields();",
         "return true;"
     ],
 
@@ -105,7 +154,11 @@
 
     "submit_javascript": [
         "const retObject = arguments[0]||{};",
-        "if (retObject.type == 'unassign') retObject._override_form_command='unassignIPToVM';",
+        "if (retObject.iptype == 'private' && retObject.type == 'assign') retObject._override_form_command='assignVnetIP';",
+        "if (retObject.iptype == 'private' && retObject.type == 'unassign') retObject._override_form_command='unassignVnetIP';",
+        "if (retObject.iptype == 'public') retObject.vnetlist = '';",
+        "if (retObject.iptype == 'public' && retObject.type == 'assign') retObject.ip = '';",
+        "if (retObject.iptype == 'public' && retObject.type == 'unassign') { retObject.ip = retObject.iplist; retObject._override_form_command='unassignIPToVM'; }",
         "return true;"
     ]
 }
