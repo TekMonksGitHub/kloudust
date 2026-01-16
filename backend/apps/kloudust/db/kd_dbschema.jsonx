@@ -12,7 +12,7 @@
 
     // Cross relationship table - shows a relationship between key1 and key2
     "CREATE TABLE relationships(id integer primary key, pk1 varchar not null, \
-        pk2 varchar not null, type varchar not null, \
+        pk2 varchar not null, pk3 varchar, type varchar not null, \
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
     // Projects for an ORG
