@@ -46,7 +46,7 @@ function printConfig() {
 cat <<ENDJSON
 $1
 {
-    "cores": "$CORESPERCPU",
+    "cores": "$CORES",
     "memory": "$MEMORY",
     "disk": "$ROOTDISKTOTAL",
     "netspeed": "$NETSPEED",
