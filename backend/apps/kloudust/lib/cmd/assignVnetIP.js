@@ -37,6 +37,10 @@ module.exports.exec = async function(params) {
     const vnetRecord = await dbAbstractor.getVnet(vnet_name);
     if (!vnetRecord) {params.consoleHandlers.LOGERROR("Bad VNet name or VNet not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
+    //check if vm already has an ip for this vnet
+    let vnet_ip = await dbAbstractor.getVMVnetIP(vm.name,vnetRecord.name);
+    if(vnet_ip.length !==0) {params.consoleHandlers.LOGERROR(`VM ${vm.name} Already has an IP for vnet ${vnetRecord.name}!`); return CMD_CONSTANTS.FALSE_RESULT();}
+
     const hostInfoVM = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfoVM) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
@@ -73,6 +77,8 @@ module.exports.exec = async function(params) {
     let results = await xforge(xforgeArgsVMIPCommand);
     
     if (results.result) {
+        let insertResult = await dbAbstractor.addVMVnetIP(vm.name, vnetRecord.name, ip);
+        if(!insertResult) { params.consoleHandlers.LOGERRO(`DB insert failed!`); CMD_CONSTANTS.FALSE_RESULT_RESULT(); }
         params.consoleHandlers.LOGINFO(`IP ${ip} was allocated to VM ${vm_name_raw} and internal VM command to configure the network card succeeded.`)
         return {...results, ...(CMD_CONSTANTS.TRUE_RESULT())};
     } else {
