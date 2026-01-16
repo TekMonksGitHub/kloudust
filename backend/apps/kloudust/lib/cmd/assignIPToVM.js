@@ -36,6 +36,8 @@ module.exports.exec = async function(params) {
     
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+
+    if(vm.ips.trim().length !== 0) {params.consoleHandlers.LOGERROR("VM already has a public ip assigned to it!"); return CMD_CONSTANTS.FALSE_RESULT();}
     
     let ip_to_assign = await dbAbstractor.getAssignableIPs(vm.hostname);
     if(ip_to_assign.length == 0) ip_to_assign = await dbAbstractor.getAssignableIPs();
