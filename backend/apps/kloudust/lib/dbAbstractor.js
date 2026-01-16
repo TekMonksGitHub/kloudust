@@ -1002,6 +1002,58 @@ exports.getAssignableIPs = async function(hostname) {
 }
 
 /**
+ * Returns the given ruleset object.
+ * @param {string} name The ruleset ID or name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns The ruleset object, if found, else null.
+ */
+exports.getFirewallRuleset = async function(ruleset, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const id = `${org}_${project}_${ruleset}`;
+    const query = "select * from firewallrulesets where id=? collate nocase";
+    const ruleset_entry = await _db().getQuery(query, [id]);
+    if (ruleset_entry && ruleset_entry.length) return ruleset_entry[0]; else return null;
+}
+
+/**
+ * Adds or updates a firewall ruleset in DB
+ *
+ * @param {string} name Ruleset name
+ * @param {string} rules_json JSON string of rules
+ * @param {string} project Project (optional)
+ * @param {string} org Org (optional)
+ * @returns true on success, false on failure
+ */
+exports.addOrUpdateFirewallRuleset = async (name, rules_json, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project);org = roleman.getNormalizedOrg(org);
+
+    const id = `${org}_${project}_${name}`;
+    const query = `REPLACE INTO firewallrulesets(id, name, rules_json) VALUES (?,?,?)`;
+    return await _db().runCmd(query, [id,name,rules_json]);
+};
+
+/**
+ * Deletes a firewall ruleset from DB
+ *
+ * @param {string} name Ruleset name
+ * @param {string} project Project (optional)
+ * @param {string} org Org (optional)
+ * @returns true on success, false on failure
+ */
+exports.deleteFirewallRuleset = async (name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project);org = roleman.getNormalizedOrg(org);
+
+    const id = `${org}_${project}_${name}`;
+    const query = `DELETE FROM firewallrulesets WHERE id = ?`;
+    return await _db().runCmd(query, [id]);
+};
+
+/**
  * Adds the IP to the given Host. Which can later be allocated to VMs.
  * @param {string} ip The IP to add
  * @param {string} hostname The hostname where this IP is routed to.
