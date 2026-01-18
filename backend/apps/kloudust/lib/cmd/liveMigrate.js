@@ -10,6 +10,9 @@
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const deleteVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVM.js`);
+const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
+const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
+const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
@@ -31,6 +34,12 @@ module.exports.exec = async function(params) {
     const hostToInfo = await dbAbstractor.getHostEntry(hostToName); 
     if (!hostToInfo) {params.consoleHandlers.LOGERROR("Bad hostname for host to."); return CMD_CONSTANTS.FALSE_RESULT();}
 
+    const vm_vnets = await addVMVnet.getVMVnets(vm.name_raw);
+    for (const vm_vnet of vm_vnets) {
+        const vnet_name = await dbAbstractor.getVnetName(vm_vnet);
+        const vnetExpansionResult = await vnet.expandVnetToHost(vnet_name.name, hostToInfo, params.consoleHandlers, true);
+    }
+
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
         file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
@@ -44,6 +53,19 @@ module.exports.exec = async function(params) {
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
+            const xforgeGuestExec = {
+            colors: KLOUD_CONSTANTS.COLORED_OUT, 
+            file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+            console: params.consoleHandlers,
+            other: [
+                hostToInfo.hostaddress, hostToInfo.rootid, hostToInfo.rootpw, hostToInfo.hostkey, hostToInfo.port,
+                `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/guestNetworkReapply.sh`,
+                vm.name,"netplan apply"
+            ]
+        }
+
+        const execResult = await xforge(xforgeGuestExec);
+
         if (!await dbAbstractor.updateVMHost(vm.id, hostToName)) {  // fix the DB, if failed give up
             params.consoleHandlers.LOGERROR(`DB failed but VM ${vm_name_raw} was migrated to ${hostToName}, aborting.`); 
             if (!await deleteVM.deleteVMFromHost(vm_name, hostToInfo, params.consoleHandlers)) {   // cleanup new host in case of issues

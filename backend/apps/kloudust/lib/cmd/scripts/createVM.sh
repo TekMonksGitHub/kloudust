@@ -150,6 +150,7 @@ if ! virt-install --name $NAME --metadata name=$NAME --metadata title="$DESCRIPT
     --vcpus $VCPUS,maxvcpus=$MAX_VCPUS \
     --memory currentMemory=$MEMORY,maxmemory=$MAX_MEMORY \
     --disk $DISK \
+    --cpu IvyBridge,match=exact \
     --os-variant $OS_VARIANT \
     --controller type=scsi,model=virtio-scsi \
     --noautoconsole \
@@ -173,6 +174,7 @@ INSTALL="virt-install --name $NAME --metadata name=$NAME --metadata title=\"$DES
     --vcpus $VCPUS,maxvcpus=$MAX_VCPUS \
     --memory currentMemory=$MEMORY,maxmemory=$MAX_MEMORY \
     --disk $DISK \
+    ---cpu IvyBridge,match=exact \
     --os-variant $OS_VARIANT \
     --controller type=scsi,model=virtio-scsi \
     --noautoconsole \
