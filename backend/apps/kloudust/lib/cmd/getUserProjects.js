@@ -17,7 +17,7 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
  */
 module.exports.exec = async function(params) {
     const userid = KLOUD_CONSTANTS.env.userid;
-    if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource))) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
+    if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project))) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
 
     let projects = await dbAbstractor.getUserProjects(userid); 
     if (!projects) {const err = "Database error in searching for user's projects"; params.consoleHandlers.LOGERROR(err); 
