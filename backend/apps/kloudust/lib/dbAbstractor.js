@@ -25,7 +25,7 @@ exports.getUserCount = async _ => {
     if (user_count == 0) return user_count; // this is a special case when the Kloud has no users at all
     
     // if we have users already then we must lookup the role permissions
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) {_logUnauthorized(); return 0;}
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource)) {_logUnauthorized(); return false;}
     else return user_count;
 }
 
