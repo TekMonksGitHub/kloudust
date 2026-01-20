@@ -55,7 +55,7 @@ exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env.role) {
 
 exports.isSetupMode = async _ => ((await dbAbstractor.getUserCount()) == 0) && KLOUD_CONSTANTS.env._setup_mode;
 
-exports.canBeSetupMode = async _ => (await dbAbstractor.getUserCount() == 0);
+exports.canBeSetupMode = async _ => (await dbAbstractor.getUserCount() === 0);
 
 exports.isCloudAdminLoggedIn = _ => KLOUD_CONSTANTS.env.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN;
 
