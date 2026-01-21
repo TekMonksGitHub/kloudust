@@ -132,7 +132,7 @@ label#projects {
 <div id="bottomleftbaritems">
 	<label for="projects" id="projects">{{i18n.ActiveProject}}</label>
 	<span class="leftbaritem"><select id="projects" onchange="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].main.activeProjectChanged(this.value)">
-		{{#mainPageData.userprojects}}<option class="projects" name="{{{name}}}" value="{{{name}}}">{{name}}</option>{{/mainPageData.userprojects}}
+		{{#mainPageData.userprojects}}<option class="projects" name="{{{name}}}" value="{{{name}}}" {{#selected}}selected{{/selected}}>{{name}}</option>{{/mainPageData.userprojects}}
 	</select></span>
 	<span class="leftbaritem" onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].loginmanager.logout()"><img src="img/door.svg"><span>Logout</span></span>
 </div>
