@@ -100,7 +100,10 @@ exports.loginUser = async function(args, consoleHandler) {
             _setupKloudustEnvironment(args.name[0], args.user[0], args.org[0], roleAssigned, args.project?.[0]);
             if (await _execCommand(["addUser", args.user[0], args.name[0], args.org[0], roleAssigned], consoleHandler)) {
                 consoleHandler.LOGINFO(`User ${args.user[0]} from org ${args.org[0]} added to the cloud as ${roleAssigned}.`); 
-                return true;
+                if (await _execCommand(["initOrg"], consoleHandler)) {
+                    consoleHandler.LOGINFO(`Initiated ${args.org[0]} with user ${args.user[0]}.`);
+                    return true;
+                }
             } else consoleHandler.LOGERROR(`User ${args.user[0]} not found in the cloud and adding to Kloudust failed.`); 
         } else consoleHandler.LOGERROR(`User ${args.user[0]} not found in the cloud and not org admin, skipping.`); 
         consoleHandler.EXITFAILED(); return false; 
