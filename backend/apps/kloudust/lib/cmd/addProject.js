@@ -12,6 +12,7 @@ const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 const addUserToProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addUserToProject.js`);
+const deleteProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteProject.js`);
 
 /**
  * Adds the given project to the current org
@@ -37,7 +38,9 @@ module.exports.exec = async function(params) {
 
     if(!addUserToProjectResult.result) {
         params.consoleHandlers.LOGERROR(`Failed to add user ${creator} to project ${name} for org ${org}.`); 
-        return CMD_CONSTANTS.FALSE_RESULT(`Failed to add user ${creator} to project ${name} for org ${org}.`);
+        const deleteProjectParams = [name,org]; deleteProjectParams.consoleHandlers = params.consoleHandlers;
+        await deleteProject.exec(deleteProjectParams)
+        return CMD_CONSTANTS.FALSE_RESULT(`Failed to add user ${creator} to project ${name} for org ${org}. Could not create project`);
     }
 
     return {result : true, out: `Added project ${name}`, err: ""};
