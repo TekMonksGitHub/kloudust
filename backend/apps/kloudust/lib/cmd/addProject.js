@@ -11,6 +11,8 @@
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
+const addUserToProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addUserToProject.js`);
+const deleteProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteProject.js`);
 
 /**
  * Adds the given project to the current org
@@ -19,13 +21,27 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) { 
         params.consoleHandlers.LOGERROR("User is unauthorized for this operation."); return CMD_CONSTANTS.FALSE_RESULT(); }
 
-    const [description, org_in] = [...params];
+    const [name, description] = [...params];
+    const org = roleman.getNormalizedOrg(KLOUD_CONSTANTS.env.org), creator = KLOUD_CONSTANTS.env.userid;
 
-    const org = roleman.getNormalizedOrg(org_in||KLOUD_CONSTANTS.env.org), project = KLOUD_CONSTANTS.env.prj;
-    if (await dbAbstractor.getProject(project)) {   // check
-        params.consoleHandlers.LOGERROR(`Project ${project} already exists.`); 
-        return CMD_CONSTANTS.FALSE_RESULT(`Project ${project} already exists.`);
+    if (await dbAbstractor.getProject(name)) {   // check
+        params.consoleHandlers.LOGERROR(`Project ${name} already exists.`); 
+        return CMD_CONSTANTS.TRUE_RESULT(`Project ${name} already exists.`);
     }
-    const result = await dbAbstractor.addProject(project, description||"", org);   // add project for user and org
-    return {result, out: "", err: ""};
+
+    if(!await dbAbstractor.addProject(name, description||"")) {
+        params.consoleHandlers.LOGERROR(`Failed to add project ${name} for org ${org}.`); 
+        return CMD_CONSTANTS.FALSE_RESULT(`Failed to add project ${name} for org ${org}.`);
+    }  
+
+    const addUserToProjectResult = await addUserToProject.exec([creator,name], params.consoleHandlers);
+
+    if(!addUserToProjectResult.result) {
+        params.consoleHandlers.LOGERROR(`Failed to add user ${creator} to project ${name} for org ${org}.`); 
+        const deleteProjectParams = [name,org]; deleteProjectParams.consoleHandlers = params.consoleHandlers;
+        await deleteProject.exec(deleteProjectParams)
+        return CMD_CONSTANTS.FALSE_RESULT(`Failed to add user ${creator} to project ${name} for org ${org}. Could not create project`);
+    }
+
+    return {result : true, out: `Added project ${name}`, err: ""};
 }

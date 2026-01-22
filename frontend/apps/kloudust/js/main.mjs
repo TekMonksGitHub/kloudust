@@ -58,8 +58,12 @@ const interceptPageLoadData = _ => $$.librouter.addOnLoadPageData(APP_CONSTANTS.
     const projectsLookupResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 
         'POST', {cmd: 'getUserProjects'}, true);
     mainPageData.userprojects = projectsLookupResult?projectsLookupResult.projects:[];
-    $$.libsession.set(APP_CONSTANTS.ACTIVE_PROJECT, mainPageData.userprojects && mainPageData.userprojects.length ? 
-        mainPageData.userprojects[0].name : APP_CONSTANTS.DEFAULT_PROJECT);
+
+    const selectedProject = $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT) || mainPageData.userprojects[0]?.name;
+    const selectProjectIndex = mainPageData.userprojects.findIndex(prj=>prj.name==selectedProject);
+    mainPageData.userprojects[selectProjectIndex].selected = true;
+    $$.libsession.set(APP_CONSTANTS.ACTIVE_PROJECT, selectedProject);
+
     data.mainPageData = mainPageData;
     
     for (const cmd of [...mainPageData.leftbarCommands, ...mainPageData.mainCommands]) try{
