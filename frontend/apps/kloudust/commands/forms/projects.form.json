@@ -1,0 +1,38 @@
+{
+"id": "projects",
+"command": "iconlist",
+"type": "frontend_module",
+
+"rolelist": {
+"*": [
+    {"id": "viewprojects", "label": "{{{i18n.ViewProjects}}}", "logo": "img/viewprojects.png"},
+    {"id": "addproject", "label": "{{{i18n.AddProject}}}", "logo": "img/createproject.png"}
+]
+},
+
+"i18n": {
+"en": {
+    "AddProject": "Add Project",
+    "ViewProjects": "View Projects"
+
+},
+
+"hi": {
+    "AddProject": "Add Project",
+    "ViewProjects": "View Projects"
+
+},
+
+"ja": {
+    "AddProject": "Add Project",
+    "ViewProjects": "View Projects"
+
+},
+
+"zh": {
+    "AddProject": "Add Project",
+    "ViewProjects": "View Projects"
+
+}
+}
+}

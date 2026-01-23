@@ -1,0 +1,60 @@
+{
+    "id": "addusertoproject",
+    "command": "addUserToProject",
+    "type": "kloudust_cmdline",
+    "kloudust_cmdline_params": ["userid", "project_name"],
+    
+    "title": "{{{i18n.AddUserToProjectTitle}}}",
+    
+    "i18n": {
+        "en": {
+            "AddUserToProjectTitle": "Add User To Project",
+            "AddUserToProjectDescription": "Add a user to a project.",
+            "ProjectUserID": "User ID",
+            "ProjectName": "Project Name",
+            "FieldValidationErrorGeneric": "Validation error",
+            "AddUserToProjectSubmitLabel": "Submit"
+        },
+        "hi": {
+            "AddUserToProjectTitle": "Add User To Project",
+            "AddUserToProjectDescription": "Add a user to a project.",
+            "ProjectUserID": "User ID",
+            "ProjectName": "Project Name",
+            "FieldValidationErrorGeneric": "Validation error",
+            "AddUserToProjectSubmitLabel": "Submit"
+        },
+        "ja": {
+            "AddUserToProjectTitle": "Add User To Project",
+            "AddUserToProjectDescription": "Add a user to a project.",
+            "ProjectUserID": "User ID",
+            "ProjectName": "Project Name",
+            "FieldValidationErrorGeneric": "Validation error",
+            "AddUserToProjectSubmitLabel": "Submit"
+        },
+        "zh": {
+            "AddUserToProjectTitle": "Add User To Project",
+            "AddUserToProjectDescription": "Add a user to a project.",
+            "ProjectUserID": "User ID",
+            "ProjectName": "Project Name",
+            "FieldValidationErrorGeneric": "Validation error",
+            "AddUserToProjectSubmitLabel": "Submit"
+        }
+    },
+    
+    "form": {
+        "description": "{{{i18n.AddUserToProjectDescription}}}",
+    
+        "required_label": "{{{i18n.Required}}}",
+        "required_fields": [
+        {"id": "project_name", "type": "text", "placeholder": "{{{i18n.ProjectName}}}", "required": true, 
+            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "value":"{{{APP_CONSTANTS.ENV._projects_form_data.name}}}", 
+            "readonly":"{{#APP_CONSTANTS.ENV._projects_form_data.name}}true{{/APP_CONSTANTS.ENV._projects_form_data.name}}"},
+        {"id": "userid", "type": "text", "placeholder": "{{{i18n.ProjectUserID}}}", 
+            "required": true, "pattern":"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\/.[A-Za-z]{2,}$", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+        ],
+    
+        "submitlabel": "{{{i18n.AddUserToProjectSubmitLabel}}}"
+    }
+    
+    }
