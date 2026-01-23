@@ -1,0 +1,53 @@
+{
+"id": "createproject",
+"command": "addProject",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["project_name", "project_description"],
+
+"title": "{{{i18n.VnetCreateTitle}}}",
+
+"i18n": {
+    "en": {
+        "ProjectCreateTitle": "Add Project",
+        "ProjectCreateDescription": "Add a new project to your org.",
+        "ProjectName": "Project Name",
+        "ProjectDescription": "Project Description",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "hi": {
+        "ProjectCreateTitle": "Add Project",
+        "ProjectCreateDescription": "Add a new project to your org.",
+        "ProjectName": "Project Name",
+        "ProjectDescription": "Project Description",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "ja": {
+        "ProjectCreateTitle": "Add Project",
+        "ProjectCreateDescription": "Add a new project to your org.",
+        "ProjectName": "Project Name",
+        "ProjectDescription": "Project Description",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "zh": {
+        "ProjectCreateTitle": "Add Project",
+        "ProjectCreateDescription": "Add a new project to your org.",
+        "ProjectName": "Project Name",
+        "ProjectDescription": "Project Description",
+        "FieldValidationErrorGeneric": "Validation error"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.ProjectCreateDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "project_name", "type": "text", "placeholder": "{{{i18n.ProjectName}}}", "required": true, 
+        "pattern":"\\s*\\w+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "project_description", "type": "text", "placeholder": "{{{i18n.ProjectDescription}}}"}
+    ],
+
+    "submitlabel": "{{{i18n.CreateVnetSubmitLabel}}}"
+}
+
+}
