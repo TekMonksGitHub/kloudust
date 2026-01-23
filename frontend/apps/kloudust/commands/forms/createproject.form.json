@@ -12,28 +12,32 @@
         "ProjectCreateDescription": "Add a new project to your org.",
         "ProjectName": "Project Name",
         "ProjectDescription": "Project Description",
-        "FieldValidationErrorGeneric": "Validation error"
+        "FieldValidationErrorGeneric": "Validation error",
+        "CreateProjectSubmitLabel": "Create" 
     },
     "hi": {
         "ProjectCreateTitle": "Add Project",
         "ProjectCreateDescription": "Add a new project to your org.",
         "ProjectName": "Project Name",
         "ProjectDescription": "Project Description",
-        "FieldValidationErrorGeneric": "Validation error"
+        "FieldValidationErrorGeneric": "Validation error",
+        "CreateProjectSubmitLabel": "Create" 
     },
     "ja": {
         "ProjectCreateTitle": "Add Project",
         "ProjectCreateDescription": "Add a new project to your org.",
         "ProjectName": "Project Name",
         "ProjectDescription": "Project Description",
-        "FieldValidationErrorGeneric": "Validation error"
+        "FieldValidationErrorGeneric": "Validation error",
+        "CreateProjectSubmitLabel": "Create" 
     },
     "zh": {
         "ProjectCreateTitle": "Add Project",
         "ProjectCreateDescription": "Add a new project to your org.",
         "ProjectName": "Project Name",
         "ProjectDescription": "Project Description",
-        "FieldValidationErrorGeneric": "Validation error"
+        "FieldValidationErrorGeneric": "Validation error",
+        "CreateProjectSubmitLabel": "Create" 
     }
 },
 
@@ -47,7 +51,7 @@
     {"id": "project_description", "type": "text", "placeholder": "{{{i18n.ProjectDescription}}}"}
     ],
 
-    "submitlabel": "{{{i18n.CreateVnetSubmitLabel}}}"
+    "submitlabel": "{{{i18n.CreateProjectSubmitLabel}}}"
 }
 
 }
