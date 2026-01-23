@@ -8,6 +8,7 @@
     {"id": "createvm", "label": "{{{i18n.CreateVirtualMachine}}}", "logo": "img/createvm.svg"},
     {"id": "createvnet", "label": "{{{i18n.CreateVirtualNetwork}}}", "logo": "img/createvnet.svg"},
     {"id": "createfirewall", "label": "{{{i18n.CreateFirewall}}}", "logo": "img/createfirewall.svg"},
+    {"id": "createproject", "label": "{{{i18n.CreateProject}}}", "logo": "img/createproject.png"},
     {"id": "createoracledbm", "label": "{{{i18n.CreateOracleManagedDB}}}", "logo": "img/createoracledb.svg"},
     {"id": "createcloudfunction", "label": "{{{i18n.CreateFunction}}}", "logo": "img/createfunction.svg"},
     {"id": "createobjectstorage", "label": "{{{i18n.CreateObjectStorage}}}", "logo": "img/createobjectstorage.svg"},
@@ -22,6 +23,7 @@
 "en": {
     "AddHost": "Add host",
     "AddImage": "Add image",
+    "CreateProject": "Project",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
     "CreateFirewall": "Firewall ruleset",
@@ -36,6 +38,7 @@
 "hi": {
     "AddHost": "Add host",
     "AddImage": "Add image",
+    "CreateProject": "Project",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
     "CreateFirewall": "Firewall ruleset",
@@ -49,6 +52,7 @@
 "ja": {
     "AddHost": "Add host",
     "AddImage": "Add image",
+    "CreateProject": "Project",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
     "CreateFirewall": "Firewall ruleset",
@@ -63,6 +67,7 @@
 "zh": {
     "AddHost": "Add host",
     "AddImage": "Add image",
+    "CreateProject": "Project",
     "CreateVirtualMachine": "Virtual machine",
     "CreateVirtualNetwork": "Virtual network",
     "CreateFirewall": "Firewall ruleset",
