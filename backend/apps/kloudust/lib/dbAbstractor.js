@@ -392,7 +392,7 @@ exports.addProject = async(name, description="", orgIn=KLOUD_CONSTANTS.env.org) 
  * @returns The currently logged in or the given user's projects.
  */
 exports.getUserProjects = async userid => {
-    if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project))) {_logUnauthorized(); return false;}
+    if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource))) {_logUnauthorized(); return false;}
     if (!userid) userid = KLOUD_CONSTANTS.env.userid;
     const query = "select * from projects where id in (select projectid from projectusermappings where userid=? collate nocase)";
     const results = await _db().getQuery(query, userid);
@@ -612,6 +612,20 @@ exports.checkUserBelongsToProject = async function (userid=KLOUD_CONSTANTS.env.u
     const check = await _db().getQuery("select projectid from projectusermappings where userid = ? collate nocase and projectid = ? collate nocase", 
         [userid, projectid]);
     if (!check || !check.length) return false;  // user isn't part of this project
+    else return true;
+}
+
+/**
+ * Checks that the user belongs to any project
+ * @param {string} userid The userid, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true if the user belongs to any project, else false
+ */
+exports.checkUserBelongsToAnyProject = async function (userid=KLOUD_CONSTANTS.env.userid, org=KLOUD_CONSTANTS.env.org) {
+    org = roleman.getNormalizedOrg(org);
+
+    const check = await _db().getQuery("select projectid from projectusermappings where userid = ? collate nocase", [userid]);
+    if (!check || !check.length) return false;  // user isn't part of any project
     else return true;
 }
 
