@@ -1,0 +1,50 @@
+{
+"id": "projects",
+"command": "iconlist",
+"type": "frontend_module",
+
+"rolelist": {
+"*": [
+    {"id": "viewprojects", "label": "{{{i18n.ViewProjects}}}", "logo": "img/viewprojects.png"},
+    {"id": "addproject", "label": "{{{i18n.AddProject}}}", "logo": "img/addproject.png"},
+    {"id": "deleteproject", "label": "{{{i18n.DeleteProject}}}", "logo": "img/deleteproject.png"},
+    {"id": "addusertoproject", "label": "{{{i18n.AddUserToProject}}}", "logo": "img/addusertoproject.png"},
+    {"id": "removeuserfromproject", "label": "{{{i18n.RemoveUserFromProject}}}", "logo": "img/removeuserfromproject.png"}
+
+]
+},
+
+"i18n": {
+"en": {
+    "ViewProjects": "View Projects",
+    "AddProject": "Add Project",
+    "DeleteProject": "Delete Project",
+    "AddUserToProject": "Add User",
+    "RemoveUserFromProject": "Remove User"
+},
+
+"hi": {
+    "ViewProjects": "View Projects",
+    "AddProject": "Add Project",
+    "DeleteProject": "Delete Project",
+    "AddUserToProject": "Add User",
+    "RemoveUserFromProject": "Remove User"
+},
+
+"ja": {
+    "ViewProjects": "View Projects",
+    "AddProject": "Add Project",
+    "DeleteProject": "Delete Project",
+    "AddUserToProject": "Add User",
+    "RemoveUserFromProject": "Remove User"
+},
+
+"zh": {
+    "ViewProjects": "View Projects",
+    "AddProject": "Add Project",
+    "DeleteProject": "Delete Project",
+    "AddUserToProject": "Add User",
+    "RemoveUserFromProject": "Remove User"
+}
+}
+}

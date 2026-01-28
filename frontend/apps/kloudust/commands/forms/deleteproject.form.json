@@ -1,0 +1,84 @@
+{
+    "id": "deleteproject",
+    "command": "deleteProject",
+    "type": "kloudust_cmdline",
+    "kloudust_cmdline_params": ["project_name"],
+    
+    "title": "{{{i18n.DeleteProjectTitle}}}",
+    
+    "i18n": {
+        "en": {
+            "DeleteProjectTitle": "Delete Project",
+            "DeleteProjectDescription": "Delete a project.",
+            "ProjectName": "Project Name",
+            "ProjectListCommand": "Select a project",
+            "FieldValidationErrorGeneric": "Validation error",
+            "DeleteProjectSubmitLabel": "Delete"
+        },
+        "hi": {
+            "DeleteProjectTitle": "Delete Project",
+            "DeleteProjectDescription": "Delete a project.",
+            "ProjectName": "Project Name",
+            "ProjectListCommand": "Select a project",
+            "FieldValidationErrorGeneric": "Validation error",
+            "DeleteProjectSubmitLabel": "Delete"
+        },
+        "ja": {
+            "DeleteProjectTitle": "Delete Project",
+            "DeleteProjectDescription": "Delete a project.",
+            "ProjectName": "Project Name",
+            "ProjectListCommand": "Select a project",
+            "FieldValidationErrorGeneric": "Validation error",
+            "DeleteProjectSubmitLabel": "Delete"
+        },
+        "zh": {
+            "DeleteProjectTitle": "Delete Project",
+            "DeleteProjectDescription": "Delete a project.",
+            "ProjectName": "Project Name",
+            "ProjectListCommand": "Select a project",
+            "FieldValidationErrorGeneric": "Validation error",
+            "DeleteProjectSubmitLabel": "Delete"
+        }
+    },
+    
+    "form": {
+        "description": "{{{i18n.DeleteProjectDescription}}}",
+    
+        "required_label": "{{{i18n.Required}}}",
+        "required_fields": [
+        {"id": "project_name", "type": "text", "placeholder": "{{{i18n.ProjectName}}}",
+            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "value":"{{{APP_CONSTANTS.ENV._projects_form_data.name}}}", 
+            "readonly":"{{#APP_CONSTANTS.ENV._projects_form_data.name}}true{{/APP_CONSTANTS.ENV._projects_form_data.name}}"},
+        {"id": "projectlist", "multioption": true, "type": "select", "label": "{{{i18n.ProjectListCommand}}}", "options":[]}
+        ],
+        "load_javascript": [
+            "const form = arguments[0]||{};",
+            "if(APP_CONSTANTS.ENV._projects_form_data) {",
+            "   form.required_fields[form.required_fields.length-1].label = '';",
+            "   form.required_fields[form.required_fields.length-1].style = 'display:none;';",
+            "} else {",
+            "   form.required_fields[form.required_fields.length-2].type = 'hidden';",
+            "   const projects = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+            "   cmd: `getUserProjects`}, true);",
+            "   if(projects.result){",
+            "       for(const project of projects.projects) {",
+            "           const projectlist = form.required_fields[form.required_fields.length-1];",
+            "          projectlist.options.push({value: project.name, label: project.name});",
+            "       }",
+            "   }",
+            "}",
+            "return form;"
+        ],
+        "rendered_javascript": ["delete APP_CONSTANTS.ENV._projects_form_data; return true"],
+        "submit_javascript":[
+            "const retObject = arguments[0]||{};",
+            "if(retObject.projectlist && retObject.projectlist!=='') {",
+                "retObject.project_name = retObject.projectlist;",
+            "}",
+            "return true;"
+        ],
+        "submitlabel": "{{{i18n.DeleteProjectSubmitLabel}}}"
+    }
+    
+    }

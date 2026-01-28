@@ -1,0 +1,91 @@
+{
+    "id": "removeuserfromproject",
+    "command": "removeUserFromProject",
+    "type": "kloudust_cmdline",
+    "kloudust_cmdline_params": ["userid", "project_name"],
+    
+    "title": "{{{i18n.RemoveUserFromProjectTitle}}}",
+    
+    "i18n": {
+        "en": {
+            "RemoveUserFromProjectTitle": "Remove user from a project",
+            "RemoveUserFromProjectDescripton": "Remove user from a project.",
+            "ProjectUserID": "User ID",
+            "ProjectName": "Project Name",
+            "ProjectListCommand": "Select a project",
+            "FieldValidationErrorGeneric": "Validation error",
+            "RemoveUserFromProjectProjectSubmitLabel": "Remove"
+        },
+        "hi": {
+            "RemoveUserFromProjectTitle": "Remove user from a project",
+            "RemoveUserFromProjectDescripton": "Remove user from a project.",
+            "ProjectUserID": "User ID",
+            "ProjectName": "Project Name",
+            "ProjectListCommand": "Select a project",
+            "FieldValidationErrorGeneric": "Validation error",
+            "RemoveUserFromProjectProjectSubmitLabel": "Remove"
+        },
+        "ja": {
+            "RemoveUserFromProjectTitle": "Remove user from a project",
+            "RemoveUserFromProjectDescripton": "Remove user from a project.",
+            "ProjectUserID": "User ID",
+            "ProjectName": "Project Name",
+            "ProjectListCommand": "Select a project",
+            "FieldValidationErrorGeneric": "Validation error",
+            "RemoveUserFromProjectProjectSubmitLabel": "Remove"
+        },
+        "zh": {
+            "RemoveUserFromProjectTitle": "Remove user from a project",
+            "RemoveUserFromProjectDescripton": "Remove user from a project.",
+            "ProjectUserID": "User ID",
+            "ProjectName": "Project Name",
+            "ProjectListCommand": "Select a project",
+            "FieldValidationErrorGeneric": "Validation error",
+            "RemoveUserFromProjectProjectSubmitLabel": "Remove"
+        }
+    },
+    
+    "form": {
+        "description": "{{{i18n.RemoveUserFromProjectDescripton}}}",
+    
+        "required_label": "{{{i18n.Required}}}",
+        "required_fields": [
+        {"id": "project_name", "type": "text", "placeholder": "{{{i18n.ProjectName}}}",
+            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "value":"{{{APP_CONSTANTS.ENV._projects_form_data.name}}}", 
+            "readonly":"{{#APP_CONSTANTS.ENV._projects_form_data.name}}true{{/APP_CONSTANTS.ENV._projects_form_data.name}}"},
+        {"id": "projectlist", "multioption": true, "type": "select", "label": "{{{i18n.ProjectListCommand}}}", "options":[]},
+        {"id": "userid", "type": "text", "placeholder": "{{{i18n.ProjectUserID}}}", 
+            "required": true, "pattern":"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\/.[A-Za-z]{2,}$", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+        ],
+        "load_javascript": [
+            "const form = arguments[0]||{};",
+            "if(APP_CONSTANTS.ENV._projects_form_data) {",
+            "   form.required_fields[form.required_fields.length-2].label = '';",
+            "   form.required_fields[form.required_fields.length-2].style = 'display:none;';",
+
+            "} else {",
+            "   form.required_fields[form.required_fields.length-3].type = 'hidden';",
+            "   const projects = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+            "   cmd: `getUserProjects`}, true);",
+            "   if(projects.result){",
+            "       for(const project of projects.projects) {",
+            "           const projectlist = form.required_fields[form.required_fields.length-2];",
+            "          projectlist.options.push({value: project.name, label: project.name});",
+            "       }",
+            "   }",
+            "}",
+            "return form;"
+        ],
+        "rendered_javascript": ["delete APP_CONSTANTS.ENV._projects_form_data; return true"],
+        "submit_javascript":[
+            "const retObject = arguments[0]||{};",
+            "if(retObject.projectlist && retObject.projectlist!=='') {",
+                "retObject.project_name = retObject.projectlist;",
+            "}",
+            "return true;"
+        ],
+        "submitlabel": "{{{i18n.RemoveUserFromProjectProjectSubmitLabel}}}"
+    }
+    
+    }
