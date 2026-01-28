@@ -616,20 +616,6 @@ exports.checkUserBelongsToProject = async function (userid=KLOUD_CONSTANTS.env.u
 }
 
 /**
- * Checks that the user belongs to any project
- * @param {string} userid The userid, if skipped is auto picked from the environment
- * @param {string} org The org, if skipped is auto picked from the environment
- * @returns true if the user belongs to any project, else false
- */
-exports.checkUserBelongsToAnyProject = async function (userid=KLOUD_CONSTANTS.env.userid, org=KLOUD_CONSTANTS.env.org) {
-    org = roleman.getNormalizedOrg(org);
-
-    const check = await _db().getQuery("select projectid from projectusermappings where userid = ? collate nocase", [userid]);
-    if (!check || !check.length) return false;  // user isn't part of any project
-    else return true;
-}
-
-/**
  * Adds the given object to the recycle bin table
  * @param {string} objectid The object ID
  * @param {string||object} object The object itself
