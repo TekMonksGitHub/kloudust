@@ -616,6 +616,17 @@ exports.checkUserBelongsToProject = async function (userid=KLOUD_CONSTANTS.env.u
 }
 
 /**
+ * Checks that the user belongs to any project in their org
+ * @param {string} userid The userid, if skipped is auto picked from the environment
+ * @returns true if the user belongs to any project, else false
+ */
+exports.checkUserBelongsToAnyProject = async function (userid=KLOUD_CONSTANTS.env.userid) {
+    const check = await _db().getQuery("select p.* from users u join projectusermappings pum on pum.userid = u.id join projects p on p.id = pum.projectid where u.id = ? and p.org = u.org;", [userid]);
+    if (!check || !check.length) return false;  // user isn't part of any project
+    else return true;
+}
+
+/**
  * Adds the given object to the recycle bin table
  * @param {string} objectid The object ID
  * @param {string||object} object The object itself
