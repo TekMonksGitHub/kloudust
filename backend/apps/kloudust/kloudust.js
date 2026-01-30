@@ -105,13 +105,25 @@ exports.loginUser = async function(args, consoleHandler) {
                     return true;
                 }
             } else consoleHandler.LOGERROR(`User ${args.user[0]} not found in the cloud and adding to Kloudust failed.`); 
+        } else if(args.role?.[0] == KLOUD_CONSTANTS.LOGINAPP_ORG_USER) {
+            _setupKloudustEnvironment(args.name[0], args.user[0], args.org[0], args.role[0]);
+            let userProjects = await _execCommand(["getUserProjects"], consoleHandler);
+            if (userProjects.result && userProjects.projects.length !== 0) {
+                if (await _execCommand(["addUser", args.user[0], args.name[0], args.org[0], args.role[0]], consoleHandler)) {
+                    consoleHandler.LOGINFO(`User ${args.user[0]} from org ${args.org[0]} added to the cloud as ${args.role[0]}.`); 
+                    return true;
+                }else{
+                    consoleHandler.LOGERROR(`User ${args.user[0]} from org ${args.org[0]} could not be added to the cloud as ${args.role[0]}.`); 
+                    return false;
+                }
+            }
         } else consoleHandler.LOGERROR(`User ${args.user[0]} not found in the cloud and not org admin, skipping.`); 
         consoleHandler.EXITFAILED(); return false; 
     }
     
     KLOUD_CONSTANTS.env.org = userObject.org; // the project check below needs this
     const project_check = (userObject.role == KLOUD_CONSTANTS.ROLES.ORG_ADMIN || 
-        userObject.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) ? true : await dbAbstractor.checkUserBelongsToProject(email, project);  
+        userObject.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) ? true : await dbAbstractor.checkUserBelongsToAnyProject(userObject.id);  
     if (!project_check) {   // not part of this project  
         consoleHandler.LOGERROR(`User not authorized for the project ${args.project?.[0]||"undefined"}.`); 
         consoleHandler.EXITFAILED();
