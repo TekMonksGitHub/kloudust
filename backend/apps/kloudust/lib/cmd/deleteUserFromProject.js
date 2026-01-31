@@ -21,8 +21,8 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
 
     const [email, projectRaw, orgRaw] = [...params];
-    const project = projectRaw?roleman.getNormalizedProject(projectRaw):KLOUD_CONSTANTS.env.prj; 
-    const org = orgRaw?roleman.getNormalizedOrg(orgRaw):KLOUD_CONSTANTS.env.org;
+    const project = projectRaw?roleman.getNormalizedProject(projectRaw):KLOUD_CONSTANTS.env.prj(); 
+    const org = orgRaw?roleman.getNormalizedOrg(orgRaw):KLOUD_CONSTANTS.env.org();
 
     return {result: await dbAbstractor.removeUserFromProject(email, project, org), err: "", out: ""};
 }

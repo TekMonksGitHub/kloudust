@@ -208,7 +208,7 @@ exports.runDeleteVxLANPeers = (vlan_name, vlan_num, peers, hostInfo, consoleHand
  * @param {string} org The org for which Vnet is needed (only cloud admin can override)
  * @returns The list of Vnets for the current org and project
  */
-exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     const vnets = await dbAbstractor.listVnets(project, org);
     const vnetsReturn = []; if (vnets && vnets.length) for (const vnet of vnets) {
         vnetsReturn.push({...vnet, raw_name: exports.unresolveVnetName(vnet.name)});
@@ -218,7 +218,7 @@ exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CO
 
 /** @return The internal name for the given raw Vnet name or null on error */
 exports.resolveVnetName = vnet_name_raw => vnet_name_raw ?
-    `${vnet_name_raw}_${KLOUD_CONSTANTS.env.org}_${KLOUD_CONSTANTS.env.prj}`.toLowerCase().replace(/\s/g,"_") : null;
+    `${vnet_name_raw}_${KLOUD_CONSTANTS.env.org()}_${KLOUD_CONSTANTS.env.prj()}`.toLowerCase().replace(/\s/g,"_") : null;
 
 
 /** @return The public name for the given internal Vnet name or null on error */

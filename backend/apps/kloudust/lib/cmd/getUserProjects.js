@@ -16,13 +16,13 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
  * @param {array} params The incoming params, see above for param documentation.
  */
 module.exports.exec = async function(params) {
-    const userid = KLOUD_CONSTANTS.env.userid;
+    const userid = KLOUD_CONSTANTS.env.userid();
     if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource))) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
 
     let projects = await dbAbstractor.getUserProjects(userid); 
     if (!projects) {const err = "Database error in searching for user's projects"; params.consoleHandlers.LOGERROR(err); 
         return CMD_CONSTANTS.FALSE_RESULT(err); }
-    if (!projects.length) projects = [{name: "default", org: KLOUD_CONSTANTS.env.org, description: ""}];
+    if (!projects.length) projects = [{name: "default", org: KLOUD_CONSTANTS.env.org(), description: ""}];
 
     const out = `Project information follows\n${JSON.stringify(projects)}`; 
     params.consoleHandlers.LOGINFO(out);

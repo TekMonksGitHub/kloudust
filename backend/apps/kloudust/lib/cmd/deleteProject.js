@@ -19,7 +19,7 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) { 
         params.consoleHandlers.LOGERROR("User is unauthorized for this operation."); return CMD_CONSTANTS.FALSE_RESULT(); }
         
-    const project = roleman.getNormalizedProject(params[0]||KLOUD_CONSTANTS.env.prj);
-    const org = roleman.getNormalizedOrg(params[1]||KLOUD_CONSTANTS.env.org);
+    const project = roleman.getNormalizedProject(params[0]||KLOUD_CONSTANTS.env.prj());
+    const org = roleman.getNormalizedOrg(params[1]||KLOUD_CONSTANTS.env.org());
     return {result: await dbAbstractor.deleteProject(project, org), err: "", out: ""};
 }

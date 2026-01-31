@@ -25,7 +25,7 @@ module.exports.exec = async function(params) {
     if (!roleman.isCloudAdminLoggedIn()) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
 
     const paramsQuoted = []; for (const param of params) paramsQuoted.push(`"${param}"`);
-    params.consoleHandlers.LOGWARN(`Warning!!! Custom command is being run by user ${KLOUD_CONSTANTS.env.userid}. The command is ${["customCmd", ...paramsQuoted].join(" ")}`);
+    params.consoleHandlers.LOGWARN(`Warning!!! Custom command is being run by user ${KLOUD_CONSTANTS.env.userid()}. The command is ${["customCmd", ...paramsQuoted].join(" ")}`);
 
     const [sql, hostname, cmd] = [...params];
     let out = "", resultSQL;

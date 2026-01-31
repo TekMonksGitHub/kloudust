@@ -15,7 +15,7 @@ const addProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addProject.js`);
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) { params.consoleHandlers.LOGERROR("User is unauthorized for this operation."); return CMD_CONSTANTS.FALSE_RESULT(); }
     
-    const org = roleman.getNormalizedOrg(KLOUD_CONSTANTS.env.org), project = KLOUD_CONSTANTS.DEFAULT_PROJECT, default_project_description = `Default project for org ${org}`;
+    const org = roleman.getNormalizedOrg(KLOUD_CONSTANTS.env.org()), project = KLOUD_CONSTANTS.DEFAULT_PROJECT, default_project_description = `Default project for org ${org}`;
 
     if (!await addProject.exec([project,default_project_description], params.consoleHandlers)) {
         params.consoleHandlers.LOGERROR(`Could not create project ${project}.`); 

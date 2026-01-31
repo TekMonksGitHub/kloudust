@@ -29,10 +29,10 @@ const init = async hostname => {
 	if (APP_CONSTANTS.INSECURE_DEVELOPMENT_MODE) $$.MONKSHU_CONSTANTS.setDebugLevel($$.MONKSHU_CONSTANTS.DEBUG_LEVELS.refreshOnReload);
 
 	// setup remote logging
-	const API_GETREMOTELOG = APP_CONSTANTS.API_PATH+"/getremotelog", API_REMOTELOG = APP_CONSTANTS.API_PATH+"/log";
+	/*const API_GETREMOTELOG = APP_CONSTANTS.API_PATH+"/getremotelog", API_REMOTELOG = APP_CONSTANTS.API_PATH+"/log";
 	let remoteLogResponse = false; try {remoteLogResponse = await apiman.rest(API_GETREMOTELOG, "GET")} catch (err) {};
 	const remoteLogFlag = remoteLogResponse?remoteLogResponse.remote_log:false;
-	LOG.setRemote(remoteLogFlag, API_REMOTELOG);
+	LOG.setRemote(false, API_REMOTELOG);*/
 }
 
 const main = async _ => {

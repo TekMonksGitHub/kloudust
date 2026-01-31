@@ -25,7 +25,7 @@ exports.ACTIONS = Object.freeze({
  * @param {Symbol} access_for The action for which access is needed, should be one of roleenforcer.ACTIONS
  * @param {string} user_role The user's role - can be user, admin or cloud admin, as defined in KLOUD_CONSTANTS
  */
-exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env.role) {
+exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env.role()) {
     const actions = exports.ACTIONS, roles = KLOUD_CONSTANTS.ROLES;
 
     if (access_for == actions.edit_cloud_resource && user_role == roles.CLOUD_ADMIN) return true;
@@ -37,7 +37,7 @@ exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env.role) {
 
     if (access_for == actions.edit_project_resource) if (user_role == roles.CLOUD_ADMIN || 
         user_role == roles.ORG_ADMIN || (user_role == roles.USER && 
-            dbAbstractor.checkUserBelongsToProject(KLOUD_CONSTANTS.env.prj))) return true;
+            dbAbstractor.checkUserBelongsToProject(KLOUD_CONSTANTS.env.prj()))) return true;
 
     if (access_for == actions.lookup_project_resource) if (user_role == roles.CLOUD_ADMIN || 
         user_role == roles.ORG_ADMIN || user_role == roles.USER) return true;
@@ -48,7 +48,7 @@ exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env.role) {
         user_role == roles.ORG_ADMIN) return true;
     if (access_for == actions.add_user_to_org) if (user_role == roles.CLOUD_ADMIN || 
         user_role == roles.ORG_ADMIN || (user_role == roles.USER && 
-            dbAbstractor.checkUserBelongsToProject(KLOUD_CONSTANTS.env.prj))) return true;
+            dbAbstractor.checkUserBelongsToProject(KLOUD_CONSTANTS.env.prj()))) return true;
 
     return false;
 }
@@ -57,20 +57,20 @@ exports.isSetupMode = async _ => ((await dbAbstractor.getUserCount()) == 0) && K
 
 exports.canBeSetupMode = async _ => (await dbAbstractor.getUserCount() === 0);
 
-exports.isCloudAdminLoggedIn = _ => KLOUD_CONSTANTS.env.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN;
+exports.isCloudAdminLoggedIn = _ => KLOUD_CONSTANTS.env.role() == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN;
 
-exports.isOrgAdminLoggedIn = _ => KLOUD_CONSTANTS.env.role == KLOUD_CONSTANTS.ROLES.ORG_ADMIN;
+exports.isOrgAdminLoggedIn = _ => KLOUD_CONSTANTS.env.role() == KLOUD_CONSTANTS.ROLES.ORG_ADMIN;
 
-exports.isNormalUserLoggedIn = _ => KLOUD_CONSTANTS.env.role == KLOUD_CONSTANTS.ROLES.USER;
+exports.isNormalUserLoggedIn = _ => KLOUD_CONSTANTS.env.role() == KLOUD_CONSTANTS.ROLES.USER;
 
-exports.getNormalizedOrg = org => exports.isCloudAdminLoggedIn() && org ? org : KLOUD_CONSTANTS.env.org;
+exports.getNormalizedOrg = org => exports.isCloudAdminLoggedIn() && org ? org : KLOUD_CONSTANTS.env.org();
 
-exports.getCurrentOrg = _ => KLOUD_CONSTANTS.env.org;
+exports.getCurrentOrg = _ => KLOUD_CONSTANTS.env.org();
 
-exports.getCurrentuser = _ => KLOUD_CONSTANTS.env.userid;
+exports.getCurrentuser = _ => KLOUD_CONSTANTS.env.userid();
 
 exports.getNormalizedProject = prj => prj && (exports.isCloudAdminLoggedIn() || exports.isOrgAdminLoggedIn) ?
-    prj : KLOUD_CONSTANTS.env.prj;
+    prj : KLOUD_CONSTANTS.env.prj();
 
 exports.getNormalizedRole = roleRaw => {
     const role = Object.values(KLOUD_CONSTANTS.ROLES).includes(roleRaw?.toLowerCase()) ? roleRaw.toLowerCase() : 

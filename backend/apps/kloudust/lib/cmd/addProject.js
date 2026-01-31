@@ -22,7 +22,7 @@ module.exports.exec = async function(params) {
         params.consoleHandlers.LOGERROR("User is unauthorized for this operation."); return CMD_CONSTANTS.FALSE_RESULT(); }
 
     const [name, description] = [...params];
-    const org = roleman.getNormalizedOrg(KLOUD_CONSTANTS.env.org), creator = KLOUD_CONSTANTS.env.userid;
+    const org = roleman.getNormalizedOrg(KLOUD_CONSTANTS.env.org), creator = KLOUD_CONSTANTS.env.userid();
 
     if (await dbAbstractor.getProject(name)) {   // check
         params.consoleHandlers.LOGERROR(`Project ${name} already exists.`); 

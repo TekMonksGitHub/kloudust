@@ -38,4 +38,4 @@ module.exports.exec = async function(params) {
 };
 
 
-exports.resolveRulesetName = ruleset_name_raw => ruleset_name_raw?`${ruleset_name_raw}_${KLOUD_CONSTANTS.env.org}_${KLOUD_CONSTANTS.env.prj}`.toLowerCase().replace(/\s/g,"_"):null;
+exports.resolveRulesetName = ruleset_name_raw => ruleset_name_raw?`${ruleset_name_raw}_${KLOUD_CONSTANTS.env.org()}_${KLOUD_CONSTANTS.env.prj()}`.toLowerCase().replace(/\s/g,"_"):null;

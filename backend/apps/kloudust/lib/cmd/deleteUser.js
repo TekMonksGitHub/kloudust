@@ -21,7 +21,7 @@ module.exports.exec = async function(params) {
         params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}    
 
     const [email, orgRaw] = [...params];
-    const org = orgRaw?roleman.getNormalizedOrg(orgRaw):KLOUD_CONSTANTS.env.org;
+    const org = orgRaw?roleman.getNormalizedOrg(orgRaw):KLOUD_CONSTANTS.env.org();
 
     const userToDelete = await dbAbstractor.getUserForEmail(email, org);
     if (!userToDelete) { const err = `User ${email} not found`; params.consoleHandlers.LOGERROR(err); 

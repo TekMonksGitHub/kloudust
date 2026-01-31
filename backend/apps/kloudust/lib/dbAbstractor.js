@@ -227,7 +227,7 @@ exports.getAvailableHost = async (vcpu,ram,arch,factors) => {
  * @return true on success or false otherwise
  */
 exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory, disks, creation_cmd="undefined", 
-        name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+        name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
@@ -244,7 +244,7 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory
  * @param {string} org The org, if skipped is auto picked from the environment
  * @return VM object or null
  */
-exports.getVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+exports.getVM = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -269,7 +269,7 @@ exports.getVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANT
  * @param {string} newproject The new project, if skipped is set to the original project
  * @return true on success or false otherwise
  */
-exports.renameVM = async (name, newname, newname_raw, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org, newproject) => {
+exports.renameVM = async (name, newname, newname_raw, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org(), newproject) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org); 
         newproject = roleman.getNormalizedProject(newproject||project);
@@ -288,7 +288,7 @@ exports.renameVM = async (name, newname, newname_raw, project=KLOUD_CONSTANTS.en
  * @param {string} org The org, if skipped is auto picked from the environment
  * @return true on success or false otherwise
  */
-exports.deleteVM = async (name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+exports.deleteVM = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -322,10 +322,10 @@ exports.updateVMHost = async (vmid, newHostname) => {
  * @param {string} project The project, if skipped is auto picked from the environment if needed
  * @return The list of VMs
  */
-exports.listVMsForOrgOrProject = async (types, org=KLOUD_CONSTANTS.env.org, project) => {
+exports.listVMsForOrgOrProject = async (types, org=KLOUD_CONSTANTS.env.org(), project) => {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     if (project) project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
-    if ((!project) && (!roleman.isOrgAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) project=KLOUD_CONSTANTS.env.prj;
+    if ((!project) && (!roleman.isOrgAdminLoggedIn()) && (!roleman.isOrgAdminLoggedIn())) project=KLOUD_CONSTANTS.env.prj();
 
     const projectid = _getProjectID(project, org), sqltypes = (Array.isArray(types)?types:[types]);
     const sqltypesPlaceholders = sqltypes.map(_=>"?").join(",");
@@ -377,7 +377,7 @@ exports.listVMsForCloudAdmin = async (types, hostname) => {
  * @param {string} orgIn The owning org, if skipped is auto detected 
  * @return true on success or false otherwise
  */
-exports.addProject = async(name, description="", orgIn=KLOUD_CONSTANTS.env.org) => {
+exports.addProject = async(name, description="", orgIn=KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) {_logUnauthorized(); return false;}
     const project = roleman.getNormalizedProject(name), org = roleman.getNormalizedOrg(orgIn), id = _getProjectID(project, org);
         
@@ -393,7 +393,7 @@ exports.addProject = async(name, description="", orgIn=KLOUD_CONSTANTS.env.org) 
  */
 exports.getUserProjects = async userid => {
     if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource))) {_logUnauthorized(); return false;}
-    if (!userid) userid = KLOUD_CONSTANTS.env.userid;
+    if (!userid) userid = KLOUD_CONSTANTS.env.userid();
     const query = "select * from projects where id in (select projectid from projectusermappings where userid=? collate nocase)";
     const results = await _db().getQuery(query, userid);
     return results || [];
@@ -404,8 +404,8 @@ exports.getUserProjects = async userid => {
  * projects they are mapped to, and for admins it goes across org projects
  * @param {string} name Project name
  */
-exports.getProject = async (name, org=KLOUD_CONSTANTS.env.org) => {
-    const userid = KLOUD_CONSTANTS.env.userid, projectid = `${(name||"undefined").toLocaleLowerCase()}_${org}`;
+exports.getProject = async (name, org=KLOUD_CONSTANTS.env.org()) => {
+    const userid = KLOUD_CONSTANTS.env.userid(), projectid = `${(name||"undefined").toLocaleLowerCase()}_${org}`;
     org = roleman.getNormalizedOrg(org); 
 
     let results;
@@ -430,7 +430,7 @@ exports.getProject = async (name, org=KLOUD_CONSTANTS.env.org) => {
  * @param {string} org The project org - only honored for cloud admins, else current org is used
  * @return true on success or false otherwise
  */
-exports.deleteProject = async (name, org=KLOUD_CONSTANTS.env.org) => {
+exports.deleteProject = async (name, org=KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_org)) {_logUnauthorized(); return false; }
     org = roleman.getNormalizedOrg(org); name = roleman.getNormalizedProject(name);
 
@@ -476,7 +476,7 @@ exports.changeUserRole = async function(email, role, org) {
  *                     cloud or org admins, else the user role is used.
  * @return true on succes, false otherwise
  */
-exports.addUserToDB = async (email, name, org=KLOUD_CONSTANTS.env.org, role=KLOUD_CONSTANTS.ROLES.USER) => {
+exports.addUserToDB = async (email, name, org=KLOUD_CONSTANTS.env.org(), role=KLOUD_CONSTANTS.ROLES.USER) => {
     if ((!await roleman.isSetupMode()) && (!roleman.checkAccess(roleman.ACTIONS.add_user_to_org))) {
         _logUnauthorized(); return false; }
 
@@ -494,7 +494,7 @@ exports.addUserToDB = async (email, name, org=KLOUD_CONSTANTS.env.org, role=KLOU
  *                     cloud admins, else the current org is used.
  * @return true on succes, false otherwise
  */
-exports.removeUserFromDB = async (email, org=KLOUD_CONSTANTS.env.org) => {
+exports.removeUserFromDB = async (email, org=KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
 
     const orgFixed = roleman.getNormalizedOrg(org), userid = email.toLocaleLowerCase();
@@ -524,7 +524,7 @@ exports.removeUserFromDB = async (email, org=KLOUD_CONSTANTS.env.org) => {
  * @param {string} org The org, only honored for cloud admins.
  * @returns true on succes, false otherwise
  */
-exports.addUserToProject = async (userid, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+exports.addUserToProject = async (userid, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -542,7 +542,7 @@ exports.addUserToProject = async (userid, project=KLOUD_CONSTANTS.env.prj, org=K
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on succes, false otherwise
  */
-exports.removeUserFromProject = async (user, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => {
+exports.removeUserFromProject = async (user, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -557,13 +557,13 @@ exports.removeUserFromProject = async (user, project=KLOUD_CONSTANTS.env.prj, or
  *                      honored if a cloud admin is logged in, else the org of the currently logged
  *                      in user will be used.
  */
-exports.getAllAdmins = async (org=KLOUD_CONSTANTS.env.org) => {
+exports.getAllAdmins = async (org=KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_org)) {_logUnauthorized(); return false;}
     org = roleman.getNormalizedOrg(org);
 
     const users = await _db().getQuery(
         `select * from users where org = ? collate nocase and role = ${KLOUD_CONSTANTS.ROLES.ORG_ADMIN} collate nocase`, 
-        [roleman.isCloudAdminLoggedIn()?org:KLOUD_CONSTANTS.env.org]);
+        [roleman.isCloudAdminLoggedIn()?org:KLOUD_CONSTANTS.env.org()]);
     return users;
 }
 
@@ -576,11 +576,11 @@ exports.getAllAdmins = async (org=KLOUD_CONSTANTS.env.org) => {
  *            in user will be used.
  * @return The account object or null on error
  */
-exports.getUserForEmail = async (email, org=KLOUD_CONSTANTS.env.org) => {
+exports.getUserForEmail = async (email, org=KLOUD_CONSTANTS.env.org()) => {
     org = roleman.getNormalizedOrg(org);
 
     const users = await _db().getQuery("select * from users where id = ? collate nocase and org = ? collate nocase", 
-        [email.toLocaleLowerCase(), roleman.isCloudAdminLoggedIn()?org:KLOUD_CONSTANTS.env.org]);
+        [email.toLocaleLowerCase(), roleman.isCloudAdminLoggedIn()?org:KLOUD_CONSTANTS.env.org()]);
     if (users && users.length) return users[0]; else return null;
 }
 
@@ -603,8 +603,8 @@ exports.loginUser = async (email, project=KLOUD_CONSTANTS.DEFAULT_PROJECT) => {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true if the user belongs to the given project, else false
  */
-exports.checkUserBelongsToProject = async function (userid=KLOUD_CONSTANTS.env.userid, 
-        project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.checkUserBelongsToProject = async function (userid=KLOUD_CONSTANTS.env.userid(), 
+        project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
 
     org = roleman.getNormalizedOrg(org);
 
@@ -623,8 +623,8 @@ exports.checkUserBelongsToProject = async function (userid=KLOUD_CONSTANTS.env.u
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.addObjectToRecycleBin = async function(objectid, object, project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
+exports.addObjectToRecycleBin = async function(objectid, object, project=KLOUD_CONSTANTS.env.prj(), 
+        org=KLOUD_CONSTANTS.env.org()) {
             
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
@@ -643,8 +643,8 @@ exports.addObjectToRecycleBin = async function(objectid, object, project=KLOUD_C
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The objects, if found, else null. Can be one or more if the same object was deleted multiple times.
  */
-exports.getObjectsFromRecycleBin = async function(objectid, idstamp="", project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
+exports.getObjectsFromRecycleBin = async function(objectid, idstamp="", project=KLOUD_CONSTANTS.env.prj(), 
+        org=KLOUD_CONSTANTS.env.org()) {
             
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
@@ -667,8 +667,8 @@ exports.getObjectsFromRecycleBin = async function(objectid, idstamp="", project=
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteObjectsFromRecyclebin = async function(objectid, idstamp="", project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
+exports.deleteObjectsFromRecyclebin = async function(objectid, idstamp="", project=KLOUD_CONSTANTS.env.prj(), 
+        org=KLOUD_CONSTANTS.env.org()) {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
@@ -689,7 +689,7 @@ exports.deleteObjectsFromRecyclebin = async function(objectid, idstamp="", proje
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.deleteSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -715,7 +715,7 @@ exports.deleteSnapshot = async function(resource_id, snapshot_id, project=KLOUD_
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteAllSnapshotsForResource = async function(resource_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.deleteAllSnapshotsForResource = async function(resource_id, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -742,8 +742,8 @@ exports.deleteAllSnapshotsForResource = async function(resource_id, project=KLOU
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure 
  */
-exports.addOrUpdateSnapshot = async function(resource_id, snapshot_id, extrainfo="", project=KLOUD_CONSTANTS.env.prj, 
-        org=KLOUD_CONSTANTS.env.org) {
+exports.addOrUpdateSnapshot = async function(resource_id, snapshot_id, extrainfo="", project=KLOUD_CONSTANTS.env.prj(), 
+        org=KLOUD_CONSTANTS.env.org()) {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
@@ -774,7 +774,7 @@ exports.addOrUpdateSnapshot = async function(resource_id, snapshot_id, extrainfo
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The snapshot object, if found, else null.
  */
-exports.getSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.getSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -791,7 +791,7 @@ exports.getSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CON
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The list requested or null if none exist
  */
-exports.listSnapshots = async function(resource_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.listSnapshots = async function(resource_id, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -808,7 +808,7 @@ exports.listSnapshots = async function(resource_id, project=KLOUD_CONSTANTS.env.
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure 
  */
-exports.addOrUpdateVnet = async function(vnet_id, description="", project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.addOrUpdateVnet = async function(vnet_id, description="", project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
@@ -827,7 +827,7 @@ exports.addOrUpdateVnet = async function(vnet_id, description="", project=KLOUD_
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The vnet object, if found, else null.
  */
-exports.getVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.getVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -855,7 +855,7 @@ exports.getVnetName = async function(vnet_id) {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The list requested or null if none exist
  */
-exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -872,7 +872,7 @@ exports.listVnets = async function(project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CO
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.deleteVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -889,7 +889,7 @@ exports.deleteVnet = async function(vnet_id, project=KLOUD_CONSTANTS.env.prj, or
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.addOrUpdateVMToVnet = async function(vnet_id, vm_name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.addOrUpdateVMToVnet = async function(vnet_id, vm_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     
     const id = `${org}_${project}_${vnet_id}`;
@@ -908,7 +908,7 @@ exports.addOrUpdateVMToVnet = async function(vnet_id, vm_name, project=KLOUD_CON
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.deleteVMFromVnet = async function(vnet_id, vm_name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.deleteVMFromVnet = async function(vnet_id, vm_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     
     const id = `${org}_${project}_${vnet_id}`;
@@ -927,7 +927,7 @@ exports.deleteVMFromVnet = async function(vnet_id, vm_name, project=KLOUD_CONSTA
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The list of project resources allocated to the given Vnet
  */
-exports.getResourcesForVnet = async function(vnet_id, type, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.getResourcesForVnet = async function(vnet_id, type, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     
     const id = `${org}_${project}_${vnet_id}`;
@@ -961,7 +961,7 @@ exports.getVnetsForResource = async function(resource_id, type) {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success and false on failure
  */
-exports.addVnetResource = async (vnet_id, pk2, type, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => 
+exports.addVnetResource = async (vnet_id, pk2, type, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => 
     exports.addOrUpdateRelationship(`${org}_${project}_${vnet_id}`, pk2, type, true);
 
 /**
@@ -972,7 +972,7 @@ exports.addVnetResource = async (vnet_id, pk2, type, project=KLOUD_CONSTANTS.env
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success and false on failure
  */
-exports.deleteVnetResource = async (vnet_id, type, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => 
+exports.deleteVnetResource = async (vnet_id, type, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => 
     exports.deleteRelationship(`${org}_${project}_${vnet_id}`, type)
 
 /**
@@ -1008,7 +1008,7 @@ exports.getAssignableIPs = async function(hostname) {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The ruleset object, if found, else null.
  */
-exports.getFirewallRuleset = async function(ruleset, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.getFirewallRuleset = async function(ruleset, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
@@ -1027,7 +1027,7 @@ exports.getFirewallRuleset = async function(ruleset, project=KLOUD_CONSTANTS.env
  * @param {string} org Org (optional)
  * @returns true on success, false on failure
  */
-exports.addOrUpdateFirewallRuleset = async (name, rules_json, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+exports.addOrUpdateFirewallRuleset = async (name, rules_json, project = KLOUD_CONSTANTS.env.prj(), org = KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project);org = roleman.getNormalizedOrg(org);
 
@@ -1044,7 +1044,7 @@ exports.addOrUpdateFirewallRuleset = async (name, rules_json, project = KLOUD_CO
  * @param {string} org Org (optional)
  * @returns true on success, false on failure
  */
-exports.deleteFirewallRuleset = async (name, project = KLOUD_CONSTANTS.env.prj, org = KLOUD_CONSTANTS.env.org) => {
+exports.deleteFirewallRuleset = async (name, project = KLOUD_CONSTANTS.env.prj(), org = KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project);org = roleman.getNormalizedOrg(org);
 
@@ -1129,7 +1129,7 @@ exports.addOrUpdateRelationship = async function(pk1, pk2, type, pk1pk2typeUniqu
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.addVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.addVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     
     const vm_id = `${org}_${project}_${vm_name}`;
@@ -1149,7 +1149,7 @@ exports.addVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CONST
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.removeVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.removeVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     
     const vm_id = `${org}_${project}_${vm_name}`;
@@ -1168,7 +1168,7 @@ exports.removeVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CO
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns array of ips
  */
-exports.getVMVnetIP = async function(vm_name, vnet_name, project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) {
+exports.getVMVnetIP = async function(vm_name, vnet_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     
     const vm_id = `${org}_${project}_${vm_name}`;
@@ -1205,7 +1205,7 @@ exports.deleteRelationship = async function(primary_key, type) {
 
 const _logUnauthorized = _ => KLOUD_CONSTANTS.LOGERROR("User is not authorized.");
 
-const _getProjectID = (project=KLOUD_CONSTANTS.env.prj, org=KLOUD_CONSTANTS.env.org) => 
+const _getProjectID = (project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => 
     `${roleman.getNormalizedProject(project)}_${roleman.getNormalizedOrg(org)}`;
 
 function _objectArrayToFlatArray(arrayOfObjects, key) {

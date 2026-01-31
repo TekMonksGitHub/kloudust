@@ -25,7 +25,7 @@ module.exports.exec = async function(params) {
         if (lookupResult != null) return true; else return false;
     }
 
-    const email = params[0], name = params[1], org = roleman.getNormalizedOrg(params[2]||KLOUD_CONSTANTS.env.org), 
+    const email = params[0], name = params[1], org = roleman.getNormalizedOrg(params[2]||KLOUD_CONSTANTS.env.org()), 
         role = roleman.getNormalizedRole(params[3]||KLOUD_CONSTANTS.ROLES.USER);
     if (await _accountExists(email)) {params.consoleHandlers.LOGERROR("Account already exists or unauthorized."); 
         return CMD_CONSTANTS.FALSE_RESULT("Account already exists or unauthorized.");}  
