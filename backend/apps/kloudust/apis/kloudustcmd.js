@@ -31,7 +31,7 @@ exports.doService = async (jsonReq={}, _servObject, headers, _url, _apiconf) => 
 	_streamHandler(requestID, `Running Kloudust command: ${jsonReq.cmd}`); _setRequestActive(requestHash, true);
     const kdRequest = {user: [user], project: jsonReq.project?[jsonReq.project]:undefined, execute: [jsonReq.cmd],
 		setup: jsonReq.setup?[jsonReq.setup]:undefined, consoleStreamHandler: (info, warn, error) => 
-			_streamHandler(requestID, info, warn, error), getAsyncStore: _ => asyncLocalStorage};
+			_streamHandler(requestID, info, warn, error), getAsyncStorage: _ => asyncLocalStorage};
 	const results = await _runKloudustRequestWithTimeout(requestID, kdRequest); _setRequestActive(requestHash, false);
 	return {...results, result: results.result, stdout: results.out||"", stderr: results.err||"", exitcode: results.result?0:1};
 }
