@@ -1027,13 +1027,13 @@ exports.getFirewallRuleset = async function(ruleset, project=KLOUD_CONSTANTS.env
  * @param {string} org Org (optional)
  * @returns true on success, false on failure
  */
-exports.addOrUpdateFirewallRuleset = async (name, rules_json, project = KLOUD_CONSTANTS.env.prj(), org = KLOUD_CONSTANTS.env.org()) => {
+exports.addOrUpdateFirewallRuleset = async (name, description, rules_json, project = KLOUD_CONSTANTS.env.prj(), org = KLOUD_CONSTANTS.env.org()) => {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { _logUnauthorized(); return false; }
     project = roleman.getNormalizedProject(project);org = roleman.getNormalizedOrg(org);
 
-    const id = `${org}_${project}_${name}`;
-    const query = `REPLACE INTO firewallrulesets(id, name, rules_json) VALUES (?,?,?)`;
-    return await _db().runCmd(query, [id,name,rules_json]);
+    const id = `${org}_${project}_${name}`, projectid = _getProjectID(project, org);
+    const query = `REPLACE INTO firewallrulesets(id, name, description, rules_json, org, projectid) VALUES (?,?,?,?,?,?)`;
+    return await _db().runCmd(query, [id, name, description, rules_json, org, projectid]);
 };
 
 /**

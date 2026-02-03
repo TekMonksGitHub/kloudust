@@ -15,7 +15,7 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) { params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT(); }
-    const [ruleset_name_raw, rules_json_raw] = params;
+    const [ruleset_name_raw, ruleset_description , rules_json_raw] = params;
 
     if (!ruleset_name_raw || !rules_json_raw) { params.consoleHandlers.LOGERROR("Missing ruleset name or rules JSON"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
@@ -28,7 +28,7 @@ module.exports.exec = async function(params) {
         return CMD_CONSTANTS.FALSE_RESULT();
     }
 
-    if(!await dbAbstractor.addOrUpdateFirewallRuleset(ruleset_name,rules_json)){
+    if(!await dbAbstractor.addOrUpdateFirewallRuleset(ruleset_name,ruleset_description,rules_json)){
         params.consoleHandlers.LOGERROR(`Failed to add ruleset ${ruleset_name} to db!`);
         return CMD_CONSTANTS.FALSE_RESULT();
     }
