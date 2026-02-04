@@ -2,7 +2,7 @@
 "id": "createfirewall",
 "command": "createFirewallRuleset",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["firewall_name", "firewall_settings"],
+"kloudust_cmdline_params": ["firewall_name", "firewall_description", "firewall_settings"],
 
 "title": "{{{i18n.FirewallTitle}}}",
 
@@ -44,6 +44,7 @@
     "required_fields": [
     {"id": "firewall_name", "type": "text", "placeholder": "{{{i18n.FirewallName}}}", "required": true, 
         "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "firewall_description", "type": "text", "placeholder": "{{{i18n.FirewallDescription}}}"},
     {"id": "firewall_settings", "type": "hidden", "value":"[]"},
     {"id": "firewallRulesComponent", "inputtype": "firewall-rules", 
         "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
