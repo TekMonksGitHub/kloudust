@@ -1002,6 +1002,22 @@ exports.getAssignableIPs = async function(hostname) {
 }
 
 /**
+ * Returns the rulesets for an org and project.
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns The rulesets if found, else null.
+ */
+exports.listFirewallRulesets = async function(project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const projectid = _getProjectID(project, org)
+    const query = "select * from firewallrulesets where org=? and projectid=?";
+    const rulesets = await _db().getQuery(query, [org,projectid]);
+    if (rulesets && rulesets.length) return rulesets; else return null;
+}
+
+/**
  * Returns the given ruleset object.
  * @param {string} name The ruleset ID or name
  * @param {string} project The project, if skipped is auto picked from the environment
