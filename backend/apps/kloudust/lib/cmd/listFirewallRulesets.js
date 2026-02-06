@@ -21,7 +21,7 @@ module.exports.exec = async function(params) {
 
     if(rulesets && rulesets.length > 0) rulesets = rulesets.map(ruleset=>{return {name:createFirewallRuleset.unresolveRulesetName(ruleset.name), description: ruleset.description, created_at : ruleset.timestamp}}); 
 
-    let err = "", out = ""; if (!rulesets) err = "Error loading the list of Vnets"; else out = `${rulesets.length} rulesets found`;
+    let err = "", out = ""; if (!rulesets) err = "Error loading the list of rulesets"; else out = `${rulesets.length} rulesets found`;
     
     return {result: rulesets?true:false, err, out, stdout: out, stderr: err, rulesets: rulesets};
 }
