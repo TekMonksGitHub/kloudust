@@ -23,7 +23,7 @@ module.exports.exec = async function(params) {
 
     const ruleset_name = exports.resolveRulesetName(ruleset_name_raw);
 
-    if(!force_update && await dbAbstractor.getFirewallRuleset(ruleset_name)){
+    if((!force_update) && await dbAbstractor.getFirewallRuleset(ruleset_name)){
         params.consoleHandlers.LOGERROR(`Firewall ruleset ${ruleset_name} already exists!`);
         return CMD_CONSTANTS.FALSE_RESULT();
     }
