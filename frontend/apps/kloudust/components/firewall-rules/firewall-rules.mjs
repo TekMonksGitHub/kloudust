@@ -11,7 +11,9 @@ function elementConnected(host) {
 	Object.defineProperty(host, "value", {get: _=>JSON.stringify(_getValue(host)), 
 		set: value=>_setValue(JSON.parse(value), host)});
 	const style = host.getAttribute("style")||"";
-	const data = {style_start: "<style>", style_end: "</style>", style};
+	const value = host.getAttribute("value")||"";
+	const rules = value.trim() === "" ? [] : JSON.parse(value);
+	const data = {style_start: "<style>", style_end: "</style>", style, rules};
 	firewall_rules.setDataByHost(host, data);
 }
 
