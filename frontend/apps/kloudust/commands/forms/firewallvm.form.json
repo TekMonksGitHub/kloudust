@@ -2,7 +2,7 @@
     "id": "firewallvm",
     "command": "applyFirewallRuleset",
     "type": "kloudust_cmdline",
-    "kloudust_cmdline_params": ["vm_name", "rulesetlist", "vnetlist"],
+    "kloudust_cmdline_params": ["vm_name", "ruleset", "vnet"],
     
     "title": "{{{i18n.FirewallVMTitle}}}",
     
@@ -59,8 +59,8 @@
             "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
             "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
             "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
-        {"id": "rulesetlist", "multioption": true, "type": "select", "label": "{{{i18n.VMFirewallName}}}", "options":[]},
-        {"id": "vnetlist", "multioption": true, "type": "select", "label": "{{{i18n.VMVNetListCommand}}}", "options":[]},
+        {"id": "ruleset", "multioption": true, "type": "select", "label": "{{{i18n.VMFirewallName}}}", "options":[]},
+        {"id": "vnet", "multioption": true, "type": "select", "label": "{{{i18n.VMVNetListCommand}}}", "options":[]},
         {"id": "firewall_action", "multioption": true, "type": "select", "label": "{{{i18n.FirewallActionCommandType}}}", 
         "options":[
             {"value":"apply", "label":"{{{i18n.FirewallApply}}}"}, 
