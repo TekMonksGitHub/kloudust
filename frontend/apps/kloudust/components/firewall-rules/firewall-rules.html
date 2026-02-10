@@ -54,6 +54,33 @@ span.roundbutton {
 </style>
 
 <div id="rulecontainer">
+{{#rules}}
+<span id="rulesrow">
+    <select name="direction" id="direction">
+        <option value="in" {{#direction_in}}selected{{/direction_in}}>In</option>
+        <option value="out" {{#direction_out}}selected{{/direction_out}}>Out</option>
+    </select>
+
+    <select name="allow" id="allow">
+        <option value="true" {{#allow_true}}selected{{/allow_true}}>Allow</option>
+        <option value="false" {{#allow_false}}selected{{/allow_false}}>Stop</option>
+    </select>
+
+    <select name="protocol" id="protocol">
+        <option value="tcp" {{#protocol_tcp}}selected{{/protocol_tcp}}>TCP</option>
+        <option value="udp" {{#protocol_udp}}selected{{/protocol_udp}}>UDP</option>
+        <option value="all" {{#protocol_all}}selected{{/protocol_all}}>TCP + UDP</option>
+    </select>
+
+    <input id="ip" type="text" value="{{ip}}" placeholder="IP Address or *">
+    <input id="port" type="text" value="{{port}}" placeholder="Ports or *">
+
+    <span id="buttonspan">
+        <span class="roundbutton" onclick="monkshu_env.components['firewall-rules'].addRow(this.parentNode.parentNode)">+</span>
+        <span class="roundbutton" onclick="monkshu_env.components['firewall-rules'].removeRow(this.parentNode.parentNode)">-</span>
+    </span>
+</span>
+{{/rules}}
 </div>
 
 <template id="rulesrowtemplate">

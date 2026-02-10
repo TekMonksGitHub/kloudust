@@ -8,6 +8,7 @@
     {"id": "manage", "label": "{{{i18n.Manage}}}", "logo": "img/manage.svg"},
     {"id": "vms", "label": "{{{i18n.VirtualMachines}}}", "logo": "img/vms.svg"},
     {"id": "vnets", "label": "{{{i18n.VirtualNetworks}}}", "logo": "img/vnets.svg"},
+    {"id": "firewallrulesets", "label": "{{{i18n.FirewallRulesets}}}", "logo": "img/managefirewall.svg"},
     {"id": "projects", "label": "{{{i18n.Projects}}}", "logo": "img/projects.png"},
     {"id": "cloudservices", "label": "{{{i18n.CloudServices}}}", "logo": "img/cloudservices.svg"},
     {"id": "cloudcommand", "label": "{{{i18n.CloudCommand}}}", "logo": "img/cloudcommand.svg"},
@@ -26,6 +27,7 @@
     "CloudAdmin": "Manage cloud",
     "VirtualMachines": "Virtual machines",
     "VirtualNetworks": "Virtual networks",
+    "FirewallRulesets": "Firewall Rulesets",
     "CloudServices": "Cloud services",
     "CloudCommand": "Run cloud command",
     "Alerts": "Alerts",
@@ -42,6 +44,7 @@
     "CloudAdmin": "Manage cloud",
     "VirtualMachines": "Virtual machines",
     "VirtualNetworks": "Virtual networks",
+    "FirewallRulesets": "Firewall Rulesets",
     "CloudServices": "Cloud services",
     "CloudCommand": "Run cloud command",
     "Alerts": "Alerts"
@@ -54,6 +57,7 @@
     "CloudAdmin": "Manage cloud",
     "VirtualMachines": "Virtual machines",
     "VirtualNetworks": "Virtual networks",
+    "FirewallRulesets": "Firewall Rulesets",
     "CloudServices": "Cloud services",
     "CloudCommand": "Run cloud command",
     "Alerts": "Alerts"
@@ -66,6 +70,7 @@
     "CloudAdmin": "Manage cloud",
     "VirtualMachines": "Virtual machines",
     "VirtualNetworks": "Virtual networks",
+    "FirewallRulesets": "Firewall Rulesets",
     "CloudServices": "Cloud services",
     "CloudCommand": "Run cloud command",
     "Alerts": "Alerts"
