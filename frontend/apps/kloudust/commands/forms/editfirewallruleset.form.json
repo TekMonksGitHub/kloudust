@@ -1,0 +1,88 @@
+{
+"id": "editfirewallruleset",
+"command": "createFirewallRuleset",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["firewall_name", "firewall_description", "firewall_settings", "update"],
+
+"title": "{{{i18n.FirewallTitle}}}",
+
+"i18n": {
+    "en": {
+        "FirewallTitle": "Firewall Ruleset",
+        "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+        "FirewallName": "Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "FirewallSubmitLabel": "Save"
+    },
+    "hi": {
+        "FirewallTitle": "Firewall Ruleset",
+        "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+        "FirewallName": "नाम",
+        "FieldValidationErrorGeneric": "Validation error",
+        "FirewallSubmitLabel": "Save"
+    },
+    "ja": {
+        "FirewallTitle": "Firewall Ruleset",
+        "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+        "FirewallName": "名",
+        "FieldValidationErrorGeneric": "Validation error",
+        "FirewallSubmitLabel": "Save"
+    },
+    "zh": {
+        "FirewallTitle": "Firewall Ruleset",
+        "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+        "FirewallName": "姓名",
+        "FieldValidationErrorGeneric": "Validation error",
+        "FirewallSubmitLabel": "Save"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.FirewallDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "firewall_name", "type": "text", "placeholder": "{{{i18n.RulesetName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._firewallruleset_form_data.name}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._firewallruleset_form_data.name}}true{{/APP_CONSTANTS.ENV._firewallruleset_form_data.name}}"},
+    {"id": "firewall_description", "type": "text", "placeholder": "{{{i18n.FirewallDescription}}}", "value":"{{{APP_CONSTANTS.ENV._firewallruleset_form_data.description}}}"},
+    {"id": "firewall_settings", "type": "hidden", "value":"[]"},
+    {"id": "update", "type": "hidden", "value": "true"},
+    {"id": "firewallRulesComponent", "inputtype": "firewall-rules",
+        "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
+    ],
+
+    "submitlabel": "{{{i18n.FirewallSubmitLabel}}}",
+    "load_javascript": [
+        "const form = arguments[0] || {};",
+        "const ruleset_name = APP_CONSTANTS.ENV._firewallruleset_form_data.name;",
+        "const firewallRuleset = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+        "cmd: `getFirewallRuleset ${ruleset_name}`, ", "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+        "const transformedRules = (firewallRuleset.ruleset || []).map(rule => ({",
+        "    ...rule,",
+        "    direction_in: rule.direction === 'in',",
+        "    direction_out: rule.direction === 'out',",
+        "    allow_true: rule.allow === 'true',",
+        "    allow_false: rule.allow === 'false',",
+        "    protocol_tcp: rule.protocol === 'tcp',",
+        "    protocol_udp: rule.protocol === 'udp',",
+        "    protocol_all: rule.protocol === 'all'",
+        "}));",
+        "form.required_fields[4].value = JSON.stringify(transformedRules);",
+        "return form;"
+    ],
+
+    "submit_javascript": [
+    "const form = arguments[1], shadowroot = form._form_shadowroot;",
+    "const retObject = arguments[0]||{};",
+    "const firewallRules = shadowroot.querySelector('firewall-rules');",
+    "if (firewallRules) {",
+    "   const ruleset = JSON.parse(firewallRules.value);",
+    "   retObject.firewall_settings = JSON.stringify(firewallRules.value)",
+    "}",
+    "return true;"
+]
+}
+
+}

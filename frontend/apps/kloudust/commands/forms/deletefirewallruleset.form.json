@@ -1,0 +1,54 @@
+{
+"id": "deletefirewallruleset",
+"command": "deleteFirewallRuleset",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["ruleset_name"],
+
+"title": "{{{i18n.RulesetDeleteTitle}}}",
+
+"i18n": {
+    "en": {
+        "RulesetDeleteTitle": "Delete Firewall Ruleset",
+        "RulesetDeleteDescription": "Delete a Firewall Ruleset.",
+        "RulesetName": "Ruleset Name",
+        "DeleteRulesetSubmitLabel": "Delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "hi": {
+        "RulesetDeleteTitle": "Delete Firewall Ruleset",
+        "RulesetDeleteDescription": "Delete a Firewall Ruleset.",
+        "RulesetName": "Ruleset Name",
+        "DeleteRulesetSubmitLabel": "Delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "ja": {
+        "RulesetDeleteTitle": "Delete Firewall Ruleset",
+        "RulesetDeleteDescription": "Delete a Firewall Ruleset.",
+        "RulesetName": "Ruleset Name",
+        "DeleteRulesetSubmitLabel": "Delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "zh": {
+        "RulesetDeleteTitle": "Delete Firewall Ruleset",
+        "RulesetDeleteDescription": "Delete a Firewall Ruleset.",
+        "RulesetName": "Ruleset Name",
+        "DeleteRulesetSubmitLabel": "Delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.RulesetDeleteDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+        {"id": "ruleset_name", "type": "text", "placeholder": "{{{i18n.RulesetName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._firewallruleset_form_data.name}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._firewallruleset_form_data.name}}true{{/APP_CONSTANTS.ENV._firewallruleset_form_data.name}}"}
+    ],
+
+    "submitlabel": "{{{i18n.DeleteRulesetSubmitLabel}}}"
+}
+
+}

@@ -1,0 +1,99 @@
+{
+"id": "firewallrulesets",
+"command": "tablelist",
+"type": "table_display",
+
+"i18n": {
+"en": {
+    "RULESET_name": "Name",
+    "RULESET_description": "Description",
+    "RULESET_created_at": "Created At",
+
+
+    "RULESETView": "View",
+    "RULESETEdit": "Edit",
+    "RULESETDelete": "Delete"
+
+},
+
+"hi": {
+    "RULESET_name": "Name",
+    "RULESET_description": "Description",
+    "RULESET_created_at": "Created At",
+
+
+    "RULESETView": "View",
+    "RULESETEdit": "Edit",
+    "RULESETDelete": "Delete"
+
+},
+
+"ja": {
+    "RULESET_name": "Name",
+    "RULESET_description": "Description",
+    "RULESET_created_at": "Created At",
+
+
+    "RULESETView": "View",
+    "RULESETEdit": "Edit",
+    "RULESETDelete": "Delete"
+
+},
+
+"zh": {
+    "RULESET_name": "Name",
+    "RULESET_description": "Description",
+    "RULESET_created_at": "Created At",
+
+
+    "RULESETView": "View",
+    "RULESETEdit": "Edit",
+    "RULESETDelete": "Delete"
+
+}
+},
+
+"tabledef": {
+    "popupform": {
+    "rolelist": {
+        "*":[
+            {"id": "viewfirewallruleset", "label": "{{{i18n.RULESETView}}}", "logo": "img/view.png"},
+            {"id": "editfirewallruleset", "label": "{{{i18n.RULESETEdit}}}", "logo": "img/edit.png"},
+            {"id": "deletefirewallruleset", "label": "{{{i18n.RULESETDelete}}}", "logo": "img/delete.svg"}
+
+
+        ]
+    }
+    },
+
+    "style": "div#tablebottombar{display: none;}",
+
+    "i18nPrefix": "RULESET",
+
+    "onclickrow_html": [
+        "<style>div#onclick_html {background-color: #F8F8F8; width: auto;} div#close{display: none !important}</style>",
+        "<style>div#onclickrow_html {height: fit-content;} div#body{background-color: #F8F8F8 !important}</style>",
+        "<style>div#buttons {margin: 0 !important; align-items: flex-start !important; height: 100% !important;}</style>",
+        "<style>div#button {height: unset !important; max-height: 100% !important; margin: 0 !important; color: #BC5205 !important;}</style>",
+        "<style>div#button {width: 6em !important; font-size: 0.8em !important; box-sizing: border-box !important!;}</style>",
+        "<style>div#button {border: 1px solid transparent; border-radius: 0.5em; padding: 0.5em;}</style>",
+        "<style>div#button img {width: 3em !important; height: 3em !important;}</style>",
+        "<style>div#button span {font-size: smaller !important; height: -webkit-fill-available;}</style>",
+        "<style>div#button:hover {border: 1px dashed #BC5205 !important;}</style>"
+    ],
+
+    "clickrow_javascript": [
+        "const data = arguments[0]; APP_CONSTANTS.ENV._firewallruleset_form_data = data;"
+    ],
+
+    "load_javascript": [
+        "const firewallRulesets = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+            "cmd: `listFirewallRulesets`, ", "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+        "for (const ruleset of firewallRulesets.rulesets||[]) {ruleset.created_at = new Date(ruleset.created_at).toLocaleDateString();}",
+        "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
+        "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
+        "tabledef.onclickrow_html.push(html);",
+        "return {keys: ['name','description','created_at'], table: firewallRulesets.rulesets||[]};"
+    ]
+}
+}

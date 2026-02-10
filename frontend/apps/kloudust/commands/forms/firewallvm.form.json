@@ -1,8 +1,8 @@
 {
     "id": "firewallvm",
-    "command": "firewallvm",
+    "command": "applyFirewallRuleset",
     "type": "kloudust_cmdline",
-    "kloudust_cmdline_params": ["vm_name", "firewall_ruleset_name"],
+    "kloudust_cmdline_params": ["vm_name", "rulesetlist", "vnetlist"],
     
     "title": "{{{i18n.FirewallVMTitle}}}",
     
@@ -13,7 +13,9 @@
             "VMFirewallName": "Firewall ruleset name",
             "VMName": "Virtual machine name",
             "FieldValidationErrorGeneric": "Validation error",
-            "FirewallVMSubmitLabel": "Firewall"
+            "FirewallVMSubmitLabel": "Firewall",
+            "FirewallApply": "Apply",
+            "FirewallRemove": "Remove"
         },
         "hi": {
             "FirewallVMTitle": "Firewall virtual machine",
@@ -21,7 +23,9 @@
             "VMFirewallName": "Firewall ruleset नाम",
             "VMName": "Virtual machine name",
             "FieldValidationErrorGeneric": "Validation error",
-            "FirewallVMSubmitLabel": "Firewall"
+            "FirewallVMSubmitLabel": "Firewall",
+            "FirewallApply": "Apply",
+            "FirewallRemove": "Remove"
         },
         "ja": {
             "FirewallVMTitle": "Firewall virtual machine",
@@ -29,7 +33,9 @@
             "VMFirewallName": "Firewall ruleset 名",
             "VMName": "Virtual machine name",
             "FieldValidationErrorGeneric": "Validation error",
-            "FirewallVMSubmitLabel": "Firewall"
+            "FirewallVMSubmitLabel": "Firewall",
+            "FirewallApply": "Apply",
+            "FirewallRemove": "Remove"
         },
         "zh": {
             "FirewallVMTitle": "Firewall virtual machine",
@@ -37,7 +43,10 @@
             "VMFirewallName": "Firewall ruleset 姓名",
             "VMName": "Virtual machine name",
             "FieldValidationErrorGeneric": "Validation error",
-            "FirewallVMSubmitLabel": "Firewall"
+            "FirewallVMSubmitLabel": "Firewall",
+            "FirewallActionCommandType": "Apply or remove firewall ruleset",
+            "FirewallApply": "Apply",
+            "FirewallRemove": "Remove"
         }
     },
     
@@ -47,14 +56,46 @@
         "required_label": "{{{i18n.Required}}}",
         "required_fields": [
         {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
-            "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+            "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
             "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
             "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
-        {"id": "firewall_ruleset_name", "type": "text", "placeholder": "{{{i18n.VMFirewallName}}}", 
-            "required": true, "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+        {"id": "rulesetlist", "multioption": true, "type": "select", "label": "{{{i18n.VMFirewallName}}}", "options":[]},
+        {"id": "vnetlist", "multioption": true, "type": "select", "label": "{{{i18n.VMVNetListCommand}}}", "options":[]},
+        {"id": "firewall_action", "multioption": true, "type": "select", "label": "{{{i18n.FirewallActionCommandType}}}", 
+        "options":[
+            {"value":"apply", "label":"{{{i18n.FirewallApply}}}"}, 
+            {"value":"remove", "label":"{{{i18n.FirewallRemove}}}"}
+        ]}
         ],
     
-        "submitlabel": "{{{i18n.FirewallVMSubmitLabel}}}"
-    }
-    
-    }
+        "load_javascript": [
+            "const form = arguments[0]||{};",
+            "const vm_name = form.required_fields[0].value",
+            "const firewallRulesets = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+            "cmd: `listFirewallRulesets`, ", "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+            "if(firewallRulesets.result){",
+            "   for(const ruleset of firewallRulesets.rulesets) {",
+            "       const rulesetlist = form.required_fields[form.required_fields.length-3];",
+            "       rulesetlist.options.push({value: ruleset.name, label: ruleset.name});",
+            "   }",
+            "} else form.required_fields[form.required_fields.length-3].options.push({value: 'norulesetsfound', label: 'No Rulesets Found'});",
+            "const vnetresult = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD,",
+            "'POST', { cmd: `getVMVnets ${vm_name}`, project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT) }, true);",
+            "const vnetlist = form.required_fields[form.required_fields.length-2];",
+            "if(vnetresult.result){",
+            "   for(const vnet of vnetresult.vnets) {",
+            "       vnetlist.options.push({value: vnet, label: vnet});",
+            "   }",
+            "vnetlist.options.push({value: '', label: 'Public Vnet'});",
+            "} else form.required_fields[form.required_fields.length-2].options.push({value: 'novnetsfound', label: 'No Vnets Found'});",
+            "return form;"
+    ],
+
+        "submitlabel": "{{{i18n.FirewallVMSubmitLabel}}}",
+        "submit_javascript": [
+            "const retObject = arguments[0]||{};",
+            "if (retObject.firewall_action == 'remove') retObject._override_form_command='removeFirewallRuleset';",
+            "return true;"
+        ]
+    }   
+}
