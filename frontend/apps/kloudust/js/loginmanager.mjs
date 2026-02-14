@@ -7,12 +7,20 @@
 const apiman = $$.libapimanager;
 let currTimeout; let logoutListeners = [];
 
-function handleLoginResult(fetchResponse) {
+async function handleLoginResult(fetchResponse) {
     logoutListeners = [];   // reset listeners on sign in
 
     const apiURL = fetchResponse.url, headers = fetchResponse.headers, jsonResponseObject = fetchResponse.response;
     if (jsonResponseObject && jsonResponseObject.result) {
         apiman.addJWTToken(apiURL, headers, jsonResponseObject);
+
+        const projectsLookupResult = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {cmd: 'getUserProjects'}, true);
+        if (!projectsLookupResult.result) {
+            LOG.error(`Login failed due to no Kloudust projects assigned to the user.`); 
+            $$.librouter.loadPage(`${APP_CONSTANTS.LOGIN_HTML}?_error=true`);
+            return;
+        } else $$.libsession.set(APP_CONSTANTS.ASSIGNED_PROJECTS_SESSION_KEY, projectsLookupResult.projects);
+
         $$.libsession.set(APP_CONSTANTS.USERID, jsonResponseObject.id); 
         $$.libsession.set(APP_CONSTANTS.USERNAME, jsonResponseObject.name);
         $$.libsession.set(APP_CONSTANTS.USERORG, jsonResponseObject.org);

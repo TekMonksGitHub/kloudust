@@ -13,7 +13,7 @@ const serverutils = require(`${CONSTANTS.LIBDIR}/utils.js`);
 const login = require(`${KLOUD_CONSTANTS.APIDIR}/login.js`);
 const kloudust = require(`${KLOUD_CONSTANTS.ROOTDIR}/kloudust.js`);
 
-const REQUEST_HASH_KEY = "__org_kloudust_request_hash_", asyncLocalStorage = new AsyncLocalStorage(),
+const REQUEST_HASH_KEY = "__org_kloudust_request_hash_", ASYNC_LOCAL_STORAGE = new AsyncLocalStorage(),
 	MEMORY_PROVIDER = global[KLOUD_CONSTANTS.CONF.KLOUDUST_MEMORY_FOR_API_REQUEST_TRACKING];
 
 exports.doService = async (jsonReq={}, _servObject, headers, _url, _apiconf) => {
@@ -27,11 +27,13 @@ exports.doService = async (jsonReq={}, _servObject, headers, _url, _apiconf) => 
 	
     const user = login.getID(headers); if (!user) return _logErrorAndConstructErrorResult(requestID, 
 		`Validation failure for the request, missing user ID from headers -> ${JSON.stringify(jsonReq)}`);
+	const loginAssignedRole = login.getRole(headers);
 	
 	_streamHandler(requestID, `Running Kloudust command: ${jsonReq.cmd}`); _setRequestActive(requestHash, true);
-    const kdRequest = {user: [user], project: jsonReq.project?[jsonReq.project]:undefined, execute: [jsonReq.cmd],
+    const kdRequest = {user: [user], loginAssignedRole: [loginAssignedRole], 
+		project: jsonReq.project?[jsonReq.project]:undefined, execute: [jsonReq.cmd],
 		setup: jsonReq.setup?[jsonReq.setup]:undefined, consoleStreamHandler: (info, warn, error) => 
-			_streamHandler(requestID, info, warn, error), getAsyncStorage: _ => asyncLocalStorage};
+			_streamHandler(requestID, info, warn, error), getAsyncStorage: _ => ASYNC_LOCAL_STORAGE};
 	const results = await _runKloudustRequestWithTimeout(requestID, kdRequest); _setRequestActive(requestHash, false);
 	return {...results, result: results.result, stdout: results.out||"", stderr: results.err||"", exitcode: results.result?0:1};
 }
@@ -58,7 +60,7 @@ function _runKloudustRequestWithTimeout(requestID, kdRequest) {
 		const _timeoutFunction = _ => { isResolved = true; resolve(_logErrorAndConstructErrorResult(
 			requestID, "Kloudust command timed out.")); }
 		setTimeout(_timeoutFunction, KLOUD_CONSTANTS.CONF.KLOUDUST_CMD_TIMEOUT_FOR_APIS);
-		asyncLocalStorage.run({}, async _ => {
+		ASYNC_LOCAL_STORAGE.run({}, async _ => {
 			const results = await kloudust.kloudust(kdRequest); if (!isResolved) resolve(results);
 		});
 		

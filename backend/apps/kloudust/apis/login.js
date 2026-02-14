@@ -11,18 +11,23 @@
  * (C) 2023 TekMonks. All rights reserved.
  */
 
+const {AsyncLocalStorage} = require('async_hooks');
 const serverutils = require(`${CONSTANTS.LIBDIR}/utils.js`);
 const httpClient = require(`${CONSTANTS.LIBDIR}/httpClient.js`);
 const conf = require(`${KLOUD_CONSTANTS.CONFDIR}/kloudust.json`);
 const kloudust = require(`${KLOUD_CONSTANTS.ROOTDIR}/kloudust.js`);
 const API_JWT_VALIDATION = `${conf.TEKMONKS_LOGIN_BACKEND}/apps/loginapp/validatejwt`;
 
+const ASYNC_LOCAL_STORAGE = new AsyncLocalStorage();
+
 exports.doService = async jsonReq => {
 	if (!validateRequest(jsonReq)) {KLOUD_CONSTANTS.LOGERROR("Validation failure."); return CONSTANTS.FALSE_RESULT;}
     
     if (jsonReq.op == "getotk") return _getOTK(jsonReq);
-    else if (jsonReq.op == "verify") return await _verifyJWT(jsonReq);
-    else return CONSTANTS.FALSE_RESULT;
+    else if (jsonReq.op == "verify") {
+        let result; await ASYNC_LOCAL_STORAGE.run({}, async _ => {result = await _verifyJWT(jsonReq)});
+        return result;
+    } else return CONSTANTS.FALSE_RESULT;
 }
 
 exports.isValidLogin = headers => APIREGISTRY.getExtension("JWTTokenManager").checkToken(exports.getToken(headers));
@@ -60,17 +65,17 @@ async function _verifyJWT(jsonReq) {
     try {
         const _decodeBase64 = string => Buffer.from(string, "base64").toString("utf8");
         const jwtClaims = JSON.parse(_decodeBase64(jsonReq.jwt.split(".")[1]));
-        let kdLoginResult = await kloudust.loginUser({user: [jwtClaims.id], org: [jwtClaims.org], 
-            role: [jwtClaims.role], name: [jwtClaims.name]}, KLOUD_CONSTANTS); 
+        const kdLoginResult = await kloudust.loginUser({user: [jwtClaims.id], org: [jwtClaims.org], 
+            loginAssignedRole: [jwtClaims.role], name: [jwtClaims.name], getAsyncStorage: _ => ASYNC_LOCAL_STORAGE}, KLOUD_CONSTANTS);
         if (!kdLoginResult) {
-            KLOUD_CONSTANTS.LOGERROR(`Unregistered user login ${jsonReq.jwt}, not allowing.`);
+            KLOUD_CONSTANTS.LOGERROR(`Unregistered cloud user login ${jsonReq.jwt}, not allowing.`);
             return CONSTANTS.FALSE_RESULT; 
         } else {
             const finalResult = {...jwtClaims , role: KLOUD_CONSTANTS.env.role()||jwtClaims.role, ...CONSTANTS.TRUE_RESULT};
             return finalResult
         }
     } catch (err) {
-        KLOUD_CONSTANTS.LOGERROR(`Bad JWT token passwed for login ${jsonReq.jwt}, JWT validation succeeded but JWT claims decode failed. Error is ${err}`);
+        KLOUD_CONSTANTS.LOGERROR(`Bad JWT token passed for login ${jsonReq.jwt}, JWT validation succeeded but JWT claims decode failed. Error is ${err}`);
         return CONSTANTS.FALSE_RESULT;
     }
 }

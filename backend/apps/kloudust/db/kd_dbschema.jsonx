@@ -75,9 +75,10 @@
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
     // firewallrulesets table
-    "CREATE TABLE firewallrulesets(id varchar not null primary key, name varchar not null, rules_json varchar not null, \
-    description varchar, org varchar not null, projectid varchar not null, \
-    timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
+    "CREATE TABLE firewallrulesets(id varchar not null primary key, name varchar not null, \
+        rules_json varchar not null, description varchar, org varchar not null, \
+        projectid varchar not null, \
+        timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
     "COMMIT TRANSACTION"
 ]
