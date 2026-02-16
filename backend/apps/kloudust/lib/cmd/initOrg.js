@@ -17,7 +17,8 @@ module.exports.exec = async function(params) {
     
     const org = roleman.getNormalizedOrg(KLOUD_CONSTANTS.env.org()), project = KLOUD_CONSTANTS.DEFAULT_PROJECT, default_project_description = `Default project for org ${org}`;
 
-    if (!await addProject.exec([project,default_project_description], params.consoleHandlers)) {
+    const addProjectParams = [project,default_project_description]; addProjectParams.consoleHandlers = params.consoleHandlers;
+    if (!await addProject.exec(addProjectParams)) {
         params.consoleHandlers.LOGERROR(`Could not create project ${project}.`); 
         return CMD_CONSTANTS.FALSE_RESULT(`Could not create project ${project}.`);
     }
