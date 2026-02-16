@@ -21,7 +21,7 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {
         params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
     
-    const email = params[0], project = roleman.isOrgAdminLoggedIn()?params[1]:KLOUD_CONSTANTS.env.prj();
+    const email = params[0], project =  (roleman.isCloudAdminLoggedIn() || roleman.isOrgAdminLoggedIn()) ? params[1] : KLOUD_CONSTANTS.env.prj();
 
     if (!await dbAbstractor.getProject(project, KLOUD_CONSTANTS.env.org())) {
         const error = `Project ${project} does not exist`; params.consoleHandlers.LOGERROR(error);
