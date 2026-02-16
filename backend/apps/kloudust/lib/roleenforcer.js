@@ -25,7 +25,7 @@ exports.ACTIONS = Object.freeze({
  * @param {Symbol} access_for The action for which access is needed, should be one of roleenforcer.ACTIONS
  * @param {string} user_role The user's role - can be user, admin or cloud admin, as defined in KLOUD_CONSTANTS
  */
-exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env.role()) {
+exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env?.role?.()) {
     const actions = exports.ACTIONS, roles = KLOUD_CONSTANTS.ROLES;
 
     if (access_for == actions.edit_cloud_resource && user_role == roles.CLOUD_ADMIN) return true;
