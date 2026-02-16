@@ -34,7 +34,8 @@ module.exports.exec = async function(params) {
         return CMD_CONSTANTS.FALSE_RESULT(`Failed to add project ${name} for org ${org}.`);
     }  
 
-    const addUserToProjectResult = await addUserToProject.exec([creator,name], params.consoleHandlers);
+    const addUserToProjectParams = [creator, name]; addUserToProjectParams.consoleHandlers = params.consoleHandlers;
+    const addUserToProjectResult = await addUserToProject.exec(addUserToProjectParams);
 
     if(!addUserToProjectResult.result) {
         params.consoleHandlers.LOGERROR(`Failed to add user ${creator} to project ${name} for org ${org}.`); 
