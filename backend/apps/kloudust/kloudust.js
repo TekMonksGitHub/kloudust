@@ -154,11 +154,11 @@ function _setupKloudustEnvironment(asyncContextStorage, name, id, org, role, pro
     const store = asyncContextStorage.getStore();
     store.username = name; store.id = id; store.org = org; store.role = role; store.project = project; 
 
-    KLOUD_CONSTANTS.env.username = _ => asyncContextStorage.getStore().username;
-    KLOUD_CONSTANTS.env.userid = _ => asyncContextStorage.getStore().id.toLocaleLowerCase();
-    KLOUD_CONSTANTS.env.org = _ => asyncContextStorage.getStore().org;
-    KLOUD_CONSTANTS.env.role = _ => asyncContextStorage.getStore().role;
-    KLOUD_CONSTANTS.env.prj = _ => asyncContextStorage.getStore().project;
+    KLOUD_CONSTANTS.env.username = _ => asyncContextStorage.getStore()?.username;
+    KLOUD_CONSTANTS.env.userid = _ => asyncContextStorage.getStore()?.id.toLocaleLowerCase();
+    KLOUD_CONSTANTS.env.org = _ => asyncContextStorage.getStore()?.org;
+    KLOUD_CONSTANTS.env.role = _ => asyncContextStorage.getStore()?.role;
+    KLOUD_CONSTANTS.env.prj = _ => asyncContextStorage.getStore()?.project;
 }
 
 function _createConsoleHandler(consoleStreamHandler) {
