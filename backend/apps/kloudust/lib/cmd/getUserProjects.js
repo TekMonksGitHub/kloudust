@@ -22,7 +22,6 @@ module.exports.exec = async function(params) {
     let projects = await dbAbstractor.getUserProjects(userid); 
     if (!projects) {const err = "Database error in searching for user's projects"; params.consoleHandlers.LOGERROR(err); 
         return CMD_CONSTANTS.FALSE_RESULT(err); }
-    if (!projects.length) projects = [{name: "default", org: KLOUD_CONSTANTS.env.org(), description: ""}];
 
     const out = `Project information follows\n${JSON.stringify(projects)}`; 
     params.consoleHandlers.LOGINFO(out);
