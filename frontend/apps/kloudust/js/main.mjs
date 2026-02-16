@@ -55,7 +55,9 @@ const interceptPageLoadData = _ => $$.librouter.addOnLoadPageData(APP_CONSTANTS.
     mainPageData.welcomeHeading = mustache.render(await $$.libi18n.get("WelcomeHeading"), {user: $$.libsession.get(APP_CONSTANTS.USERNAME)});
 	mainPageData.leftbarCommands = await cmdlist.fetchCommands(LEFTBAR_COMMANDS); 
     mainPageData.mainCommands = await cmdlist.fetchCommands(MAIN_COMMANDS);
-    mainPageData.userprojects = $$.libsession.get(APP_CONSTANTS.ASSIGNED_PROJECTS_SESSION_KEY);  // set by loginmanager
+    const projectsLookupResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 
+        'POST', {cmd: 'getUserProjects'}, true);
+    mainPageData.userprojects = projectsLookupResult?projectsLookupResult.projects:[];
 
     const selectedProject = $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT) || mainPageData.userprojects[0]?.name;
     const selectProjectIndex = mainPageData.userprojects.findIndex(prj=>prj.name==selectedProject);
