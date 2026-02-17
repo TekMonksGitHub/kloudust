@@ -33,7 +33,7 @@ exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env.role())
     if (access_for == actions.lookup_cloud_resource && user_role == roles.CLOUD_ADMIN) return true;
 
     if (access_for == actions.lookup_cloud_resource_for_project) if (user_role == roles.CLOUD_ADMIN || 
-        user_role == roles.ORG_ADMIN) return true;
+        user_role == roles.ORG_ADMIN || user_role == roles.USER) return true;
 
     if (access_for == actions.edit_project_resource) if (user_role == roles.CLOUD_ADMIN || 
         user_role == roles.ORG_ADMIN || (user_role == roles.USER && 
