@@ -7,7 +7,8 @@
 "*": [
     {"id": "createvm", "label": "{{{i18n.CreateVirtualMachine}}}", "logo": "img/createvm.svg"},
     {"id": "createvnet", "label": "{{{i18n.CreateVirtualNetwork}}}", "logo": "img/createvnet.svg"},
-    {"id": "createfirewall", "label": "{{{i18n.CreateFirewall}}}", "logo": "img/createfirewall.svg"}
+    {"id": "createfirewall", "label": "{{{i18n.CreateFirewall}}}", "logo": "img/createfirewall.svg"},
+    {"id": "createwindowsvdi", "label": "{{{i18n.CreateWindowsVDI}}}", "logo": "img/createwindowsvdi.svg"}
 ]
 },
 
