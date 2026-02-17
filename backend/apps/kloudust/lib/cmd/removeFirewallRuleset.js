@@ -63,7 +63,7 @@ module.exports.exec = async function(params) {
         };
     
     const remove_result = await xforge(xforgeArgsRemoveRuleset);
-    if (!remove_result.result) { params.consoleHandlers.LOGERROR(`Firewall ruleset ${ruleset.name} could not be removed from ${vnet.name} of VM ${vm_name_raw}`); return {...apply_result, ...CMD_CONSTANTS.FALSE_RESULT()}; }
+    if (!remove_result.result) { params.consoleHandlers.LOGERROR(`Firewall ruleset ${ruleset.name} could not be removed from ${vnet.name} of VM ${vm_name_raw}`); return {...remove_result, ...CMD_CONSTANTS.FALSE_RESULT()}; }
     
     const deleteResult = await dbAbstractor.removeVMVnetFirewall(vm.name, vnet.name, ruleset.name);
     if (!deleteResult) { params.consoleHandlers.LOGERROR("DB delete failed!"); return CMD_CONSTANTS.FALSE_RESULT(); }
