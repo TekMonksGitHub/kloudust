@@ -1049,6 +1049,18 @@ exports.getFirewallRuleset = async function(ruleset, project=KLOUD_CONSTANTS.env
 }
 
 /**
+ * Returns the given ruleset object.
+ * @param {string} name The ruleset ID
+ * @returns The ruleset object, if found, else null.
+ */
+exports.getFirewallRulesetById = async function(id) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const query = "select * from firewallrulesets where id=? collate nocase";
+    const ruleset_entry = await _db().getQuery(query, [id]);
+    if (ruleset_entry && ruleset_entry.length) return ruleset_entry[0]; else return null;
+}
+
+/**
  * Adds or updates a firewall ruleset in DB
  *
  * @param {string} name Ruleset name
@@ -1186,6 +1198,22 @@ exports.removeVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CO
     const vnet_id = `${org}_${project}_${vnet_name}`;
 
     const cmd = "delete from relationships where pk1 = ? and pk2 = ? and pk3 = ? and type = ?", params =  [vm_id, vnet_id, ip, 'vmvnetip'];
+    const deleteResult = await _db().runCmd(cmd, params);
+    return deleteResult;
+}
+
+/**
+ * Removes all vmvnetip relationships for the given VM
+ * @param {string} vm_name The VM name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeAllVMVnetIPRelationships = async function(vm_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    
+    const vm_id = `${org}_${project}_${vm_name}`;
+    const cmd = "delete from relationships where pk1 = ? and type = ?", params =  [vm_id, 'vmvnetip'];
     const deleteResult = await _db().runCmd(cmd, params);
     return deleteResult;
 }
