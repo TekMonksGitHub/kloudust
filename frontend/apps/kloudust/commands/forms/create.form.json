@@ -7,14 +7,7 @@
 "*": [
     {"id": "createvm", "label": "{{{i18n.CreateVirtualMachine}}}", "logo": "img/createvm.svg"},
     {"id": "createvnet", "label": "{{{i18n.CreateVirtualNetwork}}}", "logo": "img/createvnet.svg"},
-    {"id": "createfirewall", "label": "{{{i18n.CreateFirewall}}}", "logo": "img/createfirewall.svg"},
-    {"id": "createoracledbm", "label": "{{{i18n.CreateOracleManagedDB}}}", "logo": "img/createoracledb.svg"},
-    {"id": "createcloudfunction", "label": "{{{i18n.CreateFunction}}}", "logo": "img/createfunction.svg"},
-    {"id": "createobjectstorage", "label": "{{{i18n.CreateObjectStorage}}}", "logo": "img/createobjectstorage.svg"},
-    {"id": "createcloudfunction", "label": "{{{i18n.CreateContainer}}}", "logo": "img/createcontainer.svg"},
-    {"id": "createmariadbm", "label": "{{{i18n.CreateMariaManagedDB}}}", "logo": "img/createmariadb.svg"},
-    {"id": "createwindowsvdi", "label": "{{{i18n.CreateWindowsVDI}}}", "logo": "img/createwindowsvdi.svg"}
-
+    {"id": "createfirewall", "label": "{{{i18n.CreateFirewall}}}", "logo": "img/createfirewall.svg"}
 ]
 },
 
