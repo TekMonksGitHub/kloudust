@@ -204,8 +204,11 @@ exports.getHostEntry = async hostname => {
  */
 exports.getAvailableHost = async (vcpu,ram,arch,factors) => {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
-    const query = `SELECT h.hostname, (h.cores * ${factors.cpu_factor} - IFNULL(SUM(v.cpus), 0)) AS free_cpu, (h.memory * ${factors.mem_factor} - IFNULL(SUM(v.memory) * 1024 * 1024, 0)) AS free_ram FROM hosts h LEFT JOIN vms v ON v.hostname = h.hostname WHERE h.processorarchitecture = ? GROUP BY h.hostname HAVING free_cpu >= ? and free_ram >= ? ORDER BY free_cpu DESC, free_ram DESC LIMIT 1;`;
-    const host = await _db().getQuery(query, [arch,vcpu,ram]);
+    const org = roleman.getCurrentOrg(); 
+    const isOrgUsingReservedHosts = await _db().getQuery('select count(*) as count from hosts where org = ? collate nocase', [org]);
+    const orgMatch = isOrgUsingReservedHosts[0].count ? org : '*';
+    const query = `SELECT h.hostname, (h.cores * ${factors.cpu_factor} - IFNULL(SUM(v.cpus), 0)) AS free_cpu, (h.memory * ${factors.mem_factor} - IFNULL(SUM(v.memory) * 1024 * 1024, 0)) AS free_ram FROM hosts h LEFT JOIN vms v ON v.hostname = h.hostname WHERE h.processorarchitecture = ? and h.org = ? COLLATE NOCASE GROUP BY h.hostname HAVING free_cpu >= ? and free_ram >= ? ORDER BY free_cpu DESC, free_ram DESC LIMIT 1;`;
+    const host = await _db().getQuery(query, [arch,orgMatch,vcpu,ram]);
     return host;
 }
 
