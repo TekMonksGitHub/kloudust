@@ -1207,6 +1207,67 @@ exports.getVMVnetIP = async function(vm_name, vnet_name, project=KLOUD_CONSTANTS
 }
 
 /**
+ * Applies the given ruleset relation to the given vnet of vm
+ * @param {string} vm_name The VM name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ruleset_name the name of the fw ruleset
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.addVMVnetFirewall = async function(vm_name, vnet_name, ruleset_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    
+    const ruleset_id = `${org}_${project}_${ruleset_name}`;
+    const vm_id = `${org}_${project}_${vm_name}`;
+    const vnet_id = `${org}_${project}_${vnet_name}`;
+
+    const cmd = "insert into relationships (pk1, pk2, pk3, type) values (?,?,?,?)", params =  [vm_id, vnet_id, ruleset_id, 'vmvnetfw'];
+    const insertResult = await _db().runCmd(cmd, params);
+    return insertResult;
+}
+
+/**
+ * Remove the given ruleset relation from the given vnet of vm
+ * @param {string} vm_name The VM name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ruleset_name the name of the fw ruleset
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeVMVnetFirewall = async function(vm_name, vnet_name, ruleset_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    
+    const ruleset_id = `${org}_${project}_${ruleset_name}`;
+    const vm_id = `${org}_${project}_${vm_name}`;
+    const vnet_id = `${org}_${project}_${vnet_name}`;
+
+    const cmd = "delete from relationships where pk1 = ? and pk2 = ? and pk3 = ? and type = ?", params =  [vm_id, vnet_id, ruleset_id,'vmvnetfw'];
+    const deleteResult = await _db().runCmd(cmd, params);
+    return deleteResult;
+}
+
+/**
+ * Returns the given fw rule applied to vm vnet
+ * @param {string} vm_name The VM name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns array of ips
+ */
+exports.getVMVnetFirewall = async function(vm_name, vnet_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    
+    const vm_id = `${org}_${project}_${vm_name}`;
+    const vnet_id = `${org}_${project}_${vnet_name}`;
+
+    const query = "select pk3 from relationships where pk1=? and pk2=? and type=?";
+    const results = await _db().getQuery(query, [vm_id, vnet_id,"vmvnetfw"]);
+    return _objectArrayToFlatArray(results, "pk3");
+}
+
+/**
  * Returns relationships
  * @param primary_key Either of the primary keys to select
  * @param type The type of relationship
