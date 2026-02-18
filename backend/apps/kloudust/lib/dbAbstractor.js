@@ -1299,6 +1299,38 @@ exports.getVMVnetFirewall = async function(vm_name, vnet_name, project=KLOUD_CON
 }
 
 /**
+ * Returns the fw rulesets applied to the given vm 
+ * @param {string} vm_name The VM name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns array of rulesets
+ */
+exports.getVMFirewalls = async function(vm_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    
+    const vm_id = `${org}_${project}_${vm_name}`;
+    const query = "select name from firewallrulesets where id in (select distinct pk3 from relationships where pk1 = ? and type = ?)";
+    const results = await _db().getQuery(query, [vm_id,"vmvnetfw"]);
+    return _objectArrayToFlatArray(results, "name");
+}
+
+/**
+ * Returns the private ip addresses assigned to the given VM across all vnets
+ * @param {string} vm_name The VM name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns array of ips
+ */
+exports.getVMPrivateIPs = async function(vm_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    
+    const vm_id = `${org}_${project}_${vm_name}`;
+    const query = "select pk3 from relationships where pk1 = ? and type = ?;";
+    const results = await _db().getQuery(query, [vm_id,"vmvnetip"]);
+    return _objectArrayToFlatArray(results, "pk3");
+}
+
+/**
  * Returns relationships
  * @param primary_key Either of the primary keys to select
  * @param type The type of relationship
