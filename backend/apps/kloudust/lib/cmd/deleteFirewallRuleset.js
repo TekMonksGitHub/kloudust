@@ -22,18 +22,30 @@ module.exports.exec = async function(params) {
 
     const ruleset_name = createFirewallRuleset.resolveRulesetName(ruleset_name_raw);
 
-    if(!await dbAbstractor.getFirewallRuleset(ruleset_name)){
-        params.consoleHandlers.LOGERROR(`Firewall ruleset ${ruleset_name} does not exists!`);
-        return CMD_CONSTANTS.FALSE_RESULT();
+    const ruleset = await dbAbstractor.getFirewallRuleset(ruleset_name);
+
+    if(!ruleset){
+        const error = `Firewall ruleset ${ruleset_name_raw} does not exists!`
+        params.consoleHandlers.LOGERROR(error);
+        return CMD_CONSTANTS.FALSE_RESULT(error);
+    }
+
+    const firewallVM = await dbAbstractor.getVMsForRuleset(ruleset.name);
+
+    if(firewallVM && firewallVM.length > 0){
+        const error = `Firewall ruleset ${ruleset_name_raw} is still in use by some VMs, please remove the ruleset from VMs before deleting!`
+        params.consoleHandlers.LOGERROR(error);
+        return CMD_CONSTANTS.FALSE_RESULT(error);
     }
     
     if(!await dbAbstractor.deleteFirewallRuleset(ruleset_name)){
-        params.consoleHandlers.LOGERROR(`Failed to delete ruleset ${ruleset_name} from db`);
-        return CMD_CONSTANTS.FALSE_RESULT();
+        const error = `Failed to delete ruleset ${ruleset_name_raw} from db!`
+        params.consoleHandlers.LOGERROR(error);
+        return CMD_CONSTANTS.FALSE_RESULT(error);
     }
 
-    params.consoleHandlers.LOGINFO(`Deleted ruleset ${ruleset_name}!`);
-    return CMD_CONSTANTS.TRUE_RESULT();
+    params.consoleHandlers.LOGINFO(`Deleted ruleset ${ruleset_name_raw}!`);
+    return CMD_CONSTANTS.TRUE_RESULT(`Deleted ruleset ${ruleset_name_raw}!`);
 };
 
 
