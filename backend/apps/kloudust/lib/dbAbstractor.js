@@ -1315,6 +1315,22 @@ exports.getVMFirewalls = async function(vm_name, project=KLOUD_CONSTANTS.env.prj
 }
 
 /**
+ * Returns the vms the fw rulesets is applied to 
+ * @param {string} ruleset_name The ruleset name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns array of vms
+ */
+exports.getVMsForRuleset = async function(ruleset_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    
+    const ruleset_id = `${org}_${project}_${ruleset_name}`;
+    const query = "select name from vms where id in (select distinct pk1 from relationships where pk3 = ? and type = ?)";
+    const results = await _db().getQuery(query, [ruleset_id,"vmvnetfw"]);
+    return _objectArrayToFlatArray(results, "name");
+}
+
+/**
  * Returns the private ip addresses assigned to the given VM across all vnets
  * @param {string} vm_name The VM name
  * @param {string} project The project, if skipped is auto picked from the environment
