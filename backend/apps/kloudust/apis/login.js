@@ -71,6 +71,7 @@ async function _verifyJWT(jsonReq) {
             KLOUD_CONSTANTS.LOGERROR(`Unregistered cloud user login ${jsonReq.jwt}, not allowing.`);
             return CONSTANTS.FALSE_RESULT; 
         } else {
+            KLOUD_CONSTANTS.LOGINFO(`User ${jwtClaims.id} from org ${jwtClaims.org} logged in successfully with role ${KLOUD_CONSTANTS.env.role()||jwtClaims.role}.`);
             const finalResult = {...jwtClaims , role: KLOUD_CONSTANTS.env.role()||jwtClaims.role, ...CONSTANTS.TRUE_RESULT};
             return finalResult
         }

@@ -21,6 +21,7 @@ const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const getVMVnets = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMVnets.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
+const createFirewallRuleset = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createFirewallRuleset.js`);
 
 /**
  * Lists the VMs
@@ -40,6 +41,9 @@ module.exports.exec = async function(params) {
         const getVMVnetsParams = [vm.name_raw]; getVMVnetsParams.consoleHandlers = params.consoleHandlers;
         const vnet_result = await getVMVnets.exec(getVMVnetsParams);
         vm.vnets = vnet_result.vnets;
+        const vm_rulesets = await dbAbstractor.getVMFirewalls(vm.name);
+        vm.rulesets = vm_rulesets.map(ruleset=>createFirewallRuleset.unresolveRulesetName(ruleset));
+        vm.private_ips = await dbAbstractor.getVMPrivateIPs(vm.name);    
     }
 
     let out = "VM information from the database follows.";
