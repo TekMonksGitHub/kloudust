@@ -14,8 +14,8 @@
  */
 
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
-const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
+const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 /**
@@ -47,7 +47,7 @@ module.exports.exec = async function(params) {
     for (const hostinfo of hostinfos) {        
         const xforgeArgs = {
             colors: KLOUD_CONSTANTS.COLORED_OUT, 
-            file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+            file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
             console: params.consoleHandlers,
             other: [
                 hostinfo.hostaddress, hostinfo.rootid, hostinfo.rootpw, hostinfo.hostkey, hostinfo.port,

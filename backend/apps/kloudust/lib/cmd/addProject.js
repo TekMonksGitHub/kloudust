@@ -11,8 +11,8 @@
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
-const addUserToProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addUserToProject.js`);
 const deleteProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteProject.js`);
+const addUserToProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addUserToProject.js`);
 
 /**
  * Adds the given project to the current org

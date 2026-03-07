@@ -19,6 +19,7 @@
         "VMIPType": "IP Type",
         "VMIPTypePublic": "Public",
         "VMIPTypePrivate": "Private",
+        "VMAssignSubmitLabel": "Submit",
         "FieldValidationErrorGeneric": "Validation error"
     },
     "hi": {
@@ -33,6 +34,7 @@
         "VMIPType": "IP Type",
         "VMIPTypePublic": "Public",
         "VMIPTypePrivate": "Private",
+        "VMAssignSubmitLabel": "Submit",
         "FieldValidationErrorGeneric": "Validation error"
     },
     "ja": {
@@ -47,6 +49,7 @@
         "VMIPType": "IP Type",
         "VMIPTypePublic": "Public",
         "VMIPTypePrivate": "Private",
+        "VMAssignSubmitLabel": "Submit",
         "FieldValidationErrorGeneric": "Validation error"
     },
     "zh": {
@@ -61,6 +64,7 @@
         "VMIPType": "IP Type",
         "VMIPTypePublic": "Public",
         "VMIPTypePrivate": "Private",
+        "VMAssignSubmitLabel": "Submit",
         "FieldValidationErrorGeneric": "Validation error"
     }
 },
@@ -130,7 +134,7 @@
         "   ipinput.style.display = 'none';",
         "};",
 
-        "const updateFields = async () => {",
+        "const updateFields = _ => {",
         "   resetFields();",
         "   const ipType = iptypeSelect.value;",
         "   const actionType = selectElement.value;",
@@ -150,7 +154,7 @@
         "return true;"
     ],
 
-    "submitlabel": "{{{i18n.PowerOPVMSubmitLabel}}}",
+    "submitlabel": "{{{i18n.VMAssignSubmitLabel}}}",
 
     "submit_javascript": [
         "const retObject = arguments[0]||{};",

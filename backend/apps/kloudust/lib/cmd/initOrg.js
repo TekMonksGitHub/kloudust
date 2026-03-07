@@ -6,8 +6,8 @@
  */
 
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
-const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 const addProject = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addProject.js`);
+const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 /**
  * Initializes an organization with it's default project and add the initiating user to the project

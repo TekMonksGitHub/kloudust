@@ -15,6 +15,7 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
  */
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
+    
     const vnets = await vnet.listVnets();
     let err = "", out = ""; if (!vnets) err = "Error loading the list of Vnets"; else out = `${vnets.length} Vnets found`;
     return {result: vnets?true:false, err, out, stdout: out, stderr: err, resources: vnets};

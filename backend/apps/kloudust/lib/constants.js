@@ -23,8 +23,9 @@ exports.APIDIR = path.resolve(`${exports.ROOTDIR}/apis`);
 exports.CONFDIR = path.resolve(`${exports.ROOTDIR}/conf`);
 exports.CONF = require(`${exports.CONFDIR}/kloudust.json`);
 exports.CMDDIR = path.resolve(`${exports.ROOTDIR}/lib/cmd`);
+exports.THIRD_PARTY_DIR = path.resolve(`${exports.ROOTDIR}/3p`);
 exports.KDHOST_SYSTEMDIR = "/kloudust/system";
-exports.MONKSHU_BACKEND_LIBDIR = CONSTANTS.LIBDIR||`${exports.LIBDIR}/3p/monkshu/backend/server/lib`;
+exports.MONKSHU_BACKEND_LIBDIR = CONSTANTS.LIBDIR||`${exports.THIRD_PARTY_DIR}/monkshu/backend/server/lib`;
 
 exports.ROLES = Object.freeze({CLOUD_ADMIN: "cloudadmin", ORG_ADMIN: "orgadmin", USER: "user"});
 exports.LOGINAPP_ORG_ADMIN = "admin";

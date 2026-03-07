@@ -9,7 +9,8 @@ const os = require("os");
 const fs = require("fs");
 const path = require("path");
 const spawn = require("child_process").spawn;
-const {ShellCommandClient} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/pyshell/pyshellclient.js`);
+const {ShellCommandClient} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/pyshell/pyshellclient.js`);
+
 const agentConf = {
     "shellexecprefix_win32": ["cmd.exe", "/s", "/c"],
     "shellexecprefix_linux": ["/bin/sh","-c"],
@@ -18,9 +19,19 @@ const agentConf = {
     "shellexecprefix_sunos": ["/bin/sh","-c"]
 }
 
+const DEFAULT_PYSHELL_POLL_FREQUENCY = 500, DEFAULT_PYSHELL_PORT_INCREMENT = 2, 
+    DEFAULT_PYSHELL_PROCESS_TIMEOUT = 1800, HIGHEST_PYSHELL_PORT = 64998;
+const DEFAULT_KDHOST_FIREWALL_TABLE = "kdhostfirewall";
+
+let ACTIVE_DEPLOYMENTS = {};
+
 /**
  * Runs remote SSH script on given host
- * @param {object} conf Contains {user, password, port, host and hostkey}
+ * @param {object} conf Contains {user, password, port, host, hostkey, 
+ *                                pyshellport: if provided is used as the pyshell API port,
+ *                                aeskey: if provided this AES key is used for PyShell,
+ *                                pyshell_poll_frequency: how often the API polls in milliseconds, 
+ *                                timeout: timeout for the process or script in seconds}
  * @param {string} remote_script The script to run, path to it or an object of format {data, path, ispython}. 
  *                               ispython, if true means run it as in-process python code if run via agent (faster).
  *                               Python scripts must start with #!/usr/bin/env python3 to be safe to be executed via
@@ -38,35 +49,61 @@ exports.runRemoteSSHScript = async (conf, remote_script, extra_params, streamer,
     if (expandResult.err) {callback(1, '', err.toString()); return;}
     const expanded_remote_script = expandResult.result;
 
-    LOG.info(`Executing remote script: ${expanded_remote_script.path}`);
-    const agentExecWorked = forceSSH ? false : await _agentExec(conf, expanded_remote_script, KLOUD_CONSTANTS.KDHOST_SYSTEMDIR+"/pyshell");
+    if (streamer) streamer.LOGINFO(`Executing remote script: ${expanded_remote_script.path}`);
+    const agentExecResult = forceSSH ? false : (await _agentExec(conf, expanded_remote_script, KLOUD_CONSTANTS.KDHOST_SYSTEMDIR+"/pyshell", streamer));
+    const agentExecWorked = agentExecResult && (!agentExecResult.deploy_failed);
     if (!agentExecWorked) {
-        LOG.warn(`Script ${expanded_remote_script.path} is using SSH to execute. Agent exec failed, performance hit!!`);
+        if (streamer) streamer.LOGWARN(`Script ${expanded_remote_script.path} is using SSH to execute. Agent exec failed, performance hit!!`);
         const processExecResult = await _processExec( agentConf["shellexecprefix_"+process.platform], script, 
             expanded_remote_script, [conf.user, conf.password, conf.host, conf.hostkey, conf.port||22], streamer);
         callback(processExecResult.exit_code, processExecResult.stdout, processExecResult.stderr);
-    } else callback(agentExecWorked.exit_code, agentExecWorked.stdout, agentExecWorked.stderr);
+    } else {
+        if (streamer) streamer.LOGINFO(`Agent exec was used for remote script: ${expanded_remote_script.path}`);
+        callback(agentExecResult.exit_code, agentExecResult.stdout, agentExecResult.stderr);
+    }
 }
 
-async function _agentExec(conf, expanded_remote_script, deployPath) {
-    const aesKey = conf.user + conf.password + 
+async function _agentExec(conf, expanded_remote_script, deployPath, streamer) {
+    const aesKey = conf.aeskey || (conf.user + conf.password + 
         (conf.user.length + conf.password.length < 30 ? 
-        new Array(30 - conf.user.length + conf.password.length).fill(0).join('') : '');
-    const pyshellport = parseInt(conf.port||22)+2, agentURL = `http://${conf.host}:${pyshellport}`;
+        new Array(30 - conf.user.length + conf.password.length).fill(0).join('') : ''));
+    let pyshellport = conf.pyshellport || (parseInt(conf.port||22)+DEFAULT_PYSHELL_PORT_INCREMENT);
+    if ((!conf.pyshellport) && (pyshellport > HIGHEST_PYSHELL_PORT)) pyshellport = parseInt(conf.port)-DEFAULT_PYSHELL_PORT_INCREMENT;
+    const pyShellURL = `${conf.host}:${pyshellport}`; agentURL = conf.apiurl || `http://${pyShellURL}`;
     const pyshellclient = new ShellCommandClient(agentURL, aesKey);
     let health = {}; try {  health = await pyshellclient.healthCheck(); } catch (err) {health.status = "bad";}
-    if (health.status != "healthy") {
-        const deployResult = await pyshellclient.deploy(conf.host, conf.port||22, conf.user,
-            conf.password, deployPath, conf.user, aesKey, "0.0.0.0", pyshellport, 
-            conf.timeout||1800);
-        if (deployResult.exit_code != 0) return false;
+    if (health.status != "healthy") {   // try to deploy or redeploy
+        streamer.LOGINFO(`Pyshell not found on http://${pyShellURL}. Redeploying.`);
+        const deploymentKey = `${conf.user}@${conf.host}:${conf.port||22}`;
+        try {
+            if (!ACTIVE_DEPLOYMENTS[deploymentKey]) ACTIVE_DEPLOYMENTS[deploymentKey] =  pyshellclient.deploy(
+                conf.host, conf.port||22, conf.user, conf.password, deployPath, conf.user, aesKey, "0.0.0.0", 
+                pyshellport, conf.timeout||DEFAULT_PYSHELL_PROCESS_TIMEOUT, DEFAULT_KDHOST_FIREWALL_TABLE);    // opens the NFT port as well for PyShell
+            const deployResult = await ACTIVE_DEPLOYMENTS[deploymentKey]; delete ACTIVE_DEPLOYMENTS[deploymentKey];
+            if (deployResult.exit_code != 0) {
+                if (streamer) streamer.LOGERROR(`Pyshell deployment failed due to error code ${deployResult.exit_code}\nSTDERR\n${deployResult.stderr}`);
+                return ({deploy_failed: true, exit_code: deployResult.exit_code, stdout: "", stderr: "PyShell Deployment Error"});
+            } else if (streamer) streamer.LOGINFO(`Pyshell deployment result\nSTDOUT\n${deployResult.stdout}\n\nSTDERR\n${deployResult.stderr}`);
+
+        } catch (err) {
+            if (streamer) streamer.LOGERROR(`Pyshell deployment failed with error ${err}`);
+            return ({exit_code: 1, stdout: "", stderr: err});
+        }
     }
     try {
-        const result = expanded_remote_script.ispython ? 
-            await pyshellclient.executePyCommand(expanded_remote_script.data) :
-            await pyshellclient.executeScript(expanded_remote_script.data, expanded_remote_script.path);
-        return result;
-    } catch (err) {return false;}
+        if (streamer) streamer.LOGINFO(`[PyShell] [${pyShellURL}] Executing ${expanded_remote_script.path} via Pyshell agent.`);
+        const pyshellStreamCollector = { stdout: s=>streamer.LOGINFO(`[PyShell] [${pyShellURL}] [OUT] ${s}`),
+            stderr: s=>streamer.LOGERROR(`[PyShell] [${pyShellURL}] [ERROR] ${s}`) };
+        const result = expanded_remote_script.ispython ?    // we run in polling mode to avoid HTTP timeout issues
+            await pyshellclient.executePyCommand(expanded_remote_script.data, undefined, 
+                conf.pyshell_poll_frequency||DEFAULT_PYSHELL_POLL_FREQUENCY,  pyshellStreamCollector) :
+            await pyshellclient.executeScript(expanded_remote_script.data, expanded_remote_script.path, 
+                undefined, undefined, conf.pyshell_poll_frequency||DEFAULT_PYSHELL_POLL_FREQUENCY,  pyshellStreamCollector);
+        return ({exit_code: result.exit_code, stdout: result.stdout, stderr: result.stderr});
+    } catch (err) {
+        if (streamer) streamer.LOGERROR(`[PyShell] [${pyShellURL}] Execution failed with exception ${err}`);
+        return ({exit_code: 1, stdout: "", stderr: err});;
+    }
 }
 
 function _processExec(cmdProcessorArray, sshScript, remoteScript, paramsArray, streamer) {

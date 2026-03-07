@@ -5,7 +5,6 @@ function exitFailed() {
     exit 1
 }
 
-printf "Rebooting the host\n"
-reboot
-
+printf "Rebooting the host in 1 minute\n"
+sudo shutdown -r +1
 exit 0

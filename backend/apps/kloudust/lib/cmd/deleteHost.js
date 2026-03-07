@@ -34,7 +34,7 @@ const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
         const xforgeArgs = {
             colors: KLOUD_CONSTANTS.COLORED_OUT, 
             console: params.consoleHandlers,
-            file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+            file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
             other: [
                 hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
                 `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/deleteHost.sh`

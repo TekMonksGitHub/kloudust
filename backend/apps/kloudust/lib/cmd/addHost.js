@@ -17,10 +17,9 @@
 const cryptoMod = require("crypto");
 const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
-const rebootHost = require(`${KLOUD_CONSTANTS.CMDDIR}/rebootHost.js`);
-const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
+const xforge_module = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 
 /**
  * Initializes and adds the given machine to become a Kloudust hypervisor
@@ -45,18 +44,20 @@ module.exports.exec = async function(params) {
     }
 
     const newPassword = nochangepassword.toLowerCase() == "nochange" ? adminpass : cryptoMod.randomBytes(32).toString("hex");
+    const agentconfig = xforge_module.getAgentConfig(hostip, adminid, newPassword, newsshport);
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
         console: params.consoleHandlers,
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         other: [
             hostip, adminid, adminpass, hostsshkey, oldsshport,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/addHost.sh`,
-            newPassword, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, newsshport, vnet.KD_DEFAULT_HOST_NETWORK
-        ]
+            newPassword, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, newsshport, agentconfig.port, vnet.KD_DEFAULT_HOST_NETWORK
+        ],
+        agent_config: agentconfig
     }
 
-    const results = await xforge(xforgeArgs);
+    const results = await xforge_module.xforge(xforgeArgs);
     if (results.exitCode==0) {
         // try to get the real hardware config from the host itself and override as necessary
         const scriptOutChunks = results.stdout.split(CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER);
@@ -70,19 +71,20 @@ module.exports.exec = async function(params) {
             realSockets = parseInt(hostConfig.sockets||sockets);
 
         if (await dbAbstractor.addHostToDB(hostname, hostip, ostype.toLowerCase(), adminid, newPassword, 
-                hostsshkey, newsshport, realCores, realMemory, realDisk, realNetspeed, realProcessor, 
-                realProcessorArchitecture, realSockets)) {
-            rebootHost.exec(params);  // reboot the host, we don't care much for the results of it or to wait for it
-            return {result: true, stdout: scriptOutChunks[0], out: scriptOutChunks[0], err: results.stderr, stderr: results.stderr}; 
-        } else {
-            _showError(hostip, newPassword, adminid, adminpass, oldsshport, newsshport, params.consoleHandlers||KLOUD_CONSTANTS.LOG); 
+            hostsshkey, newsshport, realCores, realMemory, realDisk, realNetspeed, realProcessor, 
+            realProcessorArchitecture, realSockets)) return {result: true, stdout: scriptOutChunks[0], 
+                out: scriptOutChunks[0], err: results.stderr, stderr: results.stderr}; 
+        else {
+            _showError("Database error in adding the host.", hostip, newPassword, adminid, adminpass, oldsshport, newsshport, params.consoleHandlers||KLOUD_CONSTANTS.LOG); 
             return {result: false, stdout: scriptOutChunks[0], out: scriptOutChunks[0], err: results.stderr, stderr: results.stderr};
         }
-    } else {_showError(hostip, newPassword, adminid, adminpass, oldsshport, newsshport, params.consoleHandlers||KLOUD_CONSTANTS.LOG); return {
+
+    } else {_showError("Script error in initializing the host.", hostip, newPassword, adminid, adminpass, oldsshport, newsshport, params.consoleHandlers||KLOUD_CONSTANTS.LOG); return {
         result: false, out: results.stdout, stdout: results.stdout, stderr: results.stderr, err: results.stderr};}
 }
 
-function _showError(hostip, newPassword, userid, oldPassword, oldsshport, newsshport, consoleHandlers) {
-    consoleHandlers.LOGERROR("Host initialization failed. Password and SSH ports may be changed.");
+function _showError(message, hostip, newPassword, userid, oldPassword, oldsshport, newsshport, consoleHandlers) {
+    consoleHandlers.LOGERROR(`${message}. Host: ${hostip}`);
+    consoleHandlers.LOGERROR(`Host ${hostip} initialization failed. Password and SSH ports may be changed.`);
     consoleHandlers.LOGERROR(`Login password for ${hostip} and user ${userid} is one of these now: ${oldPassword} or ${newPassword}. Further the SSH port is either ${oldsshport} or ${newsshport}.`);
 }

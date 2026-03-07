@@ -5,17 +5,17 @@
 
 "rolelist": {
 "!user": [
-    {"id": "viewprojects", "label": "{{{i18n.ViewProjects}}}", "logo": "img/viewprojects.png"},
-    {"id": "addproject", "label": "{{{i18n.AddProject}}}", "logo": "img/addproject.png"},
-    {"id": "deleteproject", "label": "{{{i18n.DeleteProject}}}", "logo": "img/deleteproject.png"},
-    {"id": "addusertoproject", "label": "{{{i18n.AddUserToProject}}}", "logo": "img/addusertoproject.png"},
-    {"id": "removeuserfromproject", "label": "{{{i18n.RemoveUserFromProject}}}", "logo": "img/removeuserfromproject.png"}
+    {"id": "viewprojects", "label": "{{{i18n.ViewProjects}}}", "logo": "img/viewprojects.svg"},
+    {"id": "addproject", "label": "{{{i18n.AddProject}}}", "logo": "img/addproject.svg"},
+    {"id": "deleteproject", "label": "{{{i18n.DeleteProject}}}", "logo": "img/deleteproject.svg"},
+    {"id": "addusertoproject", "label": "{{{i18n.AddUserToProject}}}", "logo": "img/addusertoproject.svg"},
+    {"id": "removeuserfromproject", "label": "{{{i18n.RemoveUserFromProject}}}", "logo": "img/removeuserfromproject.svg"}
 
 ],
 "user" : [    
-    {"id": "viewprojects", "label": "{{{i18n.ViewProjects}}}", "logo": "img/viewprojects.png"},
-    {"id": "addusertoproject", "label": "{{{i18n.AddUserToProject}}}", "logo": "img/addusertoproject.png"},
-    {"id": "removeuserfromproject", "label": "{{{i18n.RemoveUserFromProject}}}", "logo": "img/removeuserfromproject.png"}
+    {"id": "viewprojects", "label": "{{{i18n.ViewProjects}}}", "logo": "img/viewprojects.svg"},
+    {"id": "addusertoproject", "label": "{{{i18n.AddUserToProject}}}", "logo": "img/addusertoproject.svg"},
+    {"id": "removeuserfromproject", "label": "{{{i18n.RemoveUserFromProject}}}", "logo": "img/removeuserfromproject.svg"}
 ]
 },
 
@@ -24,32 +24,32 @@
     "ViewProjects": "View Projects",
     "AddProject": "Add Project",
     "DeleteProject": "Delete Project",
-    "AddUserToProject": "Add User",
-    "RemoveUserFromProject": "Remove User"
+    "AddUserToProject": "Add Member",
+    "RemoveUserFromProject": "Remove Member"
 },
 
 "hi": {
     "ViewProjects": "View Projects",
     "AddProject": "Add Project",
     "DeleteProject": "Delete Project",
-    "AddUserToProject": "Add User",
-    "RemoveUserFromProject": "Remove User"
+    "AddUserToProject": "Add Member",
+    "RemoveUserFromProject": "Remove Member"
 },
 
 "ja": {
     "ViewProjects": "View Projects",
     "AddProject": "Add Project",
     "DeleteProject": "Delete Project",
-    "AddUserToProject": "Add User",
-    "RemoveUserFromProject": "Remove User"
+    "AddUserToProject": "Add Member",
+    "RemoveUserFromProject": "Remove Member"
 },
 
 "zh": {
     "ViewProjects": "View Projects",
     "AddProject": "Add Project",
     "DeleteProject": "Delete Project",
-    "AddUserToProject": "Add User",
-    "RemoveUserFromProject": "Remove User"
+    "AddUserToProject": "Add Member",
+    "RemoveUserFromProject": "Remove Member"
 }
 }
 }

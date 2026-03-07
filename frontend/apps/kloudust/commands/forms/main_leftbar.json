@@ -9,7 +9,7 @@
     {"id": "vms", "label": "{{{i18n.VirtualMachines}}}", "logo": "img/vms.svg"},
     {"id": "vnets", "label": "{{{i18n.VirtualNetworks}}}", "logo": "img/vnets.svg"},
     {"id": "firewallrulesets", "label": "{{{i18n.FirewallRulesets}}}", "logo": "img/managefirewall.svg"},
-    {"id": "projects", "label": "{{{i18n.Projects}}}", "logo": "img/projects.png"},
+    {"id": "projects", "label": "{{{i18n.Projects}}}", "logo": "img/projects.svg"},
     {"id": "cloudcommand", "label": "{{{i18n.CloudCommand}}}", "logo": "img/cloudcommand.svg"},
     {"id": "alerts", "label": "{{{i18n.Alerts}}}", "logo": "img/alerts.svg"}
 ]

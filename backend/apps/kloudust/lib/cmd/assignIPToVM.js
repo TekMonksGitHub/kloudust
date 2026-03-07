@@ -14,9 +14,9 @@ const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
-const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
+const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 const DEFAULT_VM_MTU = 1200, WILDCARD_IP_VTEP_HOSTNAME = "*", DNS1_DEFAULT="8.8.8.8", DNS2_DEFAULT="4.4.4.4";
@@ -51,7 +51,7 @@ module.exports.exec = async function(params) {
     //check if the guest agent is running before making any changes
     const xforgeArgsGuestCheck = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         console: params.consoleHandlers,
         other: [
             hostInfoVM.hostaddress, hostInfoVM.rootid, hostInfoVM.rootpw, hostInfoVM.hostkey, hostInfoVM.port,
@@ -86,7 +86,7 @@ module.exports.exec = async function(params) {
     // now map the given IP's route through the VxLAN bridge on the IP host vtep
     const xforgeArgsBridgeRoute = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         console: params.consoleHandlers,
         other: [
             hostInfoIPVtep.hostaddress, hostInfoIPVtep.rootid, hostInfoIPVtep.rootpw, hostInfoIPVtep.hostkey, hostInfoIPVtep.port,
@@ -104,7 +104,7 @@ module.exports.exec = async function(params) {
     // finally try to configure the VM network card and route for this IP
     const xforgeArgsVMIPCommand = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         console: params.consoleHandlers,
         other: [
             hostInfoVM.hostaddress, hostInfoVM.rootid, hostInfoVM.rootpw, hostInfoVM.hostkey, hostInfoVM.port,

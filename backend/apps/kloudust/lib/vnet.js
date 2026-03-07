@@ -4,8 +4,8 @@
  * (C) 2024 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
  */
-const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
+const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 const VNET_HOST_RELATION = "vnethost";
@@ -101,7 +101,7 @@ exports.expandVnetToHost = async function (vnetName, hostInfoOrHostname, console
 
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         console: consoleHandlers,
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
@@ -158,7 +158,7 @@ exports.deleteVnetFromHost = async function (vnetNameOrRecord, hostInfo, console
     
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         console: consoleHandlers,
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
@@ -228,7 +228,7 @@ async function _runModifyVxLANPeers(vlan_name, vlan_num, peers, hostInfo, consol
     const script = `${type=="add"?"add":"delete"}VxLANPeers.sh`;
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         console: consoleHandlers,
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,

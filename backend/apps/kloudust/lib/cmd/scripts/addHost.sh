@@ -4,28 +4,22 @@
 # {1} The new password for this host for the ID which is logged in to run this script
 # {2} The JSON out splitter
 # {3} The new SSH port, defaults to 22 if not provided
-# {4} The default host network, defaults to kddefault if not provided
+# {4} The agent port, defaults to 24 if not provided
+# {5} The default host network, defaults to kddefault if not provided
 
 NEW_PASSWORD="{1}"
 JSONOUT_SPLITTER="{2}"
 CHANGED_SSH_PORT={3}
 NEW_SSH_PORT=${CHANGED_SSH_PORT:-22}
-AGENT_PORT=$((NEW_SSH_PORT + 2))
-DEFAULT_KD_NET_IN={4}
+INCOMING_AGENT_PORT={4}
+AGENT_PORT=${INCOMING_AGENT_PORT:-24}
+DEFAULT_KD_NET_IN={5}
 DEFAULT_KD_NET=${DEFAULT_KD_NET_IN:-kddefault}
 DEFAULT_KD_NET_BRIDGE="${DEFAULT_KD_NET}_br"
 
 function exitFailed() {
     echo Failed
     exit 1
-}
-
-function saveNFTables() {
-    iptables-save > /tmp/iptable_rules.dump
-    iptables-restore-translate -f /tmp/iptable_rules.dump > /tmp/nft_ruleset.nft
-    nft flush ruleset
-    nft -f /tmp/nft_ruleset.nft
-    nft list ruleset > /etc/nftables.conf
 }
 
 function printConfig() {
@@ -67,6 +61,7 @@ if [ -f "`which yum`" ]; then
 else 
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y update; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y upgrade; then exitFailed; fi
+    if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y autoremove; then exitFailed; fi
 fi
 
 
@@ -86,14 +81,16 @@ else
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils virtinst libosinfo-bin guestfs-tools tuned genisoimage; then exitFailed; fi
     # Remove snapd on Ububtu as it opens outgoing connections to the snap store
     # Also remove ufw as we will use nftables directly 
-    snap list | egrep -v 'base$|snapd$|Notes$' | awk '{print $1}' | xargs -I{} sudo snap remove {} --purge && sudo apt purge -y snapd && rm -rf ~/snap
+    snap list 2>/dev/null | egrep -v 'base$|snapd$|Notes$' | awk '{print $1}' | xargs -I{} sudo snap remove {} --purge 2>/dev/null || true
+    sudo apt purge -y snapd 2>/dev/null || true
+    rm -rf ~/snap
     sudo apt purge -y ufw
-    apt -y autoremove && apt-mark hold snapd ufw
+    sudo apt -y autoremove && sudo apt-mark hold snapd ufw
 fi
 
 
 printf "\n\nSecuring the system against SSH attacks\n"
-if ! sudo cat <<EOF > /tmp/kdfail2ban.jail.local; then exitFailed; fi
+sudo tee /tmp/kdfail2ban.jail.local > /dev/null <<EOF
 [DEFAULT]
 # Ban hosts for one hour:
 bantime = 3600
@@ -104,6 +101,7 @@ banaction = iptables-multiport
 [sshd]
 enabled = true
 EOF
+if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo mv /tmp/kdfail2ban.jail.local /etc/fail2ban/jail.local; then exitFailed; fi
 if ! sudo chown root:root /etc/fail2ban/jail.local; then exitFailed; fi
 if ! sudo systemctl enable --now fail2ban; then exitFailed; fi
@@ -113,13 +111,13 @@ printf "\n\nEnabling hypervisor\n"
 if ! sudo systemctl enable --now libvirtd; then exitFailed; fi
 if ! sudo lsmod | grep -i kvm; then exitFailed; fi
 if ! sudo systemctl enable --now tuned; then exitFailed; fi
-if ! tuned-adm profile virtual-host; then exitFailed; fi
+if ! sudo tuned-adm profile virtual-host; then exitFailed; fi
 
 
-printf "\n\Disabling libvirt default networking\n"
-sudo virsh net-destroy default
-sudo virsh net-autostart --network default --disable
-virsh net-undefine default
+printf "\n\nDisabling libvirt default networking\n"
+sudo virsh net-destroy default &> /dev/null
+sudo virsh net-autostart --network default --disable &> /dev/null
+sudo virsh net-undefine default &> /dev/null
 
 
 printf "\n\nCreating Kloudust Structures\n"
@@ -135,13 +133,13 @@ if ! sudo mkdir -p /kloudust/etc/; then exitFailed; fi
 
 
 printf "\n\nDownloading additional drivers\n"
-if [ "`cat /kloudust/drivers/virtio-win.version`" != "virtio-win-0.1.240.iso" ]; then
+if [ "$(sudo cat /kloudust/drivers/virtio-win.version 2>/dev/null)" != "virtio-win-0.1.240.iso" ]; then
     if ! sudo bash -c "curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.240-1/virtio-win-0.1.240.iso > /kloudust/drivers/virtio-win.iso"; then exitFailed; fi
     if ! sudo bash -c  'echo "virtio-win-0.1.240.iso" > /kloudust/drivers/virtio-win.version'; then exitFailed; fi
 fi;
 
 
-printf "\n\nGiving permissions to Kloudust folders to KVM"
+printf "\n\nGiving permissions to Kloudust folders to KVM\n"
 if [ -f "`which yum`" ]; then 
     if ! sudo chgrp -R qemu /kloudust/; then exitFailed; fi
 else 
@@ -149,12 +147,12 @@ else
 fi
 
 
-printf "\n\nAdding the default Kloudust network"
-if [ -n "$(sudo virsh net-list --all --name | grep -xF $DEFAULT_KD_NET)" ]; then
-    if ! virsh net-destroy $DEFAULT_KD_NET; then exitFailed; fi
-    if ! virsh net-undefine $DEFAULT_KD_NET; then exitFailed; fi
+printf "\n\nAdding the default Kloudust network\n"
+if [ -n "$(sudo virsh net-list --all --name | grep -xF $DEFAULT_KD_NET)" ]; then    # delete old network if found
+    sudo virsh net-destroy $DEFAULT_KD_NET &> /dev/null
+    if ! sudo virsh net-undefine $DEFAULT_KD_NET; then exitFailed; fi
 fi
-cat > /kloudust/temp/$DEFAULT_KD_NET.xml <<EOF
+sudo tee /kloudust/temp/$DEFAULT_KD_NET.xml > /dev/null <<EOF
 <network>
   <name>$DEFAULT_KD_NET</name>
   <bridge name='$DEFAULT_KD_NET_BRIDGE' stp='off'/>
@@ -166,11 +164,11 @@ cat > /kloudust/temp/$DEFAULT_KD_NET.xml <<EOF
   </ip>
 </network>
 EOF
+if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo virsh net-define /kloudust/temp/$DEFAULT_KD_NET.xml; then exitFailed; fi
-if ! sudo virsh net-autostart $DEFAULT_KD_NET; then exitFailed; fi
-if ! sudo virsh net-start $DEFAULT_KD_NET; then exitFailed; fi
+if ! sudo virsh net-autostart $DEFAULT_KD_NET; then exitFailed; fi  # reboot will start it
 
-cat > "/usr/lib/systemd/system/kd-startup.service" <<EOF
+sudo tee "/usr/lib/systemd/system/kd-startup.service" > /dev/null <<EOF
 [Unit]
 Description=Run KD startup scripts on boot
 After=multi-user.target
@@ -178,37 +176,46 @@ After=multi-user.target
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/run-parts --regex ".*" /kloudust/system
+StandardOutput=append:/var/log/kdrunparts.log
+StandardError=append:/var/log/kdrunparts.log
 
 [Install]
 WantedBy=multi-user.target
 EOF
-
+if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo systemctl enable kd-startup.service; then exitFailed; fi    
 
-cat > "/kloudust/system/000-start-nftables" <<EOF
+# Create NFT firewall auto-restart service
+sudo tee "/kloudust/system/000-start-nftables" > /dev/null <<EOF
 #!/bin/bash
-
 /usr/bin/systemctl restart nftables.service
 EOF
-
+if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /kloudust/system/000-start-nftables; then exitFailed; fi    
 
 printf "\n\nSetting up the host firewall, packet forwarding and ARP proxy support\n"
-if ! sudo nft flush ruleset; then exitFailed; fi                                          # start with a new firewall
+if ! sudo systemctl stop nftables; then exitFailed; fi                                    # Reboot will restart it
+if ! sudo nft flush ruleset; then exitFailed; fi                                          # This clears libvirt entries but reboot restores them apparently
 if ! sudo nft add table inet kdhostfirewall; then exitFailed; fi
-if ! sudo nft add chain inet kdhostfirewall input { type filter hook input priority filter\; policy drop\; }; then exitFailed; fi
+if ! sudo nft add chain inet kdhostfirewall input { type filter hook input priority filter\; }; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input iif lo accept; then exitFailed; fi
-if ! sudo nft add rule inet kdhostfirewall input iif $DEFAULT_KD_NET_BRIDGE accept; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input iifname $DEFAULT_KD_NET_BRIDGE accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
 if ! sudo nft rule inet kdhostfirewall input udp dport 8472 accept; then exitFailed; fi   # VxLAN port
+if ! sudo nft chain inet kdhostfirewall input { policy drop\; }; then exitFailed; fi
 if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
-if ! sudo systemctl enable --now nftables; then exitFailed; fi
-if ! sudo echo 1 > /proc/sys/net/ipv4/ip_forward; then exitFailed; fi
-if ! sudo printf "\nnet.ipv4.ip_forward=1\n" >> /etc/sysctl.conf; then exitFailed; fi
-if ! sudo echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp; then exitFailed; fi
-if ! sudo printf "\nnet.ipv4.conf.all.proxy_arp=1\n" >> /etc/sysctl.conf; then exitFailed; fi
+if ! sudo systemctl enable nftables; then exitFailed; fi                                  # Reboot will enforce the firewall
+# Setup IP forwarding and ARP forwarding support
+if ! echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward > /dev/null; then exitFailed; fi   
+if ! sudo grep -qxF 'net.ipv4.ip_forward=1' /etc/sysctl.conf; then
+    if ! printf "\nnet.ipv4.ip_forward=1\n" | sudo tee -a /etc/sysctl.conf > /dev/null; then exitFailed; fi
+fi
+if ! echo 1 | sudo tee /proc/sys/net/ipv4/conf/all/proxy_arp > /dev/null; then exitFailed; fi
+if ! sudo grep -qxF 'net.ipv4.conf.all.proxy_arp=1' /etc/sysctl.conf; then
+    if ! printf "\nnet.ipv4.conf.all.proxy_arp=1\n" | sudo tee -a /etc/sysctl.conf > /dev/null; then exitFailed; fi
+fi
 if ! sudo sysctl -p /etc/sysctl.conf; then exitFailed; fi
 
 
@@ -218,16 +225,12 @@ if [ -f "`which yum`" ]; then
 else
     if ! echo `whoami`:"$NEW_PASSWORD" | sudo chpasswd > /dev/null; then exitFailed; fi
 fi
-if ! sed -i 's/^#\?[ ]*[Pp]ort[ ]\+[0-9]\+[ ]*$//g' /etc/ssh/sshd_config; then exitFailed; fi
-if ! echo "Port $NEW_SSH_PORT" >> /etc/ssh/sshd_config; then exitFailed; fi
+if ! sudo sed -i 's/^#\?[ ]*[Pp]ort[ ]\+[0-9]\+[ ]*$//g' /etc/ssh/sshd_config; then exitFailed; fi
+if ! echo "Port $NEW_SSH_PORT" | sudo tee -a /etc/ssh/sshd_config > /dev/null; then exitFailed; fi
 if ! touch ~/.hushlogin; then exitFailed; fi
 if ! sudo systemctl daemon-reload; then exitFailed; fi
-if [ -f "`which yum`" ]; then 
-    if ! sudo systemctl restart sshd; then exitFailed; fi
-else 
-    if ! sudo systemctl restart ssh; then exitFailed; fi
-fi
 
-printf "\n\nHost initialization finished successfully, reboot needed\n"
+printf "\n\nHost initialization finished successfully. Rebooting in 1 minutes.\n"
 printConfig $JSONOUT_SPLITTER
+sudo nohup shutdown -r +1 &>/dev/null &     # Background reboot
 exit 0

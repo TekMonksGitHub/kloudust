@@ -9,10 +9,10 @@
 
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
-const deleteVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVMVnet.js`);
-const {xforge} = require(`${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/xforge`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
+const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
+const deleteVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVMVnet.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 const WILDCARD_IP_VTEP_HOSTNAME = "*";
@@ -53,7 +53,7 @@ module.exports.exec = async function(params) {
     // now unmap the given IP's route through the VxLAN bridge on the IP host vtep
     const xforgeArgsBridgeRoute = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         console: params.consoleHandlers,
         other: [
             hostInfoIPVtep.hostaddress, hostInfoIPVtep.rootid, hostInfoIPVtep.rootpw, hostInfoIPVtep.hostkey, hostInfoIPVtep.port,
@@ -70,7 +70,7 @@ module.exports.exec = async function(params) {
 
     const xforgeArgsVMIPCommand = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
-        file: `${KLOUD_CONSTANTS.LIBDIR}/3p/xforge/samples/remoteCmd.xf.js`,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
         console: params.consoleHandlers,
         other: [
             hostInfoVM.hostaddress, hostInfoVM.rootid, hostInfoVM.rootpw, hostInfoVM.hostkey, hostInfoVM.port,

@@ -6,8 +6,8 @@
  */
 
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
-const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
+const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 const createFirewallRuleset = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createFirewallRuleset.js`);
 
 /**
@@ -16,8 +16,10 @@ const createFirewallRuleset = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createFirew
  */
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
+    
     const [ruleset_name_raw] = params;
     if (!ruleset_name_raw) { params.consoleHandlers.LOGERROR("Missing ruleset name!"); return CMD_CONSTANTS.FALSE_RESULT(); }
+    
     const ruleset_name = createFirewallRuleset.resolveRulesetName(ruleset_name_raw);
     let ruleset = await dbAbstractor.getFirewallRuleset(ruleset_name);
     let err = "", out = ""; if (!ruleset) err = `Error loading ruleset ${ruleset_name_raw}`; else out = `Ruleset ${ruleset_name_raw} found`;

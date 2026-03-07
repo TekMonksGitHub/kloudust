@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+
+  <!-- Row 1 - filled/selected -->
+  <rect x="4" y="8" width="56" height="12" rx="2.5" fill="#03B3FF"/>
+
+  <!-- Row 2 - outline -->
+  <rect x="4" y="25" width="56" height="12" rx="2.5"
+        fill="none" stroke="#03B3FF" stroke-width="2" opacity="0.4"/>
+
+  <!-- Row 3 - outline -->
+  <rect x="4" y="42" width="56" height="12" rx="2.5"
+        fill="none" stroke="#03B3FF" stroke-width="2" opacity="0.4"/>
+
+  <!-- Cursor arrow - standard pointer, upright -->
+  <path d="M48 33 L48 50 L51 46 L54 52 L56 51 L53 45 L57 45 Z"
+        fill="#03B3FF" stroke="#03B3FF" stroke-width="0.8" stroke-linejoin="round"/>
+
+</svg>

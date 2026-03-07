@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+
+  <!-- Outer border -->
+  <rect x="2" y="2" width="60" height="60" rx="12"
+        fill="none" stroke="#03B3FF" stroke-width="2.5"/>
+
+  <!-- Top row: left=filled, right=outline -->
+  <rect x="10" y="11" width="22" height="12" rx="2.5"
+        fill="#03B3FF" stroke="#03B3FF" stroke-width="0"/>
+  <rect x="37" y="11" width="17" height="12" rx="2.5"
+        fill="none" stroke="#03B3FF" stroke-width="2"/>
+
+  <!-- Mid row: left=outline, center=filled, right=outline -->
+  <rect x="10" y="28" width="12" height="9" rx="2.5"
+        fill="none" stroke="#03B3FF" stroke-width="2"/>
+  <rect x="26" y="28" width="12" height="9" rx="2.5"
+        fill="#03B3FF" stroke="#03B3FF" stroke-width="0"/>
+  <rect x="42" y="28" width="12" height="9" rx="2.5"
+        fill="none" stroke="#03B3FF" stroke-width="2"/>
+
+  <!-- Bottom row: left=outline, right=filled -->
+  <rect x="10" y="42" width="17" height="11" rx="2.5"
+        fill="none" stroke="#03B3FF" stroke-width="2"/>
+  <rect x="32" y="42" width="22" height="11" rx="2.5"
+        fill="#03B3FF" stroke="#03B3FF" stroke-width="0"/>
+
+  <!-- Connector dot -->
+  <circle cx="32" cy="37" r="1.5" fill="#03B3FF" opacity="0.6"/>
+
+</svg>
