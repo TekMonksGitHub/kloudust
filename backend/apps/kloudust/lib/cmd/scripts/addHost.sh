@@ -165,9 +165,12 @@ sudo tee /kloudust/temp/$DEFAULT_KD_NET.xml > /dev/null <<EOF
 </network>
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
+sudo virsh net-destroy $DEFAULT_KD_NET &> /dev/null
+virsh net-undefine $DEFAULT_KD_NET &> /dev/null
 if ! sudo virsh net-define /kloudust/temp/$DEFAULT_KD_NET.xml; then exitFailed; fi
-if ! sudo virsh net-autostart $DEFAULT_KD_NET; then exitFailed; fi  # reboot will start it
+if ! sudo virsh net-autostart $DEFAULT_KD_NET; then exitFailed; fi  # reboot will start it  
 
+# Setup the run-parts KD service which starts our services and some basic services under it
 sudo tee "/usr/lib/systemd/system/kd-startup.service" > /dev/null <<EOF
 [Unit]
 Description=Run KD startup scripts on boot
@@ -189,9 +192,20 @@ if ! sudo systemctl enable kd-startup.service; then exitFailed; fi
 sudo tee "/kloudust/system/000-start-nftables" > /dev/null <<EOF
 #!/bin/bash
 /usr/bin/systemctl restart nftables.service
+systemctl restart libvirtd  # this sets up LIBVIRT iptabes
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /kloudust/system/000-start-nftables; then exitFailed; fi    
+
+# Create default network start service as virsh net-autostart is not reliable
+sudo tee "/kloudust/system/010-start-$DEFAULT_KD_NET-net" > /dev/null <<EOF
+#!/bin/bash
+VIRSH=\`command -v virsh\`
+\$VIRSH net-start $DEFAULT_KD_NET
+EOF
+if [ $? -ne 0 ]; then exitFailed; fi
+if ! sudo chmod +x /kloudust/system/010-start-$DEFAULT_KD_NET-net; then exitFailed; fi  
+
 
 printf "\n\nSetting up the host firewall, packet forwarding and ARP proxy support\n"
 if ! sudo systemctl stop nftables; then exitFailed; fi                                    # Reboot will restart it

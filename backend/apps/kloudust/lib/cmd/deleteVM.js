@@ -34,7 +34,7 @@ module.exports.exec = async function(params) {
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
     
-    const cleanupResult = await _cleanupVMResources(vm); if (!cleanupResult.result) return cleanupResult;
+    const cleanupResult = await _cleanupVMResources(vm, params); if (!cleanupResult.result) return cleanupResult;
     
     const hostInfo = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
@@ -65,7 +65,7 @@ exports.deleteVMFromHost = async function(vm_name, hostInfo, console) {
     return results;
 }
 
-async function _cleanupVMResources(vm) {
+async function _cleanupVMResources(vm, params) {
     const getVMVnetsParams = [vm.name_raw]; getVMVnetsParams.consoleHandlers = params.consoleHandlers;
     const vmVnets = await getVMVnets.exec(getVMVnetsParams);
 
@@ -102,4 +102,5 @@ async function _cleanupVMResources(vm) {
         const allIps = vm.ips.split(",").map(ip => ip.trim()); 
         for (const ip of allIps) await unassignIPToVM.exec([vm.name_raw, ip]);
     }
+    return CMD_CONSTANTS.TRUE_RESULT();
 }
