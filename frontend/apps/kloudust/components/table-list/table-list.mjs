@@ -33,11 +33,14 @@ const COMPONENT_PATH = $$.libutil.getModulePath(import.meta);
 
 async function elementConnected(host) {
     const tableDefinition = $$.libutil.base64ToString(host.dataset.tabledef);
-    const expandedData = await $$.librouter.expandPageData(tableDefinition, undefined, {mustache_start: "{{{", mustache_end: "}}}"});
+    const expandedData = await $$.librouter.expandPageData(tableDefinition, undefined, { mustache_start: "{{{", mustache_end: "}}}" });
     let tableObject = JSON.parse(expandedData);
     if (tableObject.style) tableObject.style = _getArrayAsJoinedString(tableObject.style);
     const tableData = await _runOnLoadJavascript(tableObject);
-    table_list.setDataByHost(host, {...tableObject, ...tableData});
+    table_list.setDataByHost(host, { ...tableObject, ...tableData });
+}
+async function elementRendered(host) {
+    _decorateCopyButtons(host);
 }
 
 async function close(element) {
@@ -52,21 +55,136 @@ async function hidePopup(event) {
 }
 
 async function rowClicked(event, rowdataJSON) {
-    const rowDataJSON = rowdataJSON?$$.libutil.base64ToString(rowdataJSON):undefined, rowData = JSON.parse(rowDataJSON||"{}");
+    const rowDataJSON = rowdataJSON ? $$.libutil.base64ToString(rowdataJSON) : undefined;
+    const rowData = JSON.parse(rowDataJSON || "{}");
+
+    await _copyCellValueIfConfigured(event, rowData);
     await _displayRowOnClickHTML(event, rowData);
     _runRowOnClickJavascript(event, rowData);
+}
+
+function _decorateCopyButtons(host) {
+    const tableObject = table_list.getDataByHost(host);
+    const copyColumns = tableObject.copy_on_click_columns || [];
+    if (!copyColumns.length || !Array.isArray(tableObject.keys)) return;
+
+    const shadowRoot = table_list.getShadowRootByHost(host);
+    for (const rowElement of shadowRoot.querySelectorAll("tbody tr")) {
+        let rowData = {};
+        try { rowData = JSON.parse($$.libutil.base64ToString(rowElement.getAttribute("data-rowjson") || "")); }
+        catch (_err) { continue; }
+
+        for (const key of copyColumns) {
+            const colIndex = tableObject.keys.indexOf(key);
+            const cell = colIndex >= 0 ? rowElement.cells[colIndex] : null;
+            if (!cell || cell.querySelector("button.copy-btn")) continue;
+            const copyText = _getCopyableText(rowData[key]);
+            if (!copyText) continue;
+            _buildCopyCell(cell, copyText);
+        }
+    }
+}
+
+function _buildCopyCell(cell, copyText) {
+    const visibleText = cell.textContent.trim();
+    cell.textContent = "";
+    cell.classList.add("copy-enabled");
+
+    const valueSpan = Object.assign(document.createElement("span"), { className: "copy-value", textContent: visibleText });
+
+    const copyButton = Object.assign(document.createElement("button"), {
+        type: "button", className: "copy-btn", title: "Copy", innerHTML: _copyIconSVG()
+    });
+    copyButton.setAttribute("aria-label", "Copy IP");
+    copyButton.addEventListener("click", async event => {
+        event.preventDefault(); event.stopPropagation();
+        await _copyToClipboard(copyText);
+        _showCopiedState(copyButton);
+    });
+
+    cell.append(valueSpan, copyButton);
+}
+
+function _getCopyableText(value) {
+    const text = (value ?? "").toString().trim();
+    if (!text) return "";
+    if (/^not assigned$/i.test(text)) return "";
+    if (/^no ips assigned$/i.test(text)) return "";
+    return text;
+}
+
+function _showCopiedState(button) {
+    button.classList.add("copied");
+    button.title = "Copied";
+    button.innerHTML = _checkIconSVG();
+
+    if (button.__copyTimer) clearTimeout(button.__copyTimer);
+    button.__copyTimer = setTimeout(() => {
+        button.classList.remove("copied");
+        button.title = "Copy";
+        button.innerHTML = _copyIconSVG();
+    }, 1200);
+}
+
+const _copyIconSVG = _ => `
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>`;
+
+const _checkIconSVG = _ => `
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="20 6 9 17 4 12"></polyline>
+</svg>`;
+
+async function _copyCellValueIfConfigured(event, rowData) {
+    const tableObject = table_list.getDataByContainedElement(event.target);
+    const copyColumns = tableObject.copy_on_click_columns || [];
+    if (!copyColumns.length || !Array.isArray(tableObject.keys)) return;
+
+    const targetElement = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const clickedCell = targetElement?.closest ? targetElement.closest("td") : null;
+    if (!clickedCell || clickedCell.cellIndex < 0) return;
+
+    const clickedKey = tableObject.keys[clickedCell.cellIndex];
+    if (!copyColumns.includes(clickedKey)) return;
+
+    const text = (rowData[clickedKey] ?? "").toString().trim();
+    if (!text || /^not assigned$/i.test(text) || /^no ips assigned$/i.test(text)) return;
+
+    await _copyToClipboard(text);
+}
+
+async function _copyToClipboard(text) {
+    try {
+        if (navigator?.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+    } catch (err) { }
+
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand("copy"); } finally { ta.remove(); }
 }
 
 async function _displayRowOnClickHTML(event, rowData) {
     const containedElement = event.target, host = table_list.getHostElement(containedElement);
     const data = table_list.getDataByHost(host); let onclickHTML = _getArrayAsJoinedString(data.onclickrow_html);
     if (onclickHTML == "") return; onclickHTML = (await $$.librouter.getMustache()).render(onclickHTML, rowData);
-    const wrapper = document.createElement("div"); wrapper.id="onclickrow_html"; wrapper.append(...$$.libutil.htmlToDOMNodes(onclickHTML));
+    const wrapper = document.createElement("div"); wrapper.id = "onclickrow_html"; wrapper.append(...$$.libutil.htmlToDOMNodes(onclickHTML));
 
     const shadowRoot = table_list.getShadowRootByContainedElement(containedElement);
     const divOnclick = shadowRoot.querySelector("div#onclick_html"), divHider = shadowRoot.querySelector("div#hider");
-    divOnclick.replaceChildren(wrapper); const emHeight = parseFloat(getComputedStyle(divOnclick).fontSize), popupEmHeight = 4*emHeight;
-    const yCalc = event.y+10+popupEmHeight >= window.innerHeight ? window.innerHeight - popupEmHeight + 5 : event.y+10; 
+    divOnclick.replaceChildren(wrapper); const emHeight = parseFloat(getComputedStyle(divOnclick).fontSize), popupEmHeight = 4 * emHeight;
+    const yCalc = event.y + 10 + popupEmHeight >= window.innerHeight ? window.innerHeight - popupEmHeight + 5 : event.y + 10;
     divOnclick.style.top = yCalc; divHider.classList.add("visible"); divOnclick.classList.add("visible");
 }
 
@@ -74,32 +192,36 @@ async function _runRowOnClickJavascript(event, rowData) {
     const tableObject = table_list.getDataByContainedElement(event.target);
     if (!tableObject.clickrow_javascript) return;
     const onclickjs = _getArrayAsJoinedString(tableObject.clickrow_javascript);
-    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+    const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
     await (new AsyncFunction(onclickjs))(rowData, tableObject);
 }
 
 async function _runOnLoadJavascript(tabledef) {
-    if (!tabledef.load_javascript) return tabledef.table||{};
+    if (!tabledef.load_javascript) return tabledef.table || {};
     const onloadjs = _getArrayAsJoinedString(tabledef.load_javascript);
 
-    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+    const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
     const load_js_result = await (new AsyncFunction(onloadjs))(tabledef);
     if (!load_js_result) {
         LOG.error(`Form load JS failed`);
         return {};
-    } 
+    }
+    const keys = Array.isArray(load_js_result.keys) ? load_js_result.keys : [];
+    const tableRows = Array.isArray(load_js_result.table) ? load_js_result.table : [];
 
-    const tableObject = {headers: [], rows: []};
-    for (const key of load_js_result.keys) 
+    const tableObject = { headers: [], rows: [], keys };
+    for (const key of load_js_result.keys)
         tableObject.headers.push(await $$.libi18n.get(`${tabledef.i18nPrefix}_${key}`));
-    for (const row of load_js_result.table) {
-        const rowData = []; for (const key of load_js_result.keys) rowData.push(row[key]||"");
-        rowData.rowdata_json_base64 = $$.libutil.stringToBase64(JSON.stringify(row)); tableObject.rows.push(rowData);
+    for (const row of tableRows) {
+        const rowData = [];
+        for (const key of keys) rowData.push(row[key] || "");
+        rowData.rowdata_json_base64 = $$.libutil.stringToBase64(JSON.stringify(row));
+        tableObject.rows.push(rowData);
     }
     return tableObject;
 }
 
-const _getArrayAsJoinedString = (array, skipEOLs) => array?(Array.isArray(array)?array:[array]).join(skipEOLs?"":"\n"):"";
+const _getArrayAsJoinedString = (array, skipEOLs) => array ? (Array.isArray(array) ? array : [array]).join(skipEOLs ? "" : "\n") : "";
 
-export const table_list = {trueWebComponentMode: true, elementConnected, close, rowClicked, hidePopup};
+export const table_list = { trueWebComponentMode: true, elementConnected, elementRendered, close, rowClicked, hidePopup };
 $$.libmonkshu_component.register("table-list", `${COMPONENT_PATH}/table-list.html`, table_list);

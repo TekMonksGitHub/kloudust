@@ -121,6 +121,47 @@ tbody tr:hover {
     background-color: #BC5205;
     color: #f3f3f3;
 }
+
+td.copy-enabled {
+        white-space: nowrap;
+        /* keeps IP + icon on one line */
+    }
+
+    td.copy-enabled .copy-btn {
+        margin-left: 0.35em;
+        /* spacing between value and icon */
+    }
+
+
+    span.copy-value {
+        display: inline-block;
+    }
+
+    button.copy-btn {
+        border: none;
+        background: transparent;
+        color: #5a6b8b;
+        cursor: pointer;
+        padding: 0;
+        line-height: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    button.copy-btn svg {
+        width: 1em;
+        height: 1em;
+        display: block;
+    }
+
+    button.copy-btn:hover {
+        color: #2f4f84;
+    }
+
+    button.copy-btn.copied {
+        color: #2e7d32;
+    }
 </style>
 {{#style}}<style>{{{.}}}</style>{{/style}}
 
@@ -137,7 +178,8 @@ tbody tr:hover {
 
     <tbody>
     {{#rows}}
-    <tr onclick="monkshu_env.components['table-list'].rowClicked(event, '{{{rowdata_json_base64}}}')">
+     <tr data-rowjson="{{{rowdata_json_base64}}}"
+                    onclick="monkshu_env.components['table-list'].rowClicked(event, '{{{rowdata_json_base64}}}')">
     {{#.}}<td>{{.}}</td>{{/.}}
     </tr>
     {{/rows}}

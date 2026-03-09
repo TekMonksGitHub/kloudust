@@ -120,6 +120,7 @@
     "style": "div#tablebottombar{display: none;}",
 
     "i18nPrefix": "VMS",
+    "copy_on_click_columns": ["ips", "privateips"],
 
     "onclickrow_html": [
         "<style>div#onclick_html {background-color: #F8F8F8; width: auto;} div#close{display: none !important}</style>",
