@@ -40,7 +40,7 @@ async function elementConnected(host) {
     table_list.setDataByHost(host, { ...tableObject, ...tableData });
 }
 async function elementRendered(host) {
-    _decorateCopyButtons(host);
+    _decorateCopyableCells(host);
 }
 
 async function close(element) {
@@ -58,103 +58,46 @@ async function rowClicked(event, rowdataJSON) {
     const rowDataJSON = rowdataJSON ? $$.libutil.base64ToString(rowdataJSON) : undefined;
     const rowData = JSON.parse(rowDataJSON || "{}");
 
-    await _copyCellValueIfConfigured(event, rowData);
     await _displayRowOnClickHTML(event, rowData);
     _runRowOnClickJavascript(event, rowData);
 }
 
-function _decorateCopyButtons(host) {
+function _decorateCopyableCells(host) {
     const tableObject = table_list.getDataByHost(host);
-    const copyColumns = tableObject.copy_on_click_columns || [];
-    if (!copyColumns.length || !Array.isArray(tableObject.keys)) return;
+
+    if (!tableObject.enable_copy) return;
 
     const shadowRoot = table_list.getShadowRootByHost(host);
+
     for (const rowElement of shadowRoot.querySelectorAll("tbody tr")) {
         let rowData = {};
         try { rowData = JSON.parse($$.libutil.base64ToString(rowElement.getAttribute("data-rowjson") || "")); }
         catch (_err) { continue; }
 
-        for (const key of copyColumns) {
-            const colIndex = tableObject.keys.indexOf(key);
-            const cell = colIndex >= 0 ? rowElement.cells[colIndex] : null;
-            if (!cell || cell.querySelector("button.copy-btn")) continue;
-            const copyText = _getCopyableText(rowData[key]);
-            if (!copyText) continue;
-            _buildCopyCell(cell, copyText);
+        for (const cell of rowElement.cells) {
+            if (cell.classList.contains("copyable")) continue;
+
+            const key = Array.isArray(tableObject.keys) ? tableObject.keys[cell.cellIndex] : null;
+            const value = (key && rowData[key] !== undefined)
+                ? String(rowData[key]).trim()
+                : cell.textContent.trim();
+
+            // if (!value || /^not assigned$/i.test(value) || /^no ips assigned$/i.test(value)) continue;
+
+            cell.classList.add("copyable");
+            cell.dataset.tooltip = "Click to copy";
+
+            cell.addEventListener("click", async (event) => {
+                event.stopPropagation();
+                await _copyToClipboard(value);
+                cell.dataset.tooltip = "Copied!";
+                clearTimeout(cell.__copyTimer);
+                cell.__copyTimer = setTimeout(() => {
+                    cell.dataset.tooltip = "Click to copy";
+                }, 1200);
+            });
         }
     }
-}
-
-function _buildCopyCell(cell, copyText) {
-    const visibleText = cell.textContent.trim();
-    cell.textContent = "";
-    cell.classList.add("copy-enabled");
-
-    const valueSpan = Object.assign(document.createElement("span"), { className: "copy-value", textContent: visibleText });
-
-    const copyButton = Object.assign(document.createElement("button"), {
-        type: "button", className: "copy-btn", title: "Copy", innerHTML: _copyIconSVG()
-    });
-    copyButton.setAttribute("aria-label", "Copy IP");
-    copyButton.addEventListener("click", async event => {
-        event.preventDefault(); event.stopPropagation();
-        await _copyToClipboard(copyText);
-        _showCopiedState(copyButton);
-    });
-
-    cell.append(valueSpan, copyButton);
-}
-
-function _getCopyableText(value) {
-    const text = (value ?? "").toString().trim();
-    if (!text) return "";
-    if (/^not assigned$/i.test(text)) return "";
-    if (/^no ips assigned$/i.test(text)) return "";
-    return text;
-}
-
-function _showCopiedState(button) {
-    button.classList.add("copied");
-    button.title = "Copied";
-    button.innerHTML = _checkIconSVG();
-
-    if (button.__copyTimer) clearTimeout(button.__copyTimer);
-    button.__copyTimer = setTimeout(() => {
-        button.classList.remove("copied");
-        button.title = "Copy";
-        button.innerHTML = _copyIconSVG();
-    }, 1200);
-}
-
-const _copyIconSVG = _ => `
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <rect x="9" y="9" width="13" height="13" rx="2"></rect>
-    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-</svg>`;
-
-const _checkIconSVG = _ => `
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <polyline points="20 6 9 17 4 12"></polyline>
-</svg>`;
-
-async function _copyCellValueIfConfigured(event, rowData) {
-    const tableObject = table_list.getDataByContainedElement(event.target);
-    const copyColumns = tableObject.copy_on_click_columns || [];
-    if (!copyColumns.length || !Array.isArray(tableObject.keys)) return;
-
-    const targetElement = event.target instanceof Element ? event.target : event.target?.parentElement;
-    const clickedCell = targetElement?.closest ? targetElement.closest("td") : null;
-    if (!clickedCell || clickedCell.cellIndex < 0) return;
-
-    const clickedKey = tableObject.keys[clickedCell.cellIndex];
-    if (!copyColumns.includes(clickedKey)) return;
-
-    const text = (rowData[clickedKey] ?? "").toString().trim();
-    if (!text || /^not assigned$/i.test(text) || /^no ips assigned$/i.test(text)) return;
-
-    await _copyToClipboard(text);
 }
 
 async function _copyToClipboard(text) {

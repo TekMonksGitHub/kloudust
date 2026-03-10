@@ -122,46 +122,26 @@ tbody tr:hover {
     color: #f3f3f3;
 }
 
-td.copy-enabled {
-        white-space: nowrap;
-        /* keeps IP + icon on one line */
-    }
+td.copyable {
+    cursor: copy;
+    position: relative;
+}
 
-    td.copy-enabled .copy-btn {
-        margin-left: 0.35em;
-        /* spacing between value and icon */
-    }
+td.copyable:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 0;
+    top: -1.8em;
+    background: #333;
+    color: #fff;
+    padding: 2px 6px;
+    font-size: 0.75em;
+    border-radius: 3px;
+    white-space: nowrap;
+    z-index: 5;
+    pointer-events: none;
+}
 
-
-    span.copy-value {
-        display: inline-block;
-    }
-
-    button.copy-btn {
-        border: none;
-        background: transparent;
-        color: #5a6b8b;
-        cursor: pointer;
-        padding: 0;
-        line-height: 0;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    button.copy-btn svg {
-        width: 1em;
-        height: 1em;
-        display: block;
-    }
-
-    button.copy-btn:hover {
-        color: #2f4f84;
-    }
-
-    button.copy-btn.copied {
-        color: #2e7d32;
-    }
 </style>
 {{#style}}<style>{{{.}}}</style>{{/style}}
 
