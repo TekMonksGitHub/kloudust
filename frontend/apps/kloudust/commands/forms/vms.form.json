@@ -121,6 +121,8 @@
 
     "i18nPrefix": "VMS",
 
+    "enable_copy": true,
+
     "onclickrow_html": [
         "<style>div#onclick_html {background-color: #F8F8F8; width: auto;} div#close{display: none !important}</style>",
         "<style>div#onclickrow_html {height: fit-content;} div#body{background-color: #F8F8F8 !important}</style>",
