@@ -121,6 +121,41 @@ tbody tr:hover {
     background-color: #BC5205;
     color: #f3f3f3;
 }
+
+tbody.copy-enabled td {
+        cursor: copy;
+        position: relative;
+}
+
+tbody.copy-enabled td:hover::after {
+        content: 'Click to copy';
+        position: absolute;
+        top: -1.8em;
+        left: 0;
+        background: #333;
+        color: #fff;
+        font-size: 0.75em;
+        padding: 2px 6px;
+        border-radius: 3px;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 5;
+}
+
+td[data-copied="true"]::after {
+        content: "Copied!";
+        position: absolute;
+        left: 0;
+        top: -1.8em;
+        background: #333;
+        color: #fff;
+        padding: 2px 6px;
+        font-size: 0.75em;
+        border-radius: 3px;
+        white-space: nowrap;
+        z-index: 5;
+        pointer-events: none;
+} 
 </style>
 {{#style}}<style>{{{.}}}</style>{{/style}}
 
@@ -135,7 +170,7 @@ tbody tr:hover {
     </tr>
     </thead>
 
-    <tbody>
+    <tbody {{#enable_copy}} class="copy-enabled" onclick="const el=(event.target&&event.target.nodeType===3)?event.target.parentElement:event.target;  const td=el&&el.closest?el.closest('td'):null; if(td){ const text=(td.textContent||'').trim();  if(text){ $$.copyTextToClipboard(text); td.dataset.copied='true'; clearTimeout(td.__t); td.__t=setTimeout(()=>delete td.dataset.copied,1200); } }" {{/enable_copy}}>
     {{#rows}}
     <tr onclick="monkshu_env.components['table-list'].rowClicked(event, '{{{rowdata_json_base64}}}')">
     {{#.}}<td>{{.}}</td>{{/.}}
