@@ -1,0 +1,77 @@
+{
+"id": "addip",
+"command": "addHostIP",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["ip", "hostname", "reserved"],
+
+"title": "{{{i18n.IPAddTitle}}}",
+
+"i18n": {
+    "en": {
+        "IPAddTitle": "Add IP",
+        "IPAddDescription": "Add new IPs routable via host.",
+        "IP": "IP or IP block in CIDR notation",
+        "IPAddHostname": "Routable hostname",
+        "IPAddReserved": "Reserve network, gateway and broadcast IPs?",
+        "FieldValidationErrorGeneric": "Validation error",
+        "IPAddSubmitLabel": "Add",
+        "Advanced": "Optional",
+        "Required": "Required"
+    },
+    "hi": {
+        "IPAddTitle": "Add IP",
+        "IPAddDescription": "Add new IPs routable via host.",
+        "IP": "IP or IP block in CIDR notation",
+        "IPAddHostname": "Routable hostname",
+        "IPAddReserved": "Reserve network, gateway and broadcast IPs?",
+        "FieldValidationErrorGeneric": "Validation error",
+        "IPAddSubmitLabel": "Add",
+        "Advanced": "Optional",
+        "Required": "Required"
+    },
+    "ja": {
+        "IPAddTitle": "Add IP",
+        "IPAddDescription": "Add new IPs routable via host.",
+        "IP": "IP or IP block in CIDR notation",
+        "IPAddHostname": "Routable hostname",
+        "IPAddReserved": "Reserve network, gateway and broadcast IPs?",
+        "FieldValidationErrorGeneric": "Validation error",
+        "IPAddSubmitLabel": "Add",
+        "Advanced": "Optional",
+        "Required": "Required" 
+    },
+    "zh": {
+        "IPAddTitle": "Add IP",
+        "IPAddDescription": "Add new IPs routable via host.",
+        "IP": "IP or IP block in CIDR notation",
+        "IPAddHostname": "Routable hostname",
+        "IPAddReserved": "Reserve network, gateway and broadcast IPs?",
+        "FieldValidationErrorGeneric": "Validation error",
+        "IPAddSubmitLabel": "Add",
+        "Advanced": "Optional",
+        "Required": "Required"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.IPAddDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "ip", "type": "text", "placeholder": "{{{i18n.IP}}}", "required": true, 
+        "pattern":"^((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(\\/([0-9]|[12]\\d|3[0-2]))?$", 
+        "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "hostname", "type": "text", "pattern":"\\s*[A-Za-z0-9]+\\s*", 
+        "placeholder": "{{{i18n.IPAddHostname}}}"}
+    ],
+
+    "optional_label": "{{{i18n.Advanced}}}",
+    "optional_fields": [
+    {"id": "reserved", "multioption": true, "type": "select", "label": "{{{i18n.IPAddReserved}}}", 
+    "options":[{"value":"false", "label":"No"}, {"value":"true", "label":"Yes"}]}
+    ],
+
+    "submitlabel": "{{{i18n.IPAddSubmitLabel}}}"
+}
+
+}

@@ -39,11 +39,11 @@ module.exports.exec = async function(params) {
 
     if(vm.ips.trim().length !== 0) {params.consoleHandlers.LOGERROR("VM already has a public ip assigned to it!"); return CMD_CONSTANTS.FALSE_RESULT();}
     
-    let ip_to_assign = await dbAbstractor.getAssignableIPs(vm.hostname);
-    if(ip_to_assign.length == 0) ip_to_assign = await dbAbstractor.getAssignableIPs();
-    if(ip_to_assign.length == 0) { params.consoleHandlers.LOGERROR("Could not find any assignable IPs"); return CMD_CONSTANTS.FALSE_RESULT(); }
+    let ipObject = await dbAbstractor.getAssignableIP(vm.hostname);
+    if(!ipObject) ipObject = await dbAbstractor.getAssignableIP();
+    if(!ipObject) { params.consoleHandlers.LOGERROR("Could not find any assignable IPs"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
-    let ip = ip_to_assign[0].ip;
+    const ip = ipObject.ip;
     // resolve the two hostinfos - for VM and for IP termination host
     const hostInfoVM = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfoVM) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}

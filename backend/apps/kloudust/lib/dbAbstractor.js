@@ -990,32 +990,6 @@ exports.deleteVnetResource = async (vnet_id, type, project=KLOUD_CONSTANTS.env.p
     exports.deleteRelationship(`${org}_${project}_${vnet_id}`, type)
 
 /**
- * Returns the terminating hostname for the given IP
- * @param {string} ip The IP
- * @param {boolean} for_allocation If true only return if it is not allocated already
- * @returns The terminating hostname for the given IP
- */
-exports.getHostForIP = async function(ip, for_allocation) {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
-    
-    const query = for_allocation?"select hostname from ip where ip=? and allocatedto=''":"select hostname from ip where ip=?";
-    const results = await _db().getQuery(query, [ip]);
-    return results[0]?.hostname;
-}
-
-/**
- * Returns the the list of available ips that can be assigned to vms
- * @returns The the list of available ips that can be assigned to vms
- */
-exports.getAssignableIPs = async function(hostname) {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
-    const query = hostname ? "select ip from ip where allocatedto = '' and hostname = ? limit 1" : "select ip from ip where allocatedto = '' limit 1";
-    const params = hostname ? [hostname] : [];
-    const results = await _db().getQuery(query, params);
-    return results;
-}
-
-/**
  * Returns the rulesets for an org and project.
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment
@@ -1099,12 +1073,13 @@ exports.deleteFirewallRuleset = async (name, project = KLOUD_CONSTANTS.env.prj()
  * Adds the IP to the given Host. Which can later be allocated to VMs.
  * @param {string} ip The IP to add
  * @param {string} hostname The hostname where this IP is routed to.
+ * @param {string} allocatedto Optional: The resource this IP is allocated to
  * @returns true on success, false on failure
  */
-exports.addHostIP = async function(ip, hostname) {
+exports.addHostIP = async function(ip, hostname, allocatedto="") {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {_logUnauthorized(); return false;}
     
-    const cmd = "insert into ip(ip,hostname) values(?,?)", params =  [ip,hostname];
+    const cmd = "insert into ip (ip, hostname, allocatedto) values(?,?,?)", params =  [ip, hostname, allocatedto];
     const insertResult = await _db().runCmd(cmd, params);
     return insertResult;
 }
@@ -1130,6 +1105,34 @@ exports.allocateIP = async function(ip, resource_allocated_to) {
  * @returns true on success, false on failure
  */
 exports.unallocateIP = async ip => exports.allocateIP(ip);
+
+/**
+ * Returns the terminating hostname for the given IP
+ * @param {string} ip The IP
+ * @param {boolean} for_allocation If true only return if it is not allocated already
+ * @returns The terminating hostname for the given IP
+ */
+exports.getHostForIP = async function(ip, for_allocation) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    
+    const query = for_allocation ? "select hostname from ip where ip=? and allocatedto=''" :
+        "select hostname from ip where ip=?";
+    const results = await _db().getQuery(query, [ip]);
+    return results[0]?.hostname;
+}
+
+/**
+ * Returns an IP that can be assigned to vms
+ * @returns An IP that can be assigned to vms
+ */
+exports.getAssignableIP = async function(hostname) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const query = hostname ? "select ip from ip where allocatedto = '' and hostname = ? limit 1" : 
+        "select ip from ip where allocatedto = '' limit 1";
+    const params = hostname ? [hostname] : [];
+    const results = await _db().getQuery(query, params);
+    return results?.[0];
+}
 
 /**
  * Runs the given SQL on the DB blindly. Must be very careful. Only cloud admins can run this.

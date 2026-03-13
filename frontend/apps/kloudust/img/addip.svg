@@ -1,0 +1,20 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+  <defs>
+    <linearGradient id="card-fill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E6F1FB"/>
+      <stop offset="100%" stop-color="#B5D4F4"/>
+    </linearGradient>
+    <linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#B5D4F4"/>
+      <stop offset="100%" stop-color="#85B7EB"/>
+    </linearGradient>
+    <clipPath id="inner-clip">
+      <rect x="8" y="47" width="65" height="65" rx="7"/>
+    </clipPath>
+  </defs>
+  <rect x="25" y="38" width="80" height="80" rx="10" fill="url(#card-fill)" stroke="#378ADD" stroke-width="4.4"/>
+  <ellipse cx="108" cy="117" rx="20" ry="38" fill="url(#accent-fill)" opacity="0.7" clip-path="url(#inner-clip)"/>
+  <text x="50" y="87" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="30" fill="#185FA5">IP</text>
+  <line x1="105" y1="0"  x2="105" y2="28" stroke="#22bb55" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="91" y1="14" x2="122" y2="14" stroke="#22bb55" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

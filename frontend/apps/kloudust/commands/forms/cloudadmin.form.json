@@ -6,6 +6,7 @@
 "rolelist": {
 "cloudadmin": [
     {"id": "addhost", "label": "{{{i18n.AddHost}}}", "logo": "img/addhost.svg"},
+    {"id": "addip", "label": "{{{i18n.AddIP}}}", "logo": "img/addip.svg"},
     {"id": "addimage", "label": "{{{i18n.AddImage}}}", "logo": "img/addimage.svg"},
     {"id": "deleteimage", "label": "{{{i18n.DeleteImage}}}", "logo": "img/deleteimage.svg"},
     {"id": "livemigrate", "label": "{{{i18n.LiveMigrate}}}", "logo": "img/migratevm.svg"},
@@ -16,6 +17,7 @@
 "i18n": {
 "en": {
     "AddHost": "Add host",
+    "AddIP": "Add ip",
     "AddImage": "Add image",
     "DeleteImage": "Delete image",
     "LiveMigrate": "Live migrate",
@@ -24,6 +26,7 @@
 
 "hi": {
     "AddHost": "Add host",
+    "AddIP": "Add ip",
     "AddImage": "Add image",
     "DeleteImage": "Delete image",
     "LiveMigrate": "Live migrate",
@@ -32,6 +35,7 @@
 
 "ja": {
     "AddHost": "Add host",
+    "AddIP": "Add ip",
     "AddImage": "Add image",
     "DeleteImage": "Delete image",
     "LiveMigrate": "Live migrate",
@@ -40,6 +44,7 @@
 
 "zh": {
     "AddHost": "Add host",
+    "AddIP": "Add ip",
     "AddImage": "Add image",
     "DeleteImage": "Delete image",
     "LiveMigrate": "Live migrate",
