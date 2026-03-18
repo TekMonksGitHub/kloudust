@@ -46,7 +46,7 @@ exports.xforge = async function(xforge_args) {
 
 exports.getAgentConfig = function(host, user, new_password, new_sshport) {
     let pyshellPort = parseInt(new_sshport)+PYSHELL_PORT_INCREMENT;
-    if (pyshellPort > 64998) pyshellPort = parseInt(new_sshport)-PYSHELL_PORT_INCREMENT;
+    if (pyshellPort > 64998) pyshellPort = parseInt(new_sshport)+PYSHELL_PORT_INCREMENT;
     return {
         host, port: pyshellPort, poll_frequency: PYSHELL_POLL_FREQUENCY, timeout: PYSHELL_PROCESS_TIMEOUT, apiurl: `http://${host}:${pyshellPort}`,
         aeskey: (user + new_password + (user.length + new_password.length < 30 ? new Array(30 - user.length + new_password.length).fill(0).join('') : '')), 
