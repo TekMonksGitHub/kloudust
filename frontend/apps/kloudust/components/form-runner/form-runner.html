@@ -180,7 +180,7 @@ span#submit {
 
 {{#multioption}}
 <label for="{{id}}">{{label}}</label>
-<select id="{{id}}" name="{{id}}" {{#style}}style="{{{.}}}"{{/style}}>
+<select id="{{id}}" name="{{id}}" {{#disabled}}disabled="{{.}}"{{/disabled}} {{#style}}style="{{{.}}}"{{/style}}>
     {{#options}}
     <option value="{{value}}">{{label}}</option>
     {{/options}}
@@ -206,7 +206,7 @@ span#submit {
 
 {{#multioption}}
 <label for="{{id}}">{{label}}</label>
-<select id="{{id}}" name="{{id}}" data-optional="true" {{#style}}style="{{{.}}}"{{/style}}>
+<select id="{{id}}" name="{{id}}" data-optional="true" {{#disabled}}disabled="{{.}}"{{/disabled}} {{#style}}style="{{{.}}}"{{/style}}>
     {{#options}}
     <option value="{{value}}">{{label}}</option>
     {{/options}}
