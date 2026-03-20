@@ -207,6 +207,17 @@ if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /kloudust/system/010-start-$DEFAULT_KD_NET-net; then exitFailed; fi  
 
 
+printf "\n\nSetting up Bridge Netfilter kernel module for virtual machine firewall support\n"
+if ! echo "br_netfilter" | sudo tee /etc/modules-load.d/br_netfilter.conf > /dev/null; then exitFailed; fi
+if ! sudo modprobe br_netfilter; then exitFailed; fi
+sudo tee "/etc/sysctl.d/99-bridge-nf.conf" > /dev/null <<EOF
+net.bridge.bridge-nf-call-iptables=1
+net.bridge.bridge-nf-call-ip6tables=1
+EOF
+if [ $? -ne 0 ]; then exitFailed; fi
+if ! sudo sysctl -p /etc/sysctl.d/99-bridge-nf.conf > /dev/null; then exitFailed; fi
+
+
 printf "\n\nSetting up the host firewall, packet forwarding and ARP proxy support\n"
 if ! sudo systemctl stop nftables; then exitFailed; fi                                    # Reboot will restart it
 if ! sudo nft flush ruleset; then exitFailed; fi                                          # This clears libvirt entries but reboot restores them apparently
@@ -219,7 +230,7 @@ if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept;
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
 if ! sudo nft rule inet kdhostfirewall input udp dport 8472 accept; then exitFailed; fi   # VxLAN port
 if ! sudo nft chain inet kdhostfirewall input { policy drop\; }; then exitFailed; fi
-if ! sudo nft list ruleset > /etc/nftables.conf; then exitFailed; fi 
+if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 
 if ! sudo systemctl enable nftables; then exitFailed; fi                                  # Reboot will enforce the firewall
 # Setup IP forwarding and ARP forwarding support
 if ! echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward > /dev/null; then exitFailed; fi   

@@ -31,6 +31,13 @@
 
 const COMPONENT_PATH = $$.libutil.getModulePath(import.meta);
 
+const i18n = {
+    "en": {ClickToCopy: "Shift+click to copy", Copied: "Copied"},
+    "hi": {ClickToCopy: "Shift+click to copy", Copied: "Copied"},
+    "ja": {ClickToCopy: "Shift+click to copy", Copied: "Copied"},
+    "zh": {ClickToCopy: "Shift+click to copy", Copied: "Copied"}
+}
+
 async function elementConnected(host) {
     const tableDefinition = $$.libutil.base64ToString(host.dataset.tabledef);
     const expandedData = await $$.librouter.expandPageData(tableDefinition, undefined, {mustache_start: "{{{", mustache_end: "}}}"});
@@ -38,6 +45,7 @@ async function elementConnected(host) {
     if (tableObject.style) tableObject.style = _getArrayAsJoinedString(tableObject.style);
     const tableData = await _runOnLoadJavascript(tableObject);
     table_list.setDataByHost(host, {...tableObject, ...tableData});
+    for (const lang of Object.keys(i18n)) await $$.libi18n.setI18NObject(lang, i18n[lang]);
 }
 
 async function close(element) {

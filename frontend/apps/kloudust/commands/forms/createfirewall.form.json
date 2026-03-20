@@ -10,6 +10,7 @@
     "en": {
         "FirewallTitle": "Firewall Ruleset",
         "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+        "FirewallRulesetDescription": "Description",
         "FirewallName": "Name",
         "FieldValidationErrorGeneric": "Validation error",
         "FirewallSubmitLabel": "Save"
@@ -17,6 +18,7 @@
     "hi": {
         "FirewallTitle": "Firewall Ruleset",
         "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+        "FirewallRulesetDescription": "Description",
         "FirewallName": "नाम",
         "FieldValidationErrorGeneric": "Validation error",
         "FirewallSubmitLabel": "Save"
@@ -24,6 +26,7 @@
     "ja": {
         "FirewallTitle": "Firewall Ruleset",
         "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+        "FirewallRulesetDescription": "Description",
         "FirewallName": "名",
         "FieldValidationErrorGeneric": "Validation error",
         "FirewallSubmitLabel": "Save"
@@ -31,6 +34,7 @@
     "zh": {
         "FirewallTitle": "Firewall Ruleset",
         "FirewallDescription": "Create a firewall ruleset. A firewall ruleset is comparable to physical firewalls and safeguards the assets in a virtual network. Complete the required fields and then review + create to create a new firewall ruleset.",
+        "FirewallRulesetDescription": "Description",
         "FirewallName": "姓名",
         "FieldValidationErrorGeneric": "Validation error",
         "FirewallSubmitLabel": "Save"
@@ -44,7 +48,7 @@
     "required_fields": [
     {"id": "firewall_name", "type": "text", "placeholder": "{{{i18n.FirewallName}}}", "required": true, 
         "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
-    {"id": "firewall_description", "type": "text", "placeholder": "{{{i18n.FirewallDescription}}}"},
+    {"id": "firewall_description", "type": "text", "placeholder": "{{{i18n.FirewallRulesetDescription}}}"},
     {"id": "firewall_settings", "type": "hidden", "value":"[]"},
     {"id": "firewallRulesComponent", "inputtype": "firewall-rules", 
         "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}

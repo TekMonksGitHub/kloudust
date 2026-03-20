@@ -1,10 +1,10 @@
 /**
- * applyFirewallRuleset.js – applies a firewall ruleset to a vm's vnet
+ * removeFirewallRuleset.js – Removes a firewall ruleset to a vm's vnet
  *
  * Params:
  *  0 - vm_name
  *  1 - ruleset_name
- *  2 - vnet_name
+ *  2 - vnet_name: Optional - if not provided then Internet backbone Vnet is assumed
  *
  * (C) 2026 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
@@ -16,7 +16,6 @@ const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
-
 const createFirewallRuleset = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createFirewallRuleset.js`);
 
 module.exports.exec = async function(params) {
@@ -25,7 +24,6 @@ module.exports.exec = async function(params) {
     const [vm_name_raw, ruleset_name_raw, vnet_name_raw_in] = params;
     if (!vm_name_raw || !ruleset_name_raw) { params.consoleHandlers.LOGERROR("Missing VM name or ruleset name"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
-    const ip_type = vnet_name_raw_in === "" ? "public" : "private";  // if we do not receive an explicit vnet name, we assume the user wants to apply the ruleset to the public IP of the VM, if it has one
     const vm_name = createVM.resolveVMName(vm_name_raw);
     const ruleset_name = createFirewallRuleset.resolveRulesetName(ruleset_name_raw);
     const vnet_name_raw = vnet_name_raw_in || createVnet.getInternetBackboneVnet();
@@ -44,33 +42,27 @@ module.exports.exec = async function(params) {
     const vm_vnet_rulesets = await dbAbstractor.getVMVnetFirewall(vm.name, vnet.name);
     if (!vm_vnet_rulesets.includes(ruleset.id)) { params.consoleHandlers.LOGERROR(`Vnet ${vnet.name} of VM ${vm.name} does not have firewall ${ruleset.name} applied to it!`); return CMD_CONSTANTS.FALSE_RESULT(); }
 
-    const public_ip = vm.ips.trim();
-    if (!public_ip && ip_type === "public") { params.consoleHandlers.LOGERROR("VM has no public IP"); return CMD_CONSTANTS.FALSE_RESULT(); }
-
-    const public_ip_host = ip_type === "public" ? await dbAbstractor.getHostEntry(await dbAbstractor.getHostForIP(public_ip)) : null;
-    if (ip_type === "public" && !public_ip_host) { params.consoleHandlers.LOGERROR("Host info not found for VM public IP"); return CMD_CONSTANTS.FALSE_RESULT(); }
-
-    const vm_host = ip_type === "private" ? await dbAbstractor.getHostEntry(vm.hostname) : null;
-    if (ip_type === "private" && !vm_host) { params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT(); }
-
-    const [args, host] = ip_type === "public" ? [["public", public_ip, vm.name, ruleset.name], public_ip_host] : [["private", vnet.vnetnum, vm.name, ruleset.name], vm_host];
+    const host = await dbAbstractor.getHostEntry(vm.hostname);
+    if (!host) { params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
     const xforgeArgsRemoveRuleset = { 
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
         file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`, 
         console: params.consoleHandlers,
-        other: [host.hostaddress, host.rootid, host.rootpw, host.hostkey, host.port, 
-            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/removeFirewallRuleset.sh`, ...args] 
-        };
+        other: [
+            host.hostaddress, host.rootid, host.rootpw, host.hostkey, host.port, 
+            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/removeFirewallRuleset.sh`,
+            vnet.vnetnum, vm.name, ruleset.name
+        ] 
+    };
     
-    const remove_result = await xforge(xforgeArgsRemoveRuleset);
-    if (!remove_result.result) { params.consoleHandlers.LOGERROR(`Firewall ruleset ${ruleset.name} could not be removed from ${vnet.name} of VM ${vm_name_raw}`); return {...remove_result, ...CMD_CONSTANTS.FALSE_RESULT()}; }
+    const results = await xforge(xforgeArgsRemoveRuleset);
+    if (!results.result) params.consoleHandlers.LOGERROR(`Firewall ruleset ${ruleset.name} could not be removed from ${vnet.name} for VM ${vm_name_raw}`);
+    else {
+        const deleteResult = await dbAbstractor.removeVMVnetFirewall(vm.name, vnet.name, ruleset.name);
+        if (!deleteResult) { params.consoleHandlers.LOGERROR("DB delete failed!"); return {...results, ...CMD_CONSTANTS.FALSE_RESULT()}; }
+        else params.consoleHandlers.LOGINFO(`Firewall ruleset ${ruleset.name} was removed from Vnet ${vnet.name} for VM ${vm_name_raw}`);
+    }
     
-    const deleteResult = await dbAbstractor.removeVMVnetFirewall(vm.name, vnet.name, ruleset.name);
-    if (!deleteResult) { params.consoleHandlers.LOGERROR("DB delete failed!"); return CMD_CONSTANTS.FALSE_RESULT(); }
-
-    params.consoleHandlers.LOGINFO(`Firewall ruleset ${ruleset.name} was removed from Vnet ${vnet.name} of VM ${vm_name_raw}`);
-    return {...remove_result, ...CMD_CONSTANTS.TRUE_RESULT()};
-};
-
-exports.resolveRulesetName = ruleset_name_raw => ruleset_name_raw ? `${ruleset_name_raw}_${KLOUD_CONSTANTS.env.org}_${KLOUD_CONSTANTS.env.prj}`.toLowerCase().replace(/\s/g,"_") : null;
+    return results;
+}
