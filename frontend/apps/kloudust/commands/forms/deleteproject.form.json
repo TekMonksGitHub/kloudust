@@ -13,6 +13,7 @@
             "ProjectName": "Project Name",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
+            "NoProjectsToDelete": "No projects to be deleted.",
             "DeleteProjectSubmitLabel": "Delete"
         },
         "hi": {
@@ -21,6 +22,7 @@
             "ProjectName": "Project Name",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
+            "NoProjectsToDelete": "No projects to be deleted.",
             "DeleteProjectSubmitLabel": "Delete"
         },
         "ja": {
@@ -29,6 +31,7 @@
             "ProjectName": "Project Name",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
+            "NoProjectsToDelete": "No projects to be deleted.",
             "DeleteProjectSubmitLabel": "Delete"
         },
         "zh": {
@@ -37,6 +40,7 @@
             "ProjectName": "Project Name",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
+            "NoProjectsToDelete": "No projects to be deleted.",
             "DeleteProjectSubmitLabel": "Delete"
         }
     },
@@ -62,9 +66,15 @@
             "   const projects = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
             "   cmd: `getUserProjects`}, true);",
             "   if(projects.result){",
-            "       for(const project of projects.projects) {",
-            "           const projectlist = form.required_fields[form.required_fields.length-1];",
-            "          projectlist.options.push({value: project.name, label: project.name});",
+            "       const projectlist = form.required_fields[form.required_fields.length-1];",
+            "       const filteredProjects = projects.projects.filter(prj => prj.name !== APP_CONSTANTS.DEFAULT_PROJECT);",
+            "       if(filteredProjects.length === 0) {",
+            "           projectlist.options.push({value: '', label: '{{{i18n.NoProjectsToDelete}}}'});",
+            "           projectlist.disabled = true;",
+            "       }else {",
+            "           for(const project of filteredProjects) {",
+            "              projectlist.options.push({value: project.name, label: project.name});",
+            "           }",
             "       }",
             "   }",
             "}",
