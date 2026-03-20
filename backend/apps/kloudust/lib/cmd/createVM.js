@@ -34,8 +34,8 @@ module.exports.exec = async function(params) {
         force_overwrite, max_cores_s, max_memory_s, additional_params, vmtype_raw, no_qemu_agent_raw, 
         network_name_raw, hostname] = [...params];
     const vm_name = exports.resolveVMName(vm_name_raw), cores = parseInt(cores_s), memory = parseInt(memory_s), disk = parseInt(disk_s), 
-        max_cores = parseInt(max_cores_s||cores_s) > cores ? parseInt(max_cores_s||cores_s) : cores * KLOUD_CONSTANTS.CONF.MAX_CORES_MULTIPLIER, 
-        max_memory = parseInt(max_memory_s||memory_s) > memory ? parseInt(max_memory_s||memory_s) : memory * KLOUD_CONSTANTS.CONF.MAX_MEMORY_MULTIPLIER,
+        max_cores = parseInt(max_cores_s||cores_s) > cores ? parseInt(max_cores_s||cores_s) : Math.min(cores * KLOUD_CONSTANTS.CONF.MAX_CORES_MULTIPLIER, KLOUD_CONSTANTS.CONF.VM_MAX_CORES), 
+        max_memory = parseInt(max_memory_s||memory_s) > memory ? parseInt(max_memory_s||memory_s) : Math.min(memory * KLOUD_CONSTANTS.CONF.MAX_MEMORY_MULTIPLIER, KLOUD_CONSTANTS.CONF.VM_MAX_MEMORY),
         no_qemu_agent = no_qemu_agent_raw?.toLowerCase() == "true" ? "true" : "false", vmtype = vmtype_raw||exports.VM_TYPE_VM,
         kvm_network_name = roleman.isCloudAdminLoggedIn() ? network_name_raw||vnet.KD_DEFAULT_HOST_NETWORK:vnet.KD_DEFAULT_HOST_NETWORK;
 
