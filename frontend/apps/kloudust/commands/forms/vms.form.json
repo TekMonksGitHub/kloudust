@@ -25,6 +25,7 @@
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
     "VMSResize": "Resize",
+    "VMSSnapshot": "Snapshot",
     "VMSExport": "Export"
 },
 
@@ -49,6 +50,7 @@
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
     "VMSResize": "Resize",
+    "VMSSnapshot": "Snapshot",
     "VMSExport": "Export"
 },
 
@@ -73,6 +75,7 @@
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
     "VMSResize": "Resize",
+    "VMSSnapshot": "Snapshot",
     "VMSExport": "Export"
 },
 
@@ -98,6 +101,7 @@
     "VMSDelete": "Delete",
     "VMSResize": "Resize",
     "VMSADDDISK": "Add Disk",
+    "VMSSnapshot": "Snapshot",
     "VMSExport": "Export"
 }
 },
@@ -112,6 +116,7 @@
             {"id": "poweropvm", "label": "{{{i18n.VMSPowerOpVM}}}", "logo": "img/poweropvm.svg"},
             {"id": "deletevm", "label": "{{{i18n.VMSDelete}}}", "logo": "img/deletevm.svg"},
             {"id": "resizevm", "label": "{{{i18n.VMSResize}}}", "logo": "img/resizevm.svg"},
+            {"id": "snapshotvm", "label": "{{{i18n.VMSSnapshot}}}", "logo": "img/snapshot.svg"},
             {"id": "exportvm", "label": "{{{i18n.VMSExport}}}", "logo": "img/exportvm.svg"}
         ]
     }

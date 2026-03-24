@@ -47,6 +47,7 @@ const main = async _ => {
 const interceptPageLoadData = _ => $$.librouter.addOnLoadPageData("*", async (data, _url) => {
 	data.APP_CONSTANTS = APP_CONSTANTS; 
 	data["APP_ENV"] = _ => (key, render) => $$.libutils.getObjProperty(APP_CONSTANTS.ENV, render(key));
+	data["runjs_expression"] = _ => (text, render) => eval(render(text));
 });
 
 async function _readConfig() {

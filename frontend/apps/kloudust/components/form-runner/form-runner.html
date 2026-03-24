@@ -199,9 +199,22 @@ span#submit {
 <div id="advanced" class="collapsed">
 {{#optional_fields}}
 {{^multioption}}
-<{{^inputtype}}input{{/inputtype}}{{#inputtype}}{{.}}{{/inputtype}} id="{{id}}" type="{{type}}" placeholder="{{placeholder}}" 
-    {{#style}}style="{{{.}}}"{{/style}} data-optional="true" {{#pattern}}pattern="{{.}}"{{/pattern}} {{#title}}title="{{.}}"{{/title}}
-        oninvalid="this.setCustomValidity('{{validation_error}}')" oninput="setCustomValidity('')"></{{^inputtype}}input{{/inputtype}}{{#inputtype}}{{.}}{{/inputtype}}>
+<{{^inputtype}}input{{/inputtype}}{{#inputtype}}{{.}}{{/inputtype}} id="{{id}}" 
+    data-optional="true"
+    {{#type}}type="{{.}}"{{/type}}
+    {{#placeholder}}placeholder="{{.}}"{{/placeholder}} 
+    {{#required}}required{{/required}} 
+    {{#value}}value="{{.}}"{{/value}} 
+    {{#pattern}}pattern="{{.}}"{{/pattern}} 
+    {{#min}}min="{{.}}"{{/min}} 
+    {{#max}}max="{{.}}"{{/max}} 
+    {{#title}}title="{{.}}"{{/title}}
+    {{#style}}style="{{{.}}}"{{/style}} 
+    {{#validation_error}}oninvalid="this.setCustomValidity('{{.}}')"{{/validation_error}}
+    {{#validation_error}}oninput="setCustomValidity('')"{{/validation_error}} 
+    {{#readonly}}readonly{{/readonly}}
+    {{#list}}list="{{.}}"{{/list}}>
+</{{^inputtype}}input{{/inputtype}}{{#inputtype}}{{.}}{{/inputtype}}>
 {{/multioption}}
 
 {{#multioption}}

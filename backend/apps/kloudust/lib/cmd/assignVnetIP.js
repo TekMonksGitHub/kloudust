@@ -1,5 +1,6 @@
 /** 
- * assignVnetIP.js - Assigns the given IP to the given VM.
+ * assignVnetIP.js - Assigns the given IP to the given VM. Used for private IP
+ *                   assignments.
  * 
  * Params - 0 - VM Name, 1 - IP, 2 - Vnet Name 3 - MTU (not needed, defaults to 1200)
  * 

@@ -1,0 +1,69 @@
+{
+"id": "snapshotvm",
+"command": "snapshot",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vm_name", "snapshot_name"],
+
+"title": "{{{i18n.VMSnapshotTitle}}}",
+
+"i18n": {
+    "en": {
+        "VMSnapshotTitle": "Snapshot Virtual Machine",
+        "VMSnapshotDescription": "Snapshot a virtual machine in the cloud. Complete the required tab then submit.",
+        "VMName": "Virtual machine name",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotVMSubmitLabel": "Snapshot",
+        "VMSnapshotAdvanced": "Advanced"
+    },
+    "hi": {
+        "VMSnapshotTitle": "Snapshot Virtual Machine",
+        "VMSnapshotDescription": "Snapshot a virtual machine in the cloud. Complete the required tab then submit.",
+        "VMName": "वीएम नाम",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotVMSubmitLabel": "Snapshot",
+        "VMSnapshotAdvanced": "Advanced"
+    },
+    "ja": {
+        "VMSnapshotTitle": "Snapshot Virtual Machine",
+        "VMSnapshotDescription": "Snapshot a virtual machine in the cloud. Complete the required tab then submit.",
+        "VMName": "VM名",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotVMSubmitLabel": "Snapshot",
+        "VMSnapshotAdvanced": "Advanced"
+    },
+    "zh": {
+        "VMSnapshotTitle": "Snapshot Virtual Machine",
+        "VMSnapshotDescription": "Snapshot a virtual machine in the cloud. Complete the required tab then submit.",
+        "VMName": "虚拟机名称",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotVMSubmitLabel": "Snapshot",
+        "VMSnapshotAdvanced": "Advanced"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.VMSnapshotDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"}
+    ],
+
+    "optional_label": "{{{i18n.VMSnapshotAdvanced}}}",
+    "optional_fields": [
+    {"id": "snapshot_name", "type": "text", "placeholder": "{{{i18n.SnapshotName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{#runjs_expression}}`snapshot_${Date.now()}`{{/runjs_expression}}"}
+    ],
+
+    "submitlabel": "{{{i18n.SnapshotVMSubmitLabel}}}"
+}
+
+}
