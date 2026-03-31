@@ -1,7 +1,8 @@
 /** 
  * listSnapshots.js - Lists the snapshots for the given VM
  * 
- * Params - 0 - VM Name
+ * Params - 0 - VM Name, if not provided then all snapshots for all
+ *              VMs for current org and project are returned.
  * 
  * (C) 2020 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
@@ -18,10 +19,13 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
  */
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT(); }
-    const [vm_name_raw] = [...params], vm_name = createVM.resolveVMName(vm_name_raw); 
-    const snapshots = vm_name?await dbAbstractor.listSnapshots(vm_name):null;
+    const [vm_name_raw] = [...params], vm_name = vm_name_raw ? createVM.resolveVMName(vm_name_raw) : "*"; 
+    const snapshots = await dbAbstractor.listSnapshots(vm_name);
 
-    const list = []; if (snapshots) for (const snapshot of snapshots) list.push({name: snapshot.snapshotname, timestamp: snapshot.timestamp});
+    let list = []; if (snapshots) for (const snapshot of snapshots) list.push(
+        {name: snapshot.snapshotname, resourceid: snapshot.resourceid, timestamp: snapshot.timestamp});
+    list = list.map(snapshotObj => ({ ...snapshotObj, vm: createVM.unresolveVMName(snapshotObj.resourceid) }));
+    list.sort((a,b) => a.vm.localeCompare(b.vm));
 
     return {...CMD_CONSTANTS.TRUE_RESULT(JSON.stringify(list)), snapshots: list};
 }

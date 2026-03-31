@@ -1,6 +1,10 @@
 /** 
  * cloneVM.js - Clones a VM on the same host
  * 
+ * Params
+ * 0 - The VM name of the VM to clone
+ * 1 - The VM name of the cloned VM
+ * 
  * (C) 2020 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
  */

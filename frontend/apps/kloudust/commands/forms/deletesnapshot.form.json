@@ -1,0 +1,63 @@
+{
+"id": "deletesnapshot",
+"command": "deleteSnapshot",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vm_name", "snapshot_name"],
+
+"title": "{{{i18n.SnapshotDeleteTitle}}}",
+
+"i18n": {
+    "en": {
+        "SnapshotDeleteTitle": "Delete Snapshot",
+        "SnapshotDeleteDescription": "Delete a Snapshot from the cloud. The Snapshot disk will also be deleted and lost forever. Complete the required tab then submit.",
+        "SnapshotVMName": "VM name",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotDeleteSubmitLabel": "Delete"
+    },
+    "hi": {
+        "SnapshotDeleteTitle": "Delete Snapshot",
+        "SnapshotDeleteDescription": "Delete a Snapshot from the cloud. The Snapshot disk will also be deleted and lost forever. Complete the required tab then submit.",
+        "SnapshotVMName": "वीएम नाम",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotDeleteSubmitLabel": "Delete"
+    },
+    "ja": {
+        "SnapshotDeleteTitle": "Delete Snapshot",
+        "SnapshotDeleteDescription": "Delete a Snapshot from the cloud. The Snapshot disk will also be deleted and lost forever. Complete the required tab then submit.",
+        "SnapshotVMName": "VM名",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotDeleteSubmitLabel": "Delete"
+    },
+    "zh": {
+        "SnapshotDeleteTitle": "Delete Snapshot",
+        "SnapshotDeleteDescription": "Delete a Snapshot from the cloud. The Snapshot disk will also be deleted and lost forever. Complete the required tab then submit.",
+        "SnapshotVMName": "虚拟机名称",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotDeleteSubmitLabel": "Delete"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.SnapshotDeleteDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.SnapshotVMName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._snapshots_form_data.vm}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._snapshots_form_data.vm}}true{{/APP_CONSTANTS.ENV._snapshots_form_data.vm}}"},
+
+    {"id": "snapshot_name", "type": "text", "placeholder": "{{{i18n.SnapshotName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._snapshots_form_data.name}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._snapshots_form_data.name}}true{{/APP_CONSTANTS.ENV._snapshots_form_data.name}}"}
+    ],
+
+    "submitlabel": "{{{i18n.SnapshotDeleteSubmitLabel}}}"
+}
+
+}

@@ -103,5 +103,7 @@ module.exports.exec = async function(params) {
 
 /** @return The internal VM name for the given raw VM name or null on error */
 exports.resolveVMName = vm_name_raw => vm_name_raw?`${vm_name_raw}_${KLOUD_CONSTANTS.env.org()}_${KLOUD_CONSTANTS.env.prj()}`.toLowerCase().replace(/\s/g,"_"):null;
+exports.unresolveVMName = vm_name => vm_name ? vm_name.substring(0, vm_name.toLowerCase().indexOf(KLOUD_CONSTANTS.env.org().toLowerCase()) - 1).replace(/_/g, " ") : null;
+
 exports.DEFAULT_DISK = "__org_kloudust_default_disk_name";
 exports.VM_TYPE_VM = "vm";

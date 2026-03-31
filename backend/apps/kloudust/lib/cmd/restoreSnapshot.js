@@ -3,8 +3,11 @@
  * the restore process. Will leave it stopped, unless param 3 below is 
  * set to "start"
  * 
- * Params - 0 - VM name, 1 - snapshot name, 
- * 2 - start, optional, will restart the VM post restore automatically,
+ * Params - 
+ * 0 - VM name, 
+ * 1 - snapshot name, 
+ * 2 - start, optional, will restart the VM post restore automatically, if set to "true"
+ * 3 - shutdown time to wait for VM to shutdown gracefully before killing it, in seconds
  * 
  * Restoring a snapshot doesn't delete it, so a 
  * snapshot can be restored as many times as needed
@@ -45,7 +48,7 @@ module.exports.exec = async function(params) {
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/restoreSnapshot.sh`,
-            vm_name, snapshot_name, start?.trim().toLowerCase()=="start"?"restart":"undefined", shutdown_timeout
+            vm_name, snapshot_name, start?.trim().toLowerCase()=="true"?"restart":"undefined", shutdown_timeout
         ]
     }
 

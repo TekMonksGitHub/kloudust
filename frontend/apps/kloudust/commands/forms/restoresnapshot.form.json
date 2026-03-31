@@ -1,0 +1,78 @@
+{
+"id": "restoresnapshot",
+"command": "restoreSnapshot",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vm_name", "snapshot_name", "start", "shutdown_wait"],
+
+"title": "{{{i18n.SnapshotRestoreTitle}}}",
+
+"i18n": {
+    "en": {
+        "SnapshotRestoreTitle": "Restore Snapshot",
+        "SnapshotRestoreDescription": "Restore a snapshot from the cloud. The snapshot will not be deleted post restoration and can be reused to restore again later. Complete the required tab then submit.",
+        "SnapshotRestoreVMName": "VM name",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotRestoreSubmitLabel": "Restore",
+        "SnapshotRestoreAutoStartPostRestore": "Auto restart VM post restoration",
+        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds"
+    },
+    "hi": {
+        "SnapshotRestoreTitle": "Restore Snapshot",
+        "SnapshotRestoreDescription": "Restore a snapshot from the cloud. The snapshot will not be deleted post restoration and can be reused to restore again later. Complete the required tab then submit.",
+        "SnapshotRestoreVMName": "वीएम नाम",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotRestoreSubmitLabel": "Restore",
+        "SnapshotRestoreAutoStartPostRestore": "Auto restart VM post restoration",
+        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds"
+    },
+    "ja": {
+        "SnapshotRestoreTitle": "Restore Snapshot",
+        "SnapshotRestoreDescription": "Restore a snapshot from the cloud. The snapshot will not be deleted post restoration and can be reused to restore again later. Complete the required tab then submit.",
+        "SnapshotRestoreVMName": "VM名",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotRestoreSubmitLabel": "Restore",
+        "SnapshotRestoreAutoStartPostRestore": "Auto restart VM post restoration",
+        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds"
+    },
+    "zh": {
+        "SnapshotRestoreTitle": "Restore Snapshot",
+        "SnapshotRestoreDescription": "Restore a snapshot from the cloud. The snapshot will not be deleted post restoration and can be reused to restore again later. Complete the required tab then submit.",
+        "SnapshotRestoreVMName": "虚拟机名称",
+        "SnapshotName": "Snapshot name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "SnapshotRestoreSubmitLabel": "Restore",
+        "SnapshotRestoreAutoStartPostRestore": "Auto restart VM post restoration",
+        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.SnapshotRestoreDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.SnapshotRestoreVMName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._snapshots_form_data.vm}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._snapshots_form_data.vm}}true{{/APP_CONSTANTS.ENV._snapshots_form_data.vm}}"},
+
+    {"id": "snapshot_name", "type": "text", "placeholder": "{{{i18n.SnapshotName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._snapshots_form_data.name}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._snapshots_form_data.name}}true{{/APP_CONSTANTS.ENV._snapshots_form_data.name}}"}
+    ],
+
+    "optional_label": "{{{i18n.RestoreSnapshotAdvanced}}}",
+    "optional_fields": [
+    {"id": "start", "multioption": true, "type": "select", "label": "{{{i18n.SnapshotRestoreAutoStartPostRestore}}}", 
+        "options":[{"value":"true", "label":"{{{i18n.VMYes}}}"}, {"value":"false", "label":"{{{i18n.VMNo}}}"}]},
+    {"id": "shutdown_wait", "type": "number", "placeholder": "{{{i18n.SnapshotRestoreVMShutdownWait}}}", "value": 90}
+    ],
+
+    "submitlabel": "{{{i18n.SnapshotRestoreSubmitLabel}}}"
+}
+
+}

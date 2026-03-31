@@ -100,7 +100,11 @@ async function _cleanupVMResources(vm, params) {
 
     if (vm.ips.trim() !== "") { 
         const allIps = vm.ips.split(",").map(ip => ip.trim()); 
-        for (const ip of allIps) await unassignIPToVM.exec([vm.name_raw, ip]);
+        for (const ip of allIps) {
+            const unassignIPToVMParams = [vm.name_raw, ip]; 
+            unassignIPToVMParams.consoleHandlers = params.consoleHandlers;
+            await unassignIPToVM.exec(unassignIPToVMParams);
+        }
     }
     return CMD_CONSTANTS.TRUE_RESULT();
 }

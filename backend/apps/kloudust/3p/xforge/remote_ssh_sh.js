@@ -92,8 +92,8 @@ async function _agentExec(conf, expanded_remote_script, deployPath, streamer) {
     }
     try {
         if (streamer) streamer.LOGINFO(`[PyShell] [${pyShellURL}] Executing ${expanded_remote_script.path} via Pyshell agent.`);
-        const pyshellStreamCollector = { stdout: s=>streamer.LOGINFO(`[PyShell] [${pyShellURL}] [OUT] ${s}`),
-            stderr: s=>streamer.LOGERROR(`[PyShell] [${pyShellURL}] [ERROR] ${s}`) };
+        const pyshellStreamCollector = { stdout: function(s){if (streamer) streamer.LOGINFO(`[PyShell] [${pyShellURL}] [OUT] ${s}`)},
+            stderr: function(s){if (streamer) streamer.LOGERROR(`[PyShell] [${pyShellURL}] [ERROR] ${s}`)} };
         const result = expanded_remote_script.ispython ?    // we run in polling mode to avoid HTTP timeout issues
             await pyshellclient.executePyCommand(expanded_remote_script.data, undefined, 
                 conf.pyshell_poll_frequency||DEFAULT_PYSHELL_POLL_FREQUENCY,  pyshellStreamCollector) :

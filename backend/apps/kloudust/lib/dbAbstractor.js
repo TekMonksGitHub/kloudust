@@ -762,21 +762,13 @@ exports.addOrUpdateSnapshot = async function(resource_id, snapshot_id, extrainfo
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
-    const id = `${org}_${project}_${resource_id}_${snapshot_id}`, projectid = _getProjectID(project, org)
+    const id = `${org}_${project}_${resource_id}_${snapshot_id}`, projectid = _getProjectID(project, org);
     if (await exports.getSnapshot(snapshot_id, project, org)) { // don't allow adding same snapshot ID twice
         KLOUD_CONSTANTS.LOGERROR(`Snapshot with ID ${snapshot_id} already exists`); return false;}
 
-    const commandsToRun = [
-        {
-            cmd: "replace into snapshots (id, snapshotname, extrainfo, org, projectid) values (?,?,?,?,?)", 
-            params:  [id, snapshot_id, extrainfo, org, projectid]
-        },
-        {
-            cmd: "replace into relationships (pk1, pk2, type) values (?,?,'snapshot')",
-            params: [id, resource_id]
-        }
-    ];
-    const insertResult = await _db().runTransaction(commandsToRun);
+    const cmd = "replace into snapshots (id, snapshotname, resourceid, extrainfo, org, projectid) values (?,?,?,?,?,?)";
+    const params = [id, snapshot_id, resource_id, extrainfo, org, projectid];
+    const insertResult = await _db().runCmd(cmd, params);
     return insertResult;
 }
 
@@ -800,7 +792,8 @@ exports.getSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CON
 
 /**
  * Returns the list of snapshots for the given resource ID.
- * @param {string} resource_id The resource ID for which this snapshot is for
+ * @param {string} resource_id The resource ID for which this snapshot is for, if * then all for current
+ *                             project and org are returned
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns The list requested or null if none exist
@@ -808,9 +801,11 @@ exports.getSnapshot = async function(resource_id, snapshot_id, project=KLOUD_CON
 exports.listSnapshots = async function(resource_id, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    const projectid = _getProjectID(project, org);
 
-    const query = "select * from snapshots where id in (select pk1 from relationships where pk2=? collate nocase and type='snapshot')";
-    const snapshots = await _db().getQuery(query, [resource_id]);
+    const query = resource_id== "*" ? "select * from snapshots where projectid=? and org =?" :
+        "select * from snapshots where projectid=? and org =? and resourceid = ?";
+    const snapshots = await _db().getQuery(query, resource_id== "*" ? [projectid, org] : [projectid, org, resource_id]);
     if (snapshots && snapshots.length) return snapshots; else return null;
 }
 
