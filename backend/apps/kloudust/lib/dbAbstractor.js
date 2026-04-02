@@ -19,7 +19,9 @@ const KLOUDUST_MAIN_DBFILE = path.resolve(`${KLOUD_CONSTANTS.ROOTDIR}/db/kloudus
 /** Inits the module */
 exports.initAsync = async function() { KLOUD_CONSTANTS.env.db = await _initMonkshuGlobalAndGetDBModuleAsync(); }
 
-/** Returns the total number of users in the cloud database */
+/** 
+ * @return The total number of users in the cloud database 
+ * */
 exports.getUserCount = async _ => {
     const user_count = (await _db().getQuery("select * from users"))?.length||0;
     if (user_count == 0) return user_count; // this is a special case when the Kloud has no users at all
@@ -196,20 +198,90 @@ exports.getHostEntry = async hostname => {
 }
 
 /**
- * Returns the host with the most available resources
- *  * @param {string} vcpu The required number of VCPUs
- *  * @param {string} mem The required available ram
- *  * @param {string} arch The required archictecture of the host
- * @return {hostname, cpu, memory} or null
+ * Returns the host with the most available resources matching the given requirements.
+ * @param {number} vcpu - The required number of VCPUs
+ * @param {number} ram - The required available RAM in bytes
+ * @param {number} disk - The required available disk space in bytes
+ * @param {string} arch - The required processor architecture of the host (e.g. 'x86_64', 'arm64')
+ * @param {object} factors - Overcommit multiplication factors
+ * @param {number} [factors.cpu_factor=1] - CPU overcommit factor (e.g. 1.5 = 50% overcommit)
+ * @param {number} [factors.mem_factor=1] - Memory overcommit factor
+ * @returns {Promise<{host_info_object}|null>} Best matching host or null if none found
  */
-exports.getAvailableHost = async (vcpu,ram,arch,factors) => {
+exports.getAvailableHostInfo = async (vcpu, ram, disk, arch, factors) => {
+    const host = await exports.getAvailableHost(vcpu, ram, disk, arch, factors);
+    if (host) return exports.getHostEntry(host.hostname); else return null;
+}
+
+/**
+ * Returns the host with the most available resources matching the given requirements.
+ * @param {number} vcpu - The required number of VCPUs
+ * @param {number} ram - The required available RAM in bytes
+ * @param {number} disk - The required available disk space in bytes
+ * @param {string} arch - The required processor architecture of the host (e.g. 'x86_64', 'arm64')
+ * @param {object} factors - Overcommit multiplication factors
+ * @param {number} [factors.cpu_factor=1] - CPU overcommit factor (e.g. 1.5 = 50% overcommit)
+ * @param {number} [factors.mem_factor=1] - Memory overcommit factor
+ * @returns {Promise<{hostname: string, free_cpu: number, free_ram: number, free_disk: number}|null>} Best matching host or null if none found
+ */
+exports.getAvailableHost = async (vcpu, ram, disk, arch, factors) => {
+    const hosts = await exports.getAvailableHosts(vcpu, ram, disk, arch, factors);
+    if (!hosts) return null;
+    return hosts[0] || null;
+}
+
+/**
+ * Returns all hosts with available resources matching the given requirements, ranked by headroom.
+ * @param {number} vcpu - The required number of VCPUs
+ * @param {number} ram - The required available RAM in bytes
+ * @param {number} disk - The required available disk space in bytes
+ * @param {string} arch - The required processor architecture of the host (e.g. 'x86_64', 'arm64')
+ * @param {object} factors - Overcommit multiplication factors
+ * @param {number} [factors.cpu_factor=1] - CPU overcommit factor (e.g. 1.5 = 50% overcommit)
+ * @param {number} [factors.mem_factor=1] - Memory overcommit factor
+ * @returns {Promise<Array<{hostname: string, free_cpu: number, free_ram: number, free_disk: number}>|false>} 
+ *          Ranked list of matching hosts (best first), or false if unauthorized
+ */
+exports.getAvailableHosts = async (vcpu, ram, disk, arch, factors) => {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {_logUnauthorized(); return false; }
     const org = roleman.getCurrentOrg(); 
     const isOrgUsingReservedHosts = await _db().getQuery('select count(*) as count from hosts where org = ? collate nocase', [org]);
     const orgMatch = isOrgUsingReservedHosts[0].count ? org : '*';
-    const query = `SELECT h.hostname, (h.cores * ${factors.cpu_factor} - IFNULL(SUM(v.cpus), 0)) AS free_cpu, (h.memory * ${factors.mem_factor} - IFNULL(SUM(v.memory) * 1024 * 1024, 0)) AS free_ram FROM hosts h LEFT JOIN vms v ON v.hostname = h.hostname WHERE h.processorarchitecture = ? and h.org = ? COLLATE NOCASE GROUP BY h.hostname HAVING free_cpu >= ? and free_ram >= ? ORDER BY free_cpu DESC, free_ram DESC LIMIT 1;`;
-    const host = await _db().getQuery(query, [arch,orgMatch,vcpu,ram]);
-    return host;
+
+    const query = `
+        WITH host_usage AS (
+            SELECT 
+                h.hostname,
+                h.cores  * ${factors.cpu_factor||1}         AS total_cpu,
+                h.memory * ${factors.mem_factor||1}         AS total_ram,
+                h.disk                                      AS total_disk,
+                IFNULL(SUM(v.cpus), 0)                      AS used_cpu,
+                IFNULL(SUM(v.memory), 0)                    AS used_ram,
+                IFNULL(SUM(v.disk), 0)                      AS used_disk
+            FROM hosts h
+            LEFT JOIN vms v ON v.hostname = h.hostname
+            WHERE h.processorarchitecture = ?
+            AND h.org = ? COLLATE NOCASE
+            GROUP BY h.hostname
+        ),
+        host_free AS (
+            SELECT
+                hostname,
+                total_cpu  - used_cpu   AS free_cpu,
+                total_ram  - used_ram   AS free_ram,
+                total_disk - used_disk  AS free_disk
+            FROM host_usage
+        )
+        SELECT hostname, free_cpu, free_ram, free_disk
+        FROM host_free
+        WHERE free_cpu  >= ?
+          AND free_ram  >= ?
+          AND free_disk >= ?
+        ORDER BY free_cpu DESC, free_ram DESC, free_disk DESC
+        LIMIT 1;`;
+
+    const hosts = await _db().getQuery(query, [arch, orgMatch, vcpu, ram, disk]);
+    return hosts;
 }
 
 /**
@@ -217,10 +289,11 @@ exports.getAvailableHost = async (vcpu,ram,arch,factors) => {
  * @param {string} name The VM name
  * @param {string} description The VM description
  * @param {string} hostname The hostname
+ * @param {string} arch The processor architecture for the VM 
  * @param {string} os The OS
  * @param {integer} cpus The CPU
- * @param {integer} memory The memory
- * @param {string} disks The disks object
+ * @param {integer} memory The memory in bytes
+ * @param {string} disks The disks object with size in bytes
  * @param {string} creation_cmd The VM creation command
  * @param {string} name_raw The VM name raw 
  * @param {string} vmtype The VM type
@@ -229,15 +302,17 @@ exports.getAvailableHost = async (vcpu,ram,arch,factors) => {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @return true on success or false otherwise
  */
-exports.addOrUpdateVMToDB = async (name, description, hostname, os, cpus, memory, disks, creation_cmd="undefined", 
+exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, memory, disks, creation_cmd="undefined", 
         name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
+    let totaldisk = 0; for (const disk of disks) totaldisk += disk.size;
+
     const id = `${org}_${project}_${name}`;
-    const query = "replace into vms(id, name, description, hostname, org, projectid, os, cpus, memory, disksjson, creationcmd, name_raw, vmtype, ips) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    return await _db().runCmd(query, [id, name, description, hostname, org, _getProjectID(), os, cpus, memory, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
+    const query = "replace into vms  (id, name, description, hostname, arch, org, projectid, os, cpus, memory, disk, disksjson, creationcmd, name_raw, vmtype, ips) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    return await _db().runCmd(query, [id, name, description, hostname, arch, org, _getProjectID(), os, cpus, memory, totaldisk, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
 }
 
 /**
@@ -1130,37 +1205,6 @@ exports.getAssignableIP = async function(hostname) {
 }
 
 /**
- * Runs the given SQL on the DB blindly. Must be very careful. Only cloud admins can run this.
- * @param sql The SQL to run on the DB.
- * @return The results of the SQL.
- */
-exports.runSQL = async function(sql) {
-    if (!roleman.isCloudAdminLoggedIn()) {_logUnauthorized(); return false;}
-    if (sql.toLocaleLowerCase().startsWith("select")) return await _db().getQuery(sql);
-    else return await _db().runCmd(sql);
-}
-
-/**
- * Adds a reationship.
- * @param {string} pk1 Primary Key 1
- * @param {string} pk2 Primary Key 2
- * @param {string} type The type of relationship
- * @param {boolean} pk1pk2typeUniqueConstraint If true then pk1 and pk2 and type is a unique relationship
- * @returns true on success and false on failure.
- */
-exports.addOrUpdateRelationship = async function(pk1, pk2, type, pk1pk2typeUniqueConstraint) {
-    let cmd = "insert into relationships (type, pk1, pk2) values (?,?,?)";
-    if (pk1pk2typeUniqueConstraint) {
-        const checkCmd = "select * from relationships where pk1=? and pk2=?", params =  [pk1, pk2];
-        const result = await _db().getQuery(checkCmd, params), relationshipExists = result && result.length;
-        if (relationshipExists && (result[0].type == type)) return;   // same relationship exists already
-        if (relationshipExists) cmd = "update relationships set type=? where pk1=? and pk2=?)";
-    }
-    const cmdResult = await _db().runCmd(cmd, [type, pk1, pk2]);
-    return cmdResult;
-}
-
-/**
  * Adds the given IP to VM Vnet
  * @param {string} vm_name The VM name
  * @param {string} vnet_name The Vnet name
@@ -1358,6 +1402,37 @@ exports.getVMPrivateIPs = async function(vm_name, project=KLOUD_CONSTANTS.env.pr
     const query = "select pk3 from relationships where pk1 = ? and type = ?;";
     const results = await _db().getQuery(query, [vm_id,"vmvnetip"]);
     return _objectArrayToFlatArray(results, "pk3");
+}
+
+/**
+ * Runs the given SQL on the DB blindly. Must be very careful. Only cloud admins can run this.
+ * @param sql The SQL to run on the DB.
+ * @return The results of the SQL.
+ */
+exports.runSQL = async function(sql) {
+    if (!roleman.isCloudAdminLoggedIn()) {_logUnauthorized(); return false;}
+    if (sql.toLocaleLowerCase().startsWith("select")) return await _db().getQuery(sql);
+    else return await _db().runCmd(sql);
+}
+
+/**
+ * Adds a reationship.
+ * @param {string} pk1 Primary Key 1
+ * @param {string} pk2 Primary Key 2
+ * @param {string} type The type of relationship
+ * @param {boolean} pk1pk2typeUniqueConstraint If true then pk1 and pk2 and type is a unique relationship
+ * @returns true on success and false on failure.
+ */
+exports.addOrUpdateRelationship = async function(pk1, pk2, type, pk1pk2typeUniqueConstraint) {
+    let cmd = "insert into relationships (type, pk1, pk2) values (?,?,?)";
+    if (pk1pk2typeUniqueConstraint) {
+        const checkCmd = "select * from relationships where pk1=? and pk2=?", params =  [pk1, pk2];
+        const result = await _db().getQuery(checkCmd, params), relationshipExists = result && result.length;
+        if (relationshipExists && (result[0].type == type)) return;   // same relationship exists already
+        if (relationshipExists) cmd = "update relationships set type=? where pk1=? and pk2=?)";
+    }
+    const cmdResult = await _db().runCmd(cmd, [type, pk1, pk2]);
+    return cmdResult;
 }
 
 /**

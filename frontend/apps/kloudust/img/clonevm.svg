@@ -1,0 +1,41 @@
+<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#C85F0E" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- back frame -->
+    <path d="
+      M6 16
+      V10
+      C6 7.5 7.5 6 10 6
+      H32
+      C34.5 6 36 7.5 36 10
+      V12
+    "/>
+
+    <path d="
+      M6 16
+      V30
+      C6 32.5 7.5 34 10 34
+      H12
+    "/>
+
+    <!-- front frame -->
+    <path d="
+      M14 24
+      V18
+      C14 15.5 15.5 14 18 14
+      H40
+      C42.5 14 44 15.5 44 18
+      V32
+    "/>
+
+    <path d="
+      M44 32
+      V40
+      C44 42.5 42.5 44 40 44
+      H18
+      C15.5 44 14 42.5 14 40
+      V24
+    "/>
+
+  </g>
+</svg>

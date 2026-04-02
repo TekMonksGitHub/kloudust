@@ -18,7 +18,6 @@ const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const deleteVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVM.js`);
 const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
-const hostchooser = require(`${KLOUD_CONSTANTS.LIBDIR}/hostchooser.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
@@ -33,7 +32,7 @@ module.exports.exec = async function(params) {
     const [vm_name_raw, vm_description, cores_s, memory_s, disk_s, vnet_name, creation_image_name, cloudinit_data, 
         force_overwrite, max_cores_s, max_memory_s, additional_params, vmtype_raw, no_qemu_agent_raw, 
         network_name_raw, hostname] = [...params];
-    const vm_name = exports.resolveVMName(vm_name_raw), cores = parseInt(cores_s), memory = parseInt(memory_s), disk = parseInt(disk_s), 
+    const vm_name = exports.resolveVMName(vm_name_raw), cores = parseInt(cores_s), memory = parseInt(memory_s), diskgb = parseInt(disk_s), disk = diskgb*1073741824, 
         max_cores = parseInt(max_cores_s||cores_s) > cores ? parseInt(max_cores_s||cores_s) : Math.min(cores * KLOUD_CONSTANTS.CONF.MAX_CORES_MULTIPLIER, KLOUD_CONSTANTS.CONF.VM_MAX_CORES), 
         max_memory = parseInt(max_memory_s||memory_s) > memory ? parseInt(max_memory_s||memory_s) : Math.min(memory * KLOUD_CONSTANTS.CONF.MAX_MEMORY_MULTIPLIER, KLOUD_CONSTANTS.CONF.VM_MAX_MEMORY),
         no_qemu_agent = no_qemu_agent_raw?.toLowerCase() == "true" ? "true" : "false", vmtype = vmtype_raw||exports.VM_TYPE_VM,
@@ -51,7 +50,9 @@ module.exports.exec = async function(params) {
 
     const forceHostByAdmin = hostname && hostname.trim().length && roleman.isCloudAdminLoggedIn();
     const hostInfo = forceHostByAdmin ? await dbAbstractor.getHostEntry(hostname) : 
-        await hostchooser.getHostFor(cores, memory, disk, kdResource.processorarchitecture); 
+        await dbAbstractor.getAvailableHostInfo(cores, memory*1024*1024, disk, kdResource.processorarchitecture, 
+            {cpu_factor: KLOUD_CONSTANTS.CONF.VCPU_TO_PHYSICAL_CPU_FACTOR, 
+                mem_factor: KLOUD_CONSTANTS.CONF.VMEM_TO_PHYSICAL_MEM_FACTOR}); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Unable to find a suitable host."); return CMD_CONSTANTS.FALSE_RESULT();}
 
     const extrainfoSplits = kdResource.extrainfo?kdResource.extrainfo.split(":"):[null,null];
@@ -71,7 +72,7 @@ module.exports.exec = async function(params) {
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/createVM.sh`,
-            vm_name, vm_description, cores, memory, disk, creation_image_name, kdResource.uri, ostype, 
+            vm_name, vm_description, cores, memory, diskgb, creation_image_name, kdResource.uri, ostype, 
             fromCloudImg, cloudinit_data||"undefined", KLOUD_CONSTANTS.env.org(), KLOUD_CONSTANTS.env.prj(),
             force_overwrite||"false", max_cores, max_memory, additional_params, no_qemu_agent, kvm_network_name
         ]
@@ -79,9 +80,9 @@ module.exports.exec = async function(params) {
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
-        if (await dbAbstractor.addOrUpdateVMToDB(vm_name, vm_description, hostInfo.hostname, ostype, cores, memory,
-                [{diskname: exports.DEFAULT_DISK, size: parseInt(disk)}], ["createVM ", ...params].join(" "),
-                vm_name_raw, vmtype)) {
+        if (await dbAbstractor.addOrUpdateVMToDB(vm_name, vm_description, hostInfo.hostname, kdResource.processorarchitecture,
+                ostype, cores, memory*1024*1024, [{diskname: exports.DEFAULT_DISK, size: disk}], 
+                ["createVM ", ...params].join(" "), vm_name_raw, vmtype)) {
                 
             if (vnet_name && vnet_name.trim().length) {   // add VM to the given Virtual network
                 const paramsVnet = [vm_name_raw, vnet_name, "true"]; paramsVnet.consoleHandlers = params.consoleHandlers;

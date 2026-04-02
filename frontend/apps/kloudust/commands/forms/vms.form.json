@@ -26,7 +26,8 @@
     "VMSDelete": "Delete",
     "VMSResize": "Resize",
     "VMSSnapshot": "Snapshot",
-    "VMSExport": "Export"
+    "VMSExport": "Export",
+    "VMSClone": "Clone"
 },
 
 "hi": {
@@ -51,7 +52,8 @@
     "VMSDelete": "Delete",
     "VMSResize": "Resize",
     "VMSSnapshot": "Snapshot",
-    "VMSExport": "Export"
+    "VMSExport": "Export",
+    "VMSClone": "Clone"
 },
 
 "ja": {
@@ -76,7 +78,8 @@
     "VMSDelete": "Delete",
     "VMSResize": "Resize",
     "VMSSnapshot": "Snapshot",
-    "VMSExport": "Export"
+    "VMSExport": "Export",
+    "VMSClone": "Clone"
 },
 
 "zh": {
@@ -102,7 +105,8 @@
     "VMSResize": "Resize",
     "VMSADDDISK": "Add Disk",
     "VMSSnapshot": "Snapshot",
-    "VMSExport": "Export"
+    "VMSExport": "Export",
+    "VMSClone": "Clone"
 }
 },
 
@@ -117,7 +121,8 @@
             {"id": "deletevm", "label": "{{{i18n.VMSDelete}}}", "logo": "img/deletevm.svg"},
             {"id": "resizevm", "label": "{{{i18n.VMSResize}}}", "logo": "img/resizevm.svg"},
             {"id": "snapshotvm", "label": "{{{i18n.VMSSnapshot}}}", "logo": "img/snapshot.svg"},
-            {"id": "exportvm", "label": "{{{i18n.VMSExport}}}", "logo": "img/exportvm.svg"}
+            {"id": "exportvm", "label": "{{{i18n.VMSExport}}}", "logo": "img/exportvm.svg"},
+            {"id": "clonevm", "label": "{{{i18n.VMSClone}}}", "logo": "img/clonevm.svg"}
         ]
     }
     },
@@ -148,9 +153,12 @@
         "const vms = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
             "cmd: `listVMsForOrgOrProject \"${$$.libsession.get(APP_CONSTANTS.USERORG)}\" \"${$$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}\" \"${APP_CONSTANTS.VM_TYPE_VM}\"`, ",
             "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
-        "for (const vm of vms.vms||[]) {vm.datetime = new Date(vm.timestamp).toLocaleDateString(); vm.disk = vm.disks[0].size;",
-        "vm.ips = vm.ips.trim()===''?'Not Assigned':vm.ips; vm.vnets = vm.vnets.length === 0 ?'No Vnets Found':vm.vnets.join(',');",
-        "vm.privateips = vm.private_ips.length === 0 ? 'No IPs Assigned' : vm.private_ips.join(','); vm.rulesets = vm.rulesets.length === 0 ? 'No Rulesets Applied' : vm.rulesets.join(',');}",
+        "for (const vm of vms.vms||[]) {",
+        "   vm.datetime = new Date(vm.timestamp).toLocaleDateString(); vm.disk = parseInt(vm.disk)/1073741824; vm.memory=parseInt(vm.memory)/1048576;",
+        "   vm.ips = vm.ips.trim()===''?'Not Assigned':vm.ips; vm.vnets = vm.vnets.length === 0 ?'No Vnets Found':vm.vnets.join(',');",
+        "   vm.privateips = vm.private_ips.length === 0 ? 'No IPs Assigned' : vm.private_ips.join(','); ",
+        "   vm.rulesets = vm.rulesets.length === 0 ? 'No Rulesets Applied' : vm.rulesets.join(',');",
+        "}",
         "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
         "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
         "tabledef.onclickrow_html.push(html);",

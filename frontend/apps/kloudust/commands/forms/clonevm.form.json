@@ -1,0 +1,64 @@
+{
+"id": "clonevm",
+"command": "cloneVM",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vm_name", "clonevm_name"],
+
+"title": "{{{i18n.VMCloneTitle}}}",
+
+"i18n": {
+    "en": {
+        "VMCloneTitle": "Clone Virtual Machine",
+        "VMCloneDescription": "Clone a virtual machine in the cloud. Complete the required tab then submit.",
+        "VMName": "Virtual machine name",
+        "CloneName": "Clone name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "CloneVMSubmitLabel": "Clone",
+        "VMCloneAdvanced": "Advanced"
+    },
+    "hi": {
+        "VMCloneTitle": "Clone Virtual Machine",
+        "VMCloneDescription": "Clone a virtual machine in the cloud. Complete the required tab then submit.",
+        "VMName": "वीएम नाम",
+        "CloneName": "Clone name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "CloneVMSubmitLabel": "Clone",
+        "VMCloneAdvanced": "Advanced"
+    },
+    "ja": {
+        "VMCloneTitle": "Clone Virtual Machine",
+        "VMCloneDescription": "Clone a virtual machine in the cloud. Complete the required tab then submit.",
+        "VMName": "VM名",
+        "CloneName": "Clone name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "CloneVMSubmitLabel": "Clone",
+        "VMCloneAdvanced": "Advanced"
+    },
+    "zh": {
+        "VMCloneTitle": "Clone Virtual Machine",
+        "VMCloneDescription": "Clone a virtual machine in the cloud. Complete the required tab then submit.",
+        "VMName": "虚拟机名称",
+        "CloneName": "Clone name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "CloneVMSubmitLabel": "Clone",
+        "VMCloneAdvanced": "Advanced"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.VMCloneDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
+    {"id": "clonevm_name", "type": "text", "placeholder": "{{{i18n.CloneName}}}", "required": true, 
+        "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+    ],
+
+    "submitlabel": "{{{i18n.CloneVMSubmitLabel}}}"
+}
+
+}
