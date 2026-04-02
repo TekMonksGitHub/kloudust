@@ -55,8 +55,8 @@ module.exports.exec = async function(params) {
         vm.disks.push({diskname: createVM.DEFAULT_DISK, size: parseInt(disk)});
     }
     
-    if (results.result) await dbAbstractor.addOrUpdateVMToDB(vm_name, vm.description, vm.hostname, vm.os, 
-        cores, memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, vm.ips);
+    if (results.result) await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.arch, 
+            vm.os, cores, memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, vm.ips);
 
     return results;
 }

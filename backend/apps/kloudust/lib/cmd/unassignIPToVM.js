@@ -82,8 +82,8 @@ module.exports.exec = async function(params) {
     results = await xforge(xforgeArgsVMIPCommand);
     if (results.result) {
         const vmips = vm.ips.trim() != '' ? vm.ips.split(',') : [], finalVMIPs = vmips.filter(assigned => assigned !== ip);
-        if (await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.os, 
-            vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, finalVMIPs.join(","))) return results;
+        if (await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.arch, 
+            vm.os, vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, finalVMIPs.join(","))) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, ...(CMD_CONSTANTS.FALSE_RESULT())};}
     } else {
         params.consoleHandlers.LOGWARN(`IP ${ip} was removed from the VM ${vm_name_raw}. But internal VM command to configure the network card failed.`)
