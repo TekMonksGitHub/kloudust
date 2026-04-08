@@ -63,33 +63,36 @@ async function formSubmitted(id, values) {
     command = command.trim();
     
     const project = $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT, APP_CONSTANTS.DEFAULT_PROJECT);
-    _processCommandOutput(`Running command for project ${project} - ${command}`, false, true);
+    const alertID = Date.now();
+    _processCommandOutput(alertID, `Running command for project ${project} - ${command}`, false);
     const cmdResult = await apiman.rest(APP_CONSTANTS.API_KLOUDUSTCMD, "POST", {cmd: command, project}, true);
     if (cmdResult?.result) {
-        _processCommandOutput(`Success. Command output follows.`);
-        if ((cmdResult.out||"").trim() != "") _processCommandOutput(cmdResult.out); 
-        if ((cmdResult.err||"").trim() != "") _processCommandOutput(cmdResult.err); 
-        _processCommandOutput(`Exit code: ${cmdResult.exitcode}`);
-    } else _processCommandOutput(`Command Failed for project ${project} - ${command}${cmdResult?.err?". Error was\n"+cmdResult.err:""}`, true);
+        _processCommandOutput(alertID, `Success. Command output follows.`);
+        if ((cmdResult.out||"").trim() != "") _processCommandOutput(alertID, cmdResult.out); 
+        if ((cmdResult.err||"").trim() != "") _processCommandOutput(alertID, cmdResult.err); 
+        _processCommandOutput(alertID, `Exit code: ${cmdResult.exitcode}`);
+    } else _processCommandOutput(alertID, `Command Failed for project ${project} - ${command}${cmdResult?.err?". Error was\n"+cmdResult.err:""}`, true);
 }
 
-function addAlert(text, isError) {
+function addAlert(id, text, isError) {
     const formattedAlert = {type: isError?ALERT_ERROR:ALERT_INFO, message: text};
-    const alertObject = $$.libsession.get(ALERT_OBJECT_KEY, []);
-    alertObject.push(formattedAlert);
+    const alertObject = $$.libsession.get(ALERT_OBJECT_KEY, {});
+    const thisAlertStack = alertObject[id]||[];
+    thisAlertStack.push(formattedAlert);
+    alertObject[id] = thisAlertStack;
     $$.libsession.set(ALERT_OBJECT_KEY, alertObject);
 }
 
 function getAlerts() {
-    const alertObject = $$.libsession.get(ALERT_OBJECT_KEY, []);
-    return [...alertObject];
+    const alertObject = $$.libsession.get(ALERT_OBJECT_KEY, {});
+    return $$.libutil.clone(alertObject);
 }
 
-const clearAlerts = _ => $$.libsession.set(ALERT_OBJECT_KEY, []);
+const clearAlerts = _ => $$.libsession.set(ALERT_OBJECT_KEY, {});
 
-function _processCommandOutput(text, isError=false, firstLineOfNewCommand=false) {
-    if (isError) addAlert(text, true);
-    else addAlert(text);
+function _processCommandOutput(id, text, isError=false) {
+    if (isError) addAlert(id, text, true);
+    else addAlert(id, text);
 }
 
 async function _getFormHTML(formJSON) {

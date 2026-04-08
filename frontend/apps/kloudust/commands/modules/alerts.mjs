@@ -73,6 +73,20 @@ div#main {
     max-height: 100%;
 }
 
+div#alertpartition {
+    font-size: 0.98rem;
+    margin: 0.5rem;
+}
+
+div#alertcontainer {
+    margin: 0em 1.5em;
+    border: 1px solid white;
+    border-radius: 1em;
+    overflow: clip;
+    height: 0;
+}
+div#alertcontainer.visible {height: auto;}
+
 div#alertdiv {
     padding: 0.5em;
     box-sizing: border-box;
@@ -81,8 +95,6 @@ div#alertdiv {
     align-items: center;
 }
 div#main div#alertdiv:nth-child(odd) {background-color: #858585;}
-div#main div#alertdiv:first-child{border-top: 1px solid #ffffff;}
-div#main div#alertdiv:last-child{border-bottom: 1px solid #ffffff;}
 span#alertmessage {
     width: calc(100% - 2.5em);
     font-family: monospace;
@@ -108,28 +120,43 @@ span#alerticon img {height: 100%;}
 </span>
 
 <div id="main">
-{{^alerts}}
+{{^alert_stacks}}
 <div id="alertdiv"><span id="alerticon"><img src="{{{info_icon}}}"></span><span id="alertmessage">No alerts.</span></div>
-{{/alerts}}
-{{#alerts}}
+{{/alert_stacks}}
+{{#alert_stacks}}
+    <div id="alertpartition" onclick="
+        const containerThis = this.nextElementSibling;
+        containerThis.classList.toggle('visible');
+        if (containerThis.classList.contains('visible')) this.innerText = this.innerText.replace('>','⌄');
+        else this.innerText = this.innerText.replace('⌄','>');
+    ">&gt;&nbsp;{{{heading}}}</div>
+    <div id="alertcontainer">
+    {{#alerts}}
     <div id="alertdiv"><span id="alerticon"><img src="{{{alerticon}}}"></span><span id="alertmessage">{{{message}}}</span></div>
-{{/alerts}}
+    {{/alerts}}
+    </div>
+{{/alert_stacks}}
 </div>
 
 </div>
 `;
 
 async function getHTML(_formJSON, cmdmanager) {
-    const alerts = _safeDeepCloneArray(cmdmanager.getAlerts()); for (const alert of alerts) {
-        if (alert.type == cmdmanager.ALERT_ERROR) alert.error = true;
-        alert.alerticon = alert.error?`${RESOURCES_PATH}/alerts_error.svg`:`${RESOURCES_PATH}/alerts_info.svg`;
-        alert.message = $$.libutil.encodeHTMLEntities(alert.message).replaceAll(/\r?\n/g, "<br/>");
+    const alertsObject = cmdmanager.getAlerts();
+    const alertIDsSorted = Object.keys(alertsObject).sort((a, b) => a - b);
+    let alertStackObjects; for (const alertID of alertIDsSorted) {
+        const alertStackObject = {heading: $$.libutil.encodeHTMLEntities(alertsObject[alertID][0].message), alerts: []};
+        for (const alert of alertsObject[alertID]) {
+            if (alert.type == cmdmanager.ALERT_ERROR) alert.error = true;
+            alert.alerticon = alert.error?`${RESOURCES_PATH}/alerts_error.svg`:`${RESOURCES_PATH}/alerts_info.svg`;
+            alert.message = $$.libutil.encodeHTMLEntities(alert.message).replaceAll(/\r?\n/g, "<br/>");
+            alertStackObject.alerts.push(alert);
+        }
+        if (!alertStackObjects) alertStackObjects = []; alertStackObjects.push(alertStackObject);
     }
-    const html = $$.librouter.expandPageData(HTML_TEMPLATE, undefined, {alerts, clear_icon: `${RESOURCES_PATH}/alerts_clear.svg`,
-        info_icon: `${RESOURCES_PATH}/alerts_info.svg`, error_icon: `${RESOURCES_PATH}/alerts_error.svg`});
+    const html = await $$.librouter.expandPageData(HTML_TEMPLATE, undefined, {alert_stacks: alertStackObjects, 
+        clear_icon: `${RESOURCES_PATH}/alerts_clear.svg`, info_icon: `${RESOURCES_PATH}/alerts_info.svg`});
     return html;
 }
-
-const _safeDeepCloneArray = array => JSON.parse(JSON.stringify(array||[]));
 
 export const alerts = {getHTML};
