@@ -32,6 +32,7 @@ export const APP_CONSTANTS = {
     MIN_PASS_LENGTH: 8,
     API_LOGIN: API_PATH+"/login",
     API_KLOUDUSTCMD: API_PATH+"/kloudustcmd",
+    API_SSE: API_PATH+"/apisse",
     USERID: "userid",
     USERPW: "pw",
     MIN_PW_LENGTH: 10,

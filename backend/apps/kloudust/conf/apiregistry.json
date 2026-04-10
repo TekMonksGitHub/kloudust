@@ -1,4 +1,6 @@
 {
     "/apps/{{app}}/login" : "/apis/login.js?get=true&keys=fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389&needsToken=false&addsToken=sub:access,id:{{{id}}},org:{{{org}}},role:{{{role}}},name:{{{name}}},tokenflag:{{{result}}}",
-    "/apps/{{app}}/kloudustcmd" : "/apis/kloudustcmd.js?keys=fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389&customSecurity=kloudustAPISecurity"
+    "/apps/{{app}}/kloudustcmd" : "/apis/kloudustcmd.js?responseviasseifasked=true&keys=fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389&customSecurity=kloudustAPISecurity",
+
+    "/apps/{{app}}/apisse" : "/{{server_apis}}/appevents.js?get=true&sse=true&sseint=2000"
 }

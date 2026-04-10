@@ -65,7 +65,8 @@ async function formSubmitted(id, values) {
     const project = $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT, APP_CONSTANTS.DEFAULT_PROJECT);
     const alertID = Date.now();
     _processCommandOutput(alertID, `Running command for project ${project} - ${command}`, false);
-    const cmdResult = await apiman.rest(APP_CONSTANTS.API_KLOUDUSTCMD, "POST", {cmd: command, project}, true);
+    const cmdResult = await apiman.rest({url: APP_CONSTANTS.API_KLOUDUSTCMD, 
+        type: "POST", req: {cmd: command, project}, sendToken: true, sseURL: APP_CONSTANTS.API_SSE});
     if (cmdResult?.result) {
         _processCommandOutput(alertID, `Success. Command output follows.`);
         if ((cmdResult.out||"").trim() != "") _processCommandOutput(alertID, cmdResult.out); 
