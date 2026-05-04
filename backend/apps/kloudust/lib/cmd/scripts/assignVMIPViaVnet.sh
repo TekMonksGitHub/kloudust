@@ -81,7 +81,7 @@ JSON_PAYLOAD_WINDOWS=$(jq -n --arg script "$WINDOWS_PS_SCRIPT" \
         '{execute: "guest-exec", arguments: {path: "powershell", arg: ["-Command", $script], "capture-output": true}}')
 
 
-if [ -z "$IS_WINDOWS_VM" ]; then
+if [ -z "$IS_WINDOWS" ]; then
     # This is for Linux, uses netplan
     echo Using this Netplan script for Linux VM: $LINUX_NETPLAN_SCRIPT
     if ! PID=$(virsh qemu-agent-command $VM_NAME $JSON_PAYLOAD_LINUX | jq -r '.return.pid'); then exitFailed; fi
