@@ -34,40 +34,42 @@ else
     echo "Found MAC $MAC_ADDRESS for VM attachment to the VNet. Proceeding with firewall setup."
 fi
 
-# Find the vnet interface on the host that corresponds to this VM's MAC
-# Host-side tap interface MAC has fe: prefix replacing the first octet
-HOST_MAC=$(echo "$MAC_ADDRESS" | sed 's/^../fe/')
-VNET_IFACE=$(ip -br link | awk -v mac="$HOST_MAC" 'tolower($3) == tolower(mac) {print $1}')
-if [ -z "$VNET_IFACE" ]; then
-    echoerr "Could not find host vnet interface for MAC $HOST_MAC"
-    exitFailed
-else
-    echo "Found host vnet interface $VNET_IFACE for VM $VM_NAME."
-fi
+FORWARD_CHAIN="kd_$(echo "${RULESET_NAME}_${VM_NAME}_${VNET_ID}" | md5sum | cut -c1-24)" # Unique chain name (<=31 chars limit)
 
-EGRESS_CHAIN="kd_$(echo "${RULESET_NAME}_${VM_NAME}_${VNET_ID}_e" | md5sum | cut -c1-24)_e"     # Max chain name length is 31 characters
-INGRESS_CHAIN="kd_$(echo "${RULESET_NAME}_${VM_NAME}_${VNET_ID}_i" | md5sum | cut -c1-24)_i"    # Max chain name length is 31 characters
+NFT_FAMILY="bridge"    # Using bridge family
+NFT_TABLE="kdhostfirewall_bridge"
 
-# Create netdev table if not exists
-if ! sudo nft add table netdev kdhostfirewall_netdev 2>/dev/null; then true; fi
+# Create bridge table if not exists
+if ! sudo nft add table "$NFT_FAMILY" "$NFT_TABLE" 2>/dev/null; then true; fi
 
-# Create egress chain (traffic FROM network/internet TO VM)
-if ! sudo nft add chain netdev kdhostfirewall_netdev "$EGRESS_CHAIN" \
-    { type filter hook egress device \"$VNET_IFACE\" priority 0\; policy accept\; comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\"\; }; then
+# Create single forward chain
+if ! sudo nft add chain "$NFT_FAMILY" "$NFT_TABLE" "$FORWARD_CHAIN" \
+    { type filter hook forward priority 0\; policy accept\; comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\"\; }; then
     exitFailed
 fi
 
-# Create ingress chain (traffic FROM VM TO the network/internet)
-if ! sudo nft add chain netdev kdhostfirewall_netdev "$INGRESS_CHAIN" \
-    { type filter hook ingress device \"$VNET_IFACE\" priority 0\; policy accept\; comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\"\; }; then
+# Allow ARP in both directions - using MAC address
+if ! sudo nft add rule "$NFT_FAMILY" "$NFT_TABLE" "$FORWARD_CHAIN" \
+    ether type arp ether daddr "$MAC_ADDRESS" accept; then
     exitFailed
 fi
 
-# Allow ARP in both directions
-if ! sudo nft add rule netdev kdhostfirewall_netdev "$EGRESS_CHAIN" \
-    ether type arp accept comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\"; then exitFailed; fi
-if ! sudo nft add rule netdev kdhostfirewall_netdev "$INGRESS_CHAIN" \
-    ether type arp accept comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\"; then exitFailed; fi
+if ! sudo nft add rule "$NFT_FAMILY" "$NFT_TABLE" "$FORWARD_CHAIN" \
+    ether type arp ether saddr "$MAC_ADDRESS" accept; then
+    exitFailed
+fi
+
+# Allow packets that are part of established/related connections
+if ! sudo nft add rule "$NFT_FAMILY" "$NFT_TABLE" "$FORWARD_CHAIN" \
+    ct state established,related accept; then
+    exitFailed
+fi
+
+# Drop packets with invalid connection tracking state
+if ! sudo nft add rule "$NFT_FAMILY" "$NFT_TABLE" "$FORWARD_CHAIN" \
+    ct state invalid drop; then
+    exitFailed
+fi
 
 # Apply rules from JSON
 RULES_FAILED=0
@@ -79,38 +81,35 @@ while read -r rule; do
     IP=$(echo "$rule" | jq -r '.ip')
 
     ACTION="drop"
-    if [ "$ALLOW" = "true" ]; then ACTION="accept"; fi
+    CT_MATCH=""
+    if [ "$ALLOW" = "true" ]; then
+        ACTION="accept"
+        CT_MATCH="ct state new"
+    fi
 
     PORT_MATCH=""
     if { [ "$PROTOCOL" = "tcp" ] || [ "$PROTOCOL" = "udp" ]; } && [ -n "$PORT" ] && [ "$PORT" != "null" ]; then
         PORT_MATCH="$PROTOCOL dport $PORT"
     fi
 
-    IP_MATCH=""
+    IP_MATCH="" 
+    # Direction-based MAC + IP filtering
     if [ "$DIRECTION" = "in" ]; then
-        # Inbound to VM = egress on vnet, source IP is the remote client
-        CHAIN="$EGRESS_CHAIN"
-        if [ "$IP" != "*" ] && [ "$IP" != "null" ]; then IP_MATCH="ip saddr $IP"; fi
+        IF_MATCH="ether daddr $MAC_ADDRESS"   # traffic TO vm: dst MAC = VM MAC
+        if [ "$IP" != "*" ] && [ "$IP" != "null" ]; then
+            IP_MATCH="ip saddr $IP"
+        fi
     else
-        # Outbound from VM = ingress on vnet, destination IP is the remote target
-        CHAIN="$INGRESS_CHAIN"
-        if [ "$IP" != "*" ] && [ "$IP" != "null" ]; then IP_MATCH="ip daddr $IP"; fi
+        IF_MATCH="ether saddr $MAC_ADDRESS"   # traffic FROM vm: src MAC = VM MAC
+        if [ "$IP" != "*" ] && [ "$IP" != "null" ]; then
+            IP_MATCH="ip daddr $IP"
+        fi
     fi
 
-    if ! sudo nft add rule netdev kdhostfirewall_netdev "$CHAIN" \
-            $IP_MATCH $PORT_MATCH counter $ACTION comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\"; then
+    if ! sudo nft add rule "$NFT_FAMILY" "$NFT_TABLE" "$FORWARD_CHAIN" \
+        $IF_MATCH $CT_MATCH $IP_MATCH $PORT_MATCH counter $ACTION \
+        comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\"; then
         RULES_FAILED=1
         break
     fi
 done < <(echo "$RULES_JSON" | jq -c '.[]')
-if [ "$RULES_FAILED" = "1" ]; then 
-    echoerr Rule failed -> "sudo nft add rule netdev kdhostfirewall_netdev \"$CHAIN\" $IP_MATCH $PORT_MATCH counter $ACTION comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\""
-    exitFailed
-fi
-
-# Persist
-if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 
-if ! sudo systemctl enable nftables; then exitFailed; fi
-
-echo "Netdev egress+ingress firewall rules applied for $VM_NAME, ruleset $RULESET_NAME and Vnet $VNET_ID"
-exit 0
