@@ -90,6 +90,8 @@ while read -r rule; do
     PORT_MATCH=""
     if { [ "$PROTOCOL" = "tcp" ] || [ "$PROTOCOL" = "udp" ]; } && [ -n "$PORT" ] && [ "$PORT" != "*" ] && [ "$PORT" != "null" ]; then
         PORT_MATCH="$PROTOCOL dport $PORT"
+    elif { [ "$PROTOCOL" = "tcp" ] || [ "$PROTOCOL" = "udp" ]; } && [ "$PORT" = "*" ]; then
+        PORT_MATCH="meta l4proto $PROTOCOL"  
     fi
 
     IP_MATCH="" 
