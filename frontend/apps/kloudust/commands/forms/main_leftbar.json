@@ -1,7 +1,11 @@
 {
 "rolelist": {
 "cloudadmin": [
-    {"id": "cloudadmin", "label": "{{{i18n.CloudAdmin}}}", "logo": "img/cloudadmin.svg"}
+    {"id": "cloudadmin", "label": "{{{i18n.CloudAdmin}}}", "logo": "img/cloudadmin.svg"},
+    {"id": "automations", "label": "{{{i18n.Automations}}}", "logo": "img/automations.svg"}
+],
+"orgadmin": [
+    {"id": "automations", "label": "{{{i18n.Automations}}}", "logo": "img/automations.svg"}
 ],
 "*":[
     {"id": "create", "label": "{{{i18n.Create}}}", "logo": "img/plus.svg"},
@@ -21,6 +25,7 @@
     "Manage": "Manage",
     "Projects": "Projects",
     "CloudAdmin": "Manage cloud",
+    "Automations": "Automations",
     "VirtualMachines": "Virtual machines",
     "VirtualNetworks": "Virtual networks",
     "FirewallRulesets": "Firewall Rulesets",
@@ -38,6 +43,7 @@
     "Manage": "Manage",
     "Projects": "Projects",
     "CloudAdmin": "Manage cloud",
+    "Automations": "Automations",
     "VirtualMachines": "Virtual machines",
     "VirtualNetworks": "Virtual networks",
     "FirewallRulesets": "Firewall Rulesets",
@@ -51,6 +57,7 @@
     "Manage": "Manage",
     "Projects": "Projects",
     "CloudAdmin": "Manage cloud",
+    "Automations": "Automations",
     "VirtualMachines": "Virtual machines",
     "VirtualNetworks": "Virtual networks",
     "FirewallRulesets": "Firewall Rulesets",
@@ -64,6 +71,7 @@
     "Manage": "Manage",
     "Projects": "Projects",
     "CloudAdmin": "Manage cloud",
+    "Automations": "Automations",
     "VirtualMachines": "Virtual machines",
     "VirtualNetworks": "Virtual networks",
     "FirewallRulesets": "Firewall Rulesets",

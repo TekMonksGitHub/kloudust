@@ -4,6 +4,7 @@
  * Params
  * 0 - The VM name of the VM to clone
  * 1 - The VM name of the cloned VM
+ * 2 - Optional: The new hosting project for this VM, only works if org or cloud admins are logged in
  * 
  * (C) 2020 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
@@ -19,8 +20,8 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
  * @param {array} params The incoming params - must be - VM name, Cloned VM name
  */
 module.exports.exec = async function(params) {
-    const [vm_name_raw, cloned_vm_name_raw] = [...params];
-    const vm_name = createVM.resolveVMName(vm_name_raw), cloned_vm_name  = createVM.resolveVMName(cloned_vm_name_raw);
+    const [vm_name_raw, cloned_vm_name_raw, hosting_project] = [...params];
+    const vm_name = createVM.resolveVMName(vm_name_raw), cloned_vm_name  = createVM.resolveVMName(cloned_vm_name_raw, hosting_project);
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return false;}
     
@@ -49,7 +50,8 @@ module.exports.exec = async function(params) {
     const results = await xforge(xforgeArgs);
     if (results.result) {
         if (await dbAbstractor.addOrUpdateVMToDB(cloned_vm_name, vm.description, vm.hostname, vm.arch, 
-            vm.os, vm.cpus, vm.memory, vm.disks, vm.creationcmd, cloned_vm_name_raw, vm.vmtype)) return results;
+            vm.os, vm.cpus, vm.memory, vm.disks, vm.creationcmd, cloned_vm_name_raw, vm.vmtype, 
+            undefined, hosting_project)) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;
 }

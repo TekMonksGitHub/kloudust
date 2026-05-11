@@ -69,7 +69,7 @@ exports.getCurrentOrg = _ => KLOUD_CONSTANTS.env.org();
 
 exports.getCurrentuser = _ => KLOUD_CONSTANTS.env.userid();
 
-exports.getNormalizedProject = prj => prj && (exports.isCloudAdminLoggedIn() || exports.isOrgAdminLoggedIn) ?
+exports.getNormalizedProject = prj => prj && (exports.isCloudAdminLoggedIn() || exports.isOrgAdminLoggedIn()) ?
     prj : KLOUD_CONSTANTS.env.prj();
 
 exports.getNormalizedRole = roleRaw => {

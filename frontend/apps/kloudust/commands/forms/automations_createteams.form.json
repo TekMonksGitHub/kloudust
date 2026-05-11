@@ -1,0 +1,65 @@
+{
+"id": "automations_createteams",
+"command": "createteams",
+"type": "automation_cmdline",
+"kloudust_cmdline_params": ["vmsperteam", "userids", "vmtoclone"],
+
+"title": "{{{i18n.AutomationsCreateTeamsTitle}}}",
+
+"i18n": {
+    "en": {
+        "AutomationsCreateTeamsTitle": "Create teams",
+        "AutomationsCreateTeamsDescription": "Create teams and assign virtual machines to them.",
+        "AutomationsCreateTeamsVMsPerTeam": "Virtual machines per team",
+        "AutomationsCreateTeamsClonedVM": "Virtual machine to clone",
+        "AutomationsCreateTeamsUserID": "Comma seperated email IDs for access",
+        "AutomationsCreateTeamsLabel": "Submit",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "hi": {
+        "AutomationsCreateTeamsTitle": "Create teams",
+        "AutomationsCreateTeamsDescription": "Create teams and assign virtual machines to them.",
+        "AutomationsCreateTeamsVMsPerTeam": "Virtual machines per team",
+        "AutomationsCreateTeamsClonedVM": "Virtual machine to clone",
+        "AutomationsCreateTeamsUserID": "Comma seperated email IDs for access",
+        "AutomationsCreateTeamsLabel": "Submit",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "ja": {
+        "AutomationsCreateTeamsTitle": "Create teams",
+        "AutomationsCreateTeamsDescription": "Create teams and assign virtual machines to them.",
+        "AutomationsCreateTeamsVMsPerTeam": "Virtual machines per team",
+        "AutomationsCreateTeamsClonedVM": "Virtual machine to clone",
+        "AutomationsCreateTeamsUserID": "Comma seperated email IDs for access",
+        "AutomationsCreateTeamsLabel": "Submit",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "zh": {
+        "AutomationsCreateTeamsTitle": "Create teams",
+        "AutomationsCreateTeamsDescription": "Create teams and assign virtual machines to them.",
+        "AutomationsCreateTeamsVMsPerTeam": "Virtual machines per team",
+        "AutomationsCreateTeamsClonedVM": "Virtual machine to clone",
+        "AutomationsCreateTeamsUserID": "Comma seperated email IDs for access",
+        "AutomationsCreateTeamsLabel": "Submit",
+        "FieldValidationErrorGeneric": "Validation error"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.AutomationsCreateTeamsDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "automation_name", "type": "hidden", "value": "createteams"},
+    {"id": "userids", "type": "text", "placeholder": "{{{i18n.AutomationsCreateTeamsUserID}}}", 
+        "required": true, "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "vmtoclone", "type": "text", "placeholder": "{{{i18n.AutomationsCreateTeamsClonedVM}}}", 
+        "required": true, "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "vmsperteam", "type": "number", "placeholder": "{{{i18n.AutomationsCreateTeamsVMsPerTeam}}}", 
+        "required": true, "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+    ],
+
+    "submitlabel": "{{{i18n.AutomationsCreateTeamsLabel}}}"
+}
+
+}

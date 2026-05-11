@@ -24,6 +24,7 @@ exports.CONFDIR = path.resolve(`${exports.ROOTDIR}/conf`);
 exports.CONF = require(`${exports.CONFDIR}/kloudust.json`);
 exports.CMDDIR = path.resolve(`${exports.ROOTDIR}/lib/cmd`);
 exports.THIRD_PARTY_DIR = path.resolve(`${exports.ROOTDIR}/3p`);
+exports.AUTOMATIONS_DIR = path.resolve(`${exports.ROOTDIR}/automations`);
 exports.KDHOST_SYSTEMDIR = "/kloudust/system";
 exports.MONKSHU_BACKEND_LIBDIR = CONSTANTS.LIBDIR||`${exports.THIRD_PARTY_DIR}/monkshu/backend/server/lib`;
 

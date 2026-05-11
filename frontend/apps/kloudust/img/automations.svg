@@ -1,0 +1,11 @@
+<svg width="100%" viewBox="0 0 165 165" role="img" xmlns="http://www.w3.org/2000/svg" style="">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#4a9fd4"/>
+    </marker>
+  </defs>
+
+  <path fill="none" stroke="#4a9fd4" stroke-width="20" stroke-linecap="round" d="M 130.0 48.0 A 60 60 0 1 1 70.0 48.0" marker-end="url(#arr)" style="fill:none;stroke:rgb(74, 159, 212);color:rgb(0, 0, 0);stroke-width:9px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <polygon fill="#f5a623" points="107,68 88,104 101,104 93,132 116,92 102,92" style="fill:rgb(245, 166, 35);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;"/>
+</svg>

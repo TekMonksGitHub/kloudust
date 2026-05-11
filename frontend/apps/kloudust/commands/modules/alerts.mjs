@@ -74,8 +74,9 @@ div#main {
 }
 
 div#alertpartition {
-    font-size: 0.98rem;
+    font-size: 0.9rem;
     margin: 0.5rem;
+    padding: 0rem 1.5rem;
 }
 
 div#alertcontainer {

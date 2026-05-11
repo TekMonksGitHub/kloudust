@@ -1,0 +1,29 @@
+{
+"id": "create",
+"command": "iconlist",
+"type": "frontend_module",
+
+"rolelist": {
+"!user": [
+    {"id": "automations_createteams", "label": "{{{i18n.CreateTeams}}}", "logo": "img/createteams.svg"}
+]
+},
+
+"i18n": {
+"en": {
+    "CreateTeams": "Create teams"
+},
+
+"hi": {
+    "CreateTeams": "Create teams"
+},
+
+"ja": {
+    "CreateTeams": "Create teams"
+},
+
+"zh": {
+    "CreateTeams": "Create teams"
+}
+}
+}

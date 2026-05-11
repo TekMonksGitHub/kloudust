@@ -25,6 +25,7 @@ export const APP_CONSTANTS = {
     COMMANDS_PATH: APP_PATH+"/commands",
     FORMS_PATH: APP_PATH+"/commands/forms",
     FORM_MODULES_PATH: APP_PATH+"/commands/modules",
+    AUTOMATIONS_PATH: APP_PATH+"/commands/automations",
 
     SESSION_NOTE_ID: "com_monkshu_ts",
 

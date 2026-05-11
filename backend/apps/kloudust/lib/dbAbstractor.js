@@ -312,7 +312,8 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, 
 
     const id = `${org}_${project}_${name}`;
     const query = "replace into vms  (id, name, description, hostname, arch, org, projectid, os, cpus, memory, disk, disksjson, creationcmd, name_raw, vmtype, ips) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    return await _db().runCmd(query, [id, name, description, hostname, arch, org, _getProjectID(), os, cpus, memory, totaldisk, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
+    return await _db().runCmd(query, [id, name, description, hostname, arch, org, _getProjectID(project, org), 
+        os, cpus, memory, totaldisk, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
 }
 
 /**
