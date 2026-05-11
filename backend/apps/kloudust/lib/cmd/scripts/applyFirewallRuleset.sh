@@ -88,7 +88,7 @@ while read -r rule; do
     fi
 
     PORT_MATCH=""
-    if { [ "$PROTOCOL" = "tcp" ] || [ "$PROTOCOL" = "udp" ]; } && [ -n "$PORT" ] && [ "$PORT" != "null" ]; then
+    if { [ "$PROTOCOL" = "tcp" ] || [ "$PROTOCOL" = "udp" ]; } && [ -n "$PORT" ] && [ "$PORT" != "*" ] && [ "$PORT" != "null" ]; then
         PORT_MATCH="$PROTOCOL dport $PORT"
     fi
 
