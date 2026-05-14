@@ -1,0 +1,70 @@
+{
+"id": "automationsdelete",
+"command": "deleteAutomation",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["name"],
+
+"title": "{{{i18n.AutomationsDeleteTitle}}}",
+
+"i18n": {
+    "en": {
+        "AutomationsDeleteName": "Select the automation",
+        "AutomationsDeleteTitle": "Delete an automation",
+        "AutomationsDeleteDescription": "Delete an automation. Select and click delete.",
+        "AutomationsDeleteLabel": "Delete",
+        "AutomationsDeleteNoAutomations": "No automations to delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "hi": {
+        "AutomationsDeleteName": "Select the automation",
+        "AutomationsDeleteTitle": "Delete an automation",
+        "AutomationsDeleteDescription": "Delete an automation. Select and click delete.",
+        "AutomationsDeleteLabel": "Delete",
+        "AutomationsDeleteNoAutomations": "No automations to delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "ja": {
+        "AutomationsDeleteName": "Select the automation",
+        "AutomationsDeleteTitle": "Delete an automation",
+        "AutomationsDeleteDescription": "Delete an automation. Select and click delete.",
+        "AutomationsDeleteLabel": "Delete",
+        "AutomationsDeleteNoAutomations": "No automations to delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "zh": {
+        "AutomationsDeleteName": "Select the automation",
+        "AutomationsDeleteTitle": "Delete an automation",
+        "AutomationsDeleteDescription": "Delete an automation. Select and click delete.",
+        "AutomationsDeleteLabel": "Delete",
+        "AutomationsDeleteNoAutomations": "No automations to delete",
+        "FieldValidationErrorGeneric": "Validation error"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.AutomationsDeleteDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "name", "multioption": true, "type": "select", "label": "{{{i18n.AutomationsDeleteName}}}", "options":[]}
+    ],
+
+    "load_javascript": [
+    "const form = arguments[0]||{};",
+    "const automationsResult = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+    "    cmd: 'listAutomations'}, true);",
+    "const selectBox = form.required_fields[0];",
+    "if (automationsResult && automationsResult.result && automationsResult.automations.length) {",
+    "    for (const automation of automationsResult.automations)",
+    "        selectBox.options.push({value: automation.name, label: automation.name});",
+    "} else {",
+    "    selectBox.options.push({value: '', label: '{{{i18n.AutomationsDeleteNoAutomations}}}'});",
+    "    selectBox.disabled = true;",
+    "}",
+    "return form;"
+    ],
+
+    "submitlabel": "{{{i18n.AutomationsDeleteLabel}}}"
+}
+
+}

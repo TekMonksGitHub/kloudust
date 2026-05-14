@@ -1,29 +1,49 @@
 {
-"id": "create",
-"command": "iconlist",
-"type": "frontend_module",
-
-"rolelist": {
-"!user": [
-    {"id": "automations_createteams", "label": "{{{i18n.CreateTeams}}}", "logo": "img/createteams.svg"}
-]
-},
-
-"i18n": {
-"en": {
-    "CreateTeams": "Create teams"
-},
-
-"hi": {
-    "CreateTeams": "Create teams"
-},
-
-"ja": {
-    "CreateTeams": "Create teams"
-},
-
-"zh": {
-    "CreateTeams": "Create teams"
-}
-}
+    "id": "create",
+    "command": "iconlist",
+    "type": "frontend_module",
+    "rolelist": {
+        "cloudadmin": [
+            {
+                "id": "automationsupload",
+                "label": "{{{i18n.AutomationsUpload}}}",
+                "logo": "img/automationupload.svg"
+            },
+            {
+                "id": "automationsdelete",
+                "label": "{{{i18n.AutomationsDelete}}}",
+                "logo": "img/automationdelete.svg"
+            }
+        ],
+        "!user": [
+            {
+                "id": "automations_createteams",
+                "label": "{{{i18n.AutomationsCreateTeams}}}",
+                "logo": "img/automations_createteams.svg",
+                "name": "Create Teams"
+            }
+        ]
+    },
+    "i18n": {
+        "en": {
+            "AutomationsUpload": "New Automation",
+            "AutomationsDelete": "Delete Automation",
+            "AutomationsCreateTeams": "Create teams"
+        },
+        "hi": {
+            "AutomationsUpload": "New Automation",
+            "AutomationsDelete": "Delete Automation",
+            "AutomationsCreateTeams": "Create teams"
+        },
+        "ja": {
+            "AutomationsUpload": "New Automation",
+            "AutomationsDelete": "Delete Automation",
+            "AutomationsCreateTeams": "Create teams"
+        },
+        "zh": {
+            "AutomationsUpload": "New Automation",
+            "AutomationsDelete": "Delete Automation",
+            "AutomationsCreateTeams": "Create teams"
+        }
+    }
 }

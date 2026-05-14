@@ -58,7 +58,7 @@
         ],
         "load_javascript": [
             "const form = arguments[0]||{};",
-            "if(APP_CONSTANTS.ENV._projects_form_data) {",
+            "if (APP_CONSTANTS.ENV._projects_form_data) {",
             "   form.required_fields[form.required_fields.length-1].label = '';",
             "   form.required_fields[form.required_fields.length-1].style = 'display:none;';",
             "} else {",
@@ -68,10 +68,10 @@
             "   if(projects.result){",
             "       const projectlist = form.required_fields[form.required_fields.length-1];",
             "       const filteredProjects = projects.projects.filter(prj => prj.name !== APP_CONSTANTS.DEFAULT_PROJECT);",
-            "       if(filteredProjects.length === 0) {",
+            "       if (filteredProjects.length === 0) {",
             "           projectlist.options.push({value: '', label: '{{{i18n.NoProjectsToDelete}}}'});",
             "           projectlist.disabled = true;",
-            "       }else {",
+            "       } else {",
             "           for(const project of filteredProjects) {",
             "              projectlist.options.push({value: project.name, label: project.name});",
             "           }",
@@ -83,7 +83,7 @@
         "rendered_javascript": ["delete APP_CONSTANTS.ENV._projects_form_data; return true"],
         "submit_javascript":[
             "const retObject = arguments[0]||{};",
-            "if(retObject.projectlist && retObject.projectlist!=='') {",
+            "if (retObject.projectlist && retObject.projectlist!=='') {",
                 "retObject.project_name = retObject.projectlist;",
             "}",
             "return true;"

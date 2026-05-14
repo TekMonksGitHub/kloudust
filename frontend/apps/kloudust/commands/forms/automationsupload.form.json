@@ -1,0 +1,58 @@
+{
+"id": "automationsupload",
+"command": "addAutomation",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["name", "automation"],
+
+"title": "{{{i18n.AutomationsUploadTitle}}}",
+
+"i18n": {
+    "en": {
+        "AutomationsName": "Name the automation",
+        "AutomationsUploadTitle": "Upload a new automation",
+        "AutomationsUploadDescription": "Upload a new automation. Paste the combined file in the text box and submit.",
+        "AutomationsUploadPlaceholder": "Automation",
+        "AutomationsUploadLabel": "Submit",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "hi": {
+        "AutomationsName": "Name the automation",
+        "AutomationsUploadTitle": "Upload a new automation",
+        "AutomationsUploadDescription": "Upload a new automation. Paste the combined file in the text box and submit.",
+        "AutomationsUploadPlaceholder": "Automation",
+        "AutomationsUploadLabel": "Submit",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "ja": {
+        "AutomationsName": "Name the automation",
+        "AutomationsUploadTitle": "Upload a new automation",
+        "AutomationsUploadDescription": "Upload a new automation. Paste the combined file in the text box and submit.",
+        "AutomationsUploadPlaceholder": "Automation",
+        "AutomationsUploadLabel": "Submit",
+        "FieldValidationErrorGeneric": "Validation error"
+    },
+    "zh": {
+        "AutomationsName": "Name the automation",
+        "AutomationsUploadTitle": "Upload a new automation",
+        "AutomationsUploadDescription": "Upload a new automation. Paste the combined file in the text box and submit.",
+        "AutomationsUploadPlaceholder": "Automation",
+        "AutomationsUploadLabel": "Submit",
+        "FieldValidationErrorGeneric": "Validation error"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.AutomationsUploadDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "name", "type": "text", "placeholder": "{{{i18n.AutomationsName}}}", 
+        "required": true, "pattern":"[0-9a-zA-Z ]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "automation", "inputtype": "textarea", "type": "text", "placeholder": "{{{i18n.AutomationsUploadPlaceholder}}}", 
+        "required": true, "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+    ],
+
+    "submitlabel": "{{{i18n.AutomationsUploadLabel}}}"
+}
+
+}

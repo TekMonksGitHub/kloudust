@@ -8,5 +8,6 @@
 exports.FALSE_RESULT = (err="", out="") => {return {result: false, err, out}};
 exports.TRUE_RESULT = (out="", err="") => {return {result: true, err, out}};
 exports.SCRIPT_JSONOUT_SPLITTER = "-----KLOUDUST_JSON_OUT-----";
-exports.PROJECT_EXCLUDED_COMMANDS = ["getUserProjects", "addHost", "rebootHost", "addImage", "addUser", "lookupHost", 
-    "listHosts", "listHostResources", "listVMsForHost", "customCmd", "changeUserRole", "liveMigrate", "listVMImages","initOrg"]
+exports.PROJECT_EXCLUDED_COMMANDS = ["getUserProjects", "addHost", "rebootHost", "addImage", "addUser", 
+    "lookupHost", "listHosts", "listHostResources", "listVMsForHost", "customCmd", "changeUserRole", 
+    "liveMigrate", "listVMImages", "initOrg", "listAutomations"];

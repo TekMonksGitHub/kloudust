@@ -1,6 +1,6 @@
 {
 "id": "automations_createteams",
-"command": "createteams",
+"command": "automations_createteams",
 "type": "automation_cmdline",
 "kloudust_cmdline_params": ["vmsperteam", "userids", "vmtoclone"],
 
