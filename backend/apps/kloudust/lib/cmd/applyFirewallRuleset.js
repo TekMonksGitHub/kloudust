@@ -25,11 +25,12 @@ module.exports.exec = async function(params) {
     const [vm_name_raw, ruleset_name_raw, vnet_name_raw_in] = params;
     if ((!vm_name_raw) || (!ruleset_name_raw)) { params.consoleHandlers.LOGERROR("Missing VM name or ruleset name"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
+    const ip_type = vnet_name_raw_in === "" ? "public" : "private"; // if we do not receive an explicit vnet name, we assume the user wants to apply the ruleset to the public IP of the VM, if it has one
     const vm_name = createVM.resolveVMName(vm_name_raw);
     const ruleset_name = createFirewallRuleset.resolveRulesetName(ruleset_name_raw);
     const vnet_name_raw = vnet_name_raw_in || createVnet.getInternetBackboneVnet();
     const vnet_name = createVnet.resolveVnetName(vnet_name_raw);
-    if (!vnet_name) { params.consoleHandlers.LOGERROR("Unable to resolve the Vnet name"); return CMD_CONSTANTS.FALSE_RESULT(); }
+    if (!vm_name || !ruleset_name || !vnet_name) { params.consoleHandlers.LOGERROR("Invalid VM, ruleset or Vnet name"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) { params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT(); }
@@ -41,34 +42,41 @@ module.exports.exec = async function(params) {
     if (!ruleset) { params.consoleHandlers.LOGERROR("Bad ruleset name or ruleset not found"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
     const vm_vnet_rulesets = await dbAbstractor.getVMVnetFirewall(vm.name, vnet.name);
-    if (vm_vnet_rulesets.includes(ruleset.id)) {    // already applied, return true
-        params.consoleHandlers.LOGWARN(`Vnet ${vnet.name} of VM ${vm.name} already has firewall ${ruleset.name} applied to it!`); 
-        return CMD_CONSTANTS.TRUE_RESULT(); 
-    }
+    if (vm_vnet_rulesets.includes(ruleset.id)) { params.consoleHandlers.LOGERROR(`Vnet ${vnet.name} of VM ${vm.name} already has firewall ${ruleset.name} applied to it!`); return CMD_CONSTANTS.FALSE_RESULT(); }
 
-    const vm_host = await dbAbstractor.getHostEntry(vm.hostname);
-    if (!vm_host) { params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT(); }
+    const public_ip = vm.ips.trim();
+    if (!public_ip && ip_type === "public") { params.consoleHandlers.LOGERROR("VM has no public IP"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
-    const rules_json = JSON.stringify(JSON.stringify(JSON.parse(ruleset.rules_json).reverse()));    // double stringify to make it a valid command line argument
+    const public_ip_host = ip_type === "public" ? await dbAbstractor.getHostEntry(await dbAbstractor.getHostForIP(public_ip)) : null;
+    if (ip_type === "public" && !public_ip_host) { params.consoleHandlers.LOGERROR("Host info not found for VM public IP"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
-    const xforgeArgs = { 
+    const vm_host = ip_type === "private" ? await dbAbstractor.getHostEntry(vm.hostname) : null;
+    if (ip_type === "private" && !vm_host) { params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT(); }
+
+    const rules_json = JSON.stringify(JSON.stringify(JSON.parse(ruleset.rules_json).reverse()));
+
+    const [command, args, host] =
+        ip_type === "public"
+            ? ["applyFirewallRulesetPublic", [rules_json, public_ip, vm.name, ruleset.name], public_ip_host]
+            : ["applyFirewallRulesetPrivate", [rules_json, vnet.vnetnum, vm.name, ruleset.name], vm_host];
+
+    const xforgeArgsApplyRuleset = { 
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
         file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`, 
         console: params.consoleHandlers,
-        other: [
-            vm_host.hostaddress, vm_host.rootid, vm_host.rootpw, vm_host.hostkey, vm_host.port, 
-            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/applyFirewallRuleset.sh`, 
-            rules_json, vnet.vnetnum, vm.name, ruleset.name
-        ] 
-    };
+        other: [host.hostaddress, host.rootid, host.rootpw, host.hostkey, host.port, 
+            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/${command}.sh`, ...args] 
+        };
     
-    const results = await xforge(xforgeArgs);
+    const apply_result = await xforge(xforgeArgsApplyRuleset);
 
-    if (results.result) {
-        params.consoleHandlers.LOGINFO(`Firewall ruleset ${ruleset.name} was applied to Vnet ${vnet.name} for VM ${vm_name_raw}`);
-        const insertResult = await dbAbstractor.addVMVnetFirewall(vm.name, vnet.name, ruleset.name);
-        if (!insertResult) { params.consoleHandlers.LOGERROR("DB insert failed!"); return {...results, ...CMD_CONSTANTS.FALSE_RESULT()}}
-    } else params.consoleHandlers.LOGERROR(`Firewall ruleset ${ruleset.name} could not be applied to Vnet ${vnet.name} for VM ${vm_name_raw}`);
+    if (!apply_result.result) { params.consoleHandlers.LOGERROR(`Firewall ruleset ${ruleset.name} could not be applied to Vnet ${vnet.name} of VM ${vm_name_raw}`); return {...apply_result, ...CMD_CONSTANTS.FALSE_RESULT()}; }
 
-    return results;
-}
+    const insertResult = await dbAbstractor.addVMVnetFirewall(vm.name, vnet.name, ruleset.name);
+    if (!insertResult) { params.consoleHandlers.LOGERROR("DB insert failed!"); return CMD_CONSTANTS.FALSE_RESULT(); }
+
+    params.consoleHandlers.LOGINFO(`Firewall ruleset ${ruleset.name} was applied to Vnet ${vnet.name} of VM ${vm_name_raw}`);
+    return {...apply_result, ...CMD_CONSTANTS.TRUE_RESULT()};
+};
+
+exports.resolveRulesetName = ruleset_name_raw => ruleset_name_raw ? `${ruleset_name_raw}_${KLOUD_CONSTANTS.env.org}_${KLOUD_CONSTANTS.env.prj}`.toLowerCase().replace(/\s/g,"_") : null;
