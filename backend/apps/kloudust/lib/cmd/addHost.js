@@ -45,6 +45,24 @@ module.exports.exec = async function(params) {
 
     const newPassword = nochangepassword.toLowerCase() == "nochange" ? adminpass : cryptoMod.randomBytes(32).toString("hex");
     const agentconfig = xforge_module.getAgentConfig(hostip, adminid, newPassword, newsshport);
+    
+    const hookInstallArgs = {
+        colors: KLOUD_CONSTANTS.COLORED_OUT,
+        console: params.consoleHandlers,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
+        other: [
+            hostip, adminid, adminpass, hostsshkey, oldsshport,
+            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/firewallHook.sh`,
+            "install"
+        ],
+        agent_config: agentconfig
+    };
+    const hookInstallResults = await xforge_module.xforge(hookInstallArgs);
+    if (hookInstallResults.exitCode != 0) {
+        _showError("Script error in installing the libvirt hook.", hostip, newPassword, adminid, adminpass, oldsshport, newsshport, params.consoleHandlers||KLOUD_CONSTANTS.LOG);
+        return {result: false, out: hookInstallResults.stdout, stdout: hookInstallResults.stdout, stderr: hookInstallResults.stderr, err: hookInstallResults.stderr};
+    }
+
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
         console: params.consoleHandlers,

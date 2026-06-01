@@ -115,6 +115,21 @@ if ! sudo lsmod | grep -i kvm; then exitFailed; fi
 if ! sudo systemctl enable --now tuned; then exitFailed; fi
 if ! sudo tuned-adm profile virtual-host; then exitFailed; fi
 
+printf "\n\nAllowing libvirt hook execution in AppArmor\n"
+if [ -f /etc/apparmor.d/usr.sbin.libvirtd ] && command -v apparmor_parser >/dev/null 2>&1; then
+    if ! sudo mkdir -p /etc/apparmor.d/local; then exitFailed; fi
+    if [ ! -f /etc/apparmor.d/local/usr.sbin.libvirtd ]; then
+        if ! sudo tee /etc/apparmor.d/local/usr.sbin.libvirtd > /dev/null <<EOF
+# Site-specific additions and overrides for usr.sbin.libvirtd.
+EOF
+        then exitFailed; fi
+    fi
+    if ! sudo grep -qxF '/kloudust/system/libvirt-hooks/qemu rmix,' /etc/apparmor.d/local/usr.sbin.libvirtd; then
+        if ! printf '/kloudust/system/libvirt-hooks/qemu rmix,\n' | sudo tee -a /etc/apparmor.d/local/usr.sbin.libvirtd > /dev/null; then exitFailed; fi
+    fi
+    if ! sudo apparmor_parser -r /etc/apparmor.d/usr.sbin.libvirtd; then exitFailed; fi
+fi
+
 
 printf "\n\nDisabling libvirt default networking\n"
 sudo virsh net-destroy default &> /dev/null

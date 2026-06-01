@@ -12,6 +12,7 @@
 VNET_ID="{1}"
 VM_NAME="{2}"
 RULESET_NAME="{3}"
+STATE_DIR="/kloudust/system/firewall-state"
 
 echoerr() { echo "$@" 1>&2; }
 
@@ -25,7 +26,10 @@ if [ -z "$VNET_ID" ] || [ -z "$VM_NAME" ] || [ -z "$RULESET_NAME" ]; then
     exitFailed
 fi
 
-# Delete the chains, as the firewall table is shared
+STATE_ID=$(printf '%s' "${VM_NAME}|${VNET_ID}|${RULESET_NAME}" | md5sum | cut -d" " -f1)
+STATE_FILE="$STATE_DIR/${STATE_ID}.state"
+
+# Delete the chains, as the netdev table is shared
 while read -r family table chain; do
     if ! sudo nft delete chain "$family" "$table" "$chain"; then exitFailed; fi
 done < <(sudo nft -j list ruleset | jq -r --arg comment "$RULESET_NAME-$VM_NAME-$VNET_ID" '
@@ -38,6 +42,9 @@ done < <(sudo nft -j list ruleset | jq -r --arg comment "$RULESET_NAME-$VM_NAME-
 # Persist
 if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 
 if ! sudo systemctl enable nftables; then exitFailed; fi
+if ! sudo rm -f "$STATE_FILE"; then
+    echoerr "Warning: Could not remove firewall reapply state $STATE_FILE"
+fi
 
-echo "Bridge forward firewall rules removed for $VM_NAME, ruleset $RULESET_NAME and Vnet $VNET_ID"
+echo "Netdev egress+ingress firewall rules removed for $VM_NAME, ruleset $RULESET_NAME and Vnet $VNET_ID"
 exit 0
