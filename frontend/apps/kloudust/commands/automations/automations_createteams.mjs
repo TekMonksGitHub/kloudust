@@ -16,7 +16,7 @@ async function exec(params, kdcmd) {
         if (!result) break;
 
         for (let i = 0; i < (parseInt(vmsperteam)||1); i++) {    // clone the VM in the new project as many VMs as needed
-            result = (await kdcmd(`"cloneVM" "${clonedvmname}" "c${clonedvmname}" "${newProject}"`)).result;
+            result = (await kdcmd(`"cloneVM" "${clonedvmname}" "c${clonedvmname}" "1" "${newProject}"`)).result;
             if (!result) break;
         }
     }

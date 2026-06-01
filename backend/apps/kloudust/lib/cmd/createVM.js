@@ -15,6 +15,7 @@
  */
 
 const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
+const kdutils = require(`${KLOUD_CONSTANTS.LIBDIR}/utils.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const deleteVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVM.js`);
 const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
@@ -65,6 +66,8 @@ module.exports.exec = async function(params) {
     const fromCloudImg = imgtype?.toLowerCase().endsWith("iso") ? "false": "true";  // only ISOs are installable disks
     if (!fromCloudImg) params.consoleHandlers.LOGWARN("Not a cloud capable image, VM will probably not work");
 
+    const vmNanoID = kdutils.nanoid("v");
+
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
         file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
@@ -74,7 +77,8 @@ module.exports.exec = async function(params) {
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/createVM.sh`,
             vm_name, vm_description, cores, memory, diskgb, creation_image_name, kdResource.uri, ostype, 
             fromCloudImg, cloudinit_data||"undefined", KLOUD_CONSTANTS.env.org(), KLOUD_CONSTANTS.env.prj(),
-            force_overwrite||"false", max_cores, max_memory, additional_params, no_qemu_agent, kvm_network_name
+            force_overwrite||"false", max_cores, max_memory, additional_params, no_qemu_agent, 
+            kvm_network_name, vmNanoID
         ]
     }
 

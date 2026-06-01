@@ -1,5 +1,5 @@
 /**
- * utils.js - Utility functions 
+ * utils.js - Utility functions for Kloudust
  * (C) 2020 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
  */
@@ -57,4 +57,10 @@ exports.parseArgs = cmd => {
         else p.a[p.a.length-1] += c.replace(/\\(.)/,"$1");
         return  p;
     }, {a: ['']}).a;
+}
+
+exports.nanoid = prefix => {
+    const epochBase36 = Date.now().toString(36);    // 8 characters
+    const randomChar = Math.random().toString(36).substring(2, 3);
+    return (prefix||"u")+randomChar+epochBase36;
 }

@@ -2,7 +2,7 @@
 "id": "clonevm",
 "command": "cloneVM",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["vm_name", "clonevm_name"],
+"kloudust_cmdline_params": ["vm_name", "clonevm_name", "number_of_clones"],
 
 "title": "{{{i18n.VMCloneTitle}}}",
 
@@ -14,7 +14,8 @@
         "CloneName": "Clone name",
         "FieldValidationErrorGeneric": "Validation error",
         "CloneVMSubmitLabel": "Clone",
-        "VMCloneAdvanced": "Advanced"
+        "VMCloneAdvanced": "Advanced",
+        "CloneNumber": "Number of clones"
     },
     "hi": {
         "VMCloneTitle": "Clone Virtual Machine",
@@ -23,7 +24,8 @@
         "CloneName": "Clone name",
         "FieldValidationErrorGeneric": "Validation error",
         "CloneVMSubmitLabel": "Clone",
-        "VMCloneAdvanced": "Advanced"
+        "VMCloneAdvanced": "Advanced",
+        "CloneNumber": "Number of clones"
     },
     "ja": {
         "VMCloneTitle": "Clone Virtual Machine",
@@ -32,7 +34,8 @@
         "CloneName": "Clone name",
         "FieldValidationErrorGeneric": "Validation error",
         "CloneVMSubmitLabel": "Clone",
-        "VMCloneAdvanced": "Advanced"
+        "VMCloneAdvanced": "Advanced",
+        "CloneNumber": "Number of clones"
     },
     "zh": {
         "VMCloneTitle": "Clone Virtual Machine",
@@ -41,7 +44,8 @@
         "CloneName": "Clone name",
         "FieldValidationErrorGeneric": "Validation error",
         "CloneVMSubmitLabel": "Clone",
-        "VMCloneAdvanced": "Advanced"
+        "VMCloneAdvanced": "Advanced",
+        "CloneNumber": "Number of clones"
     }
 },
 
@@ -55,7 +59,9 @@
         "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}", 
         "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"},
     {"id": "clonevm_name", "type": "text", "placeholder": "{{{i18n.CloneName}}}", "required": true, 
-        "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
+        "pattern":"\\s[0-9a-zA-Z-]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "number_of_clones", "type": "number", "placeholder": "{{{i18n.CloneNumber}}}", "required": true, 
+        "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}", "value": 1}
     ],
 
     "submitlabel": "{{{i18n.CloneVMSubmitLabel}}}"

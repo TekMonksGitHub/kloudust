@@ -9,6 +9,7 @@
  */
 
 const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
+const kdutils = require(`${KLOUD_CONSTANTS.LIBDIR}/utils.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
@@ -38,6 +39,8 @@ exports.exec = async function(params) {
         params.consoleHandlers.LOGERROR(`Vnet expansion to VM host ${hostInfo.hostname} failed. Aborting`); return CMD_CONSTANTS.FALSE_RESULT();
     }
 
+    const nanoID = kdutils.nanoid("v");
+
     // state now - vnet created, if needed, and expanded to the host which is hosting the VM
     const vnetRecord = await dbAbstractor.getVnet(vnet_name);
     const xforgeArgs = {
@@ -47,7 +50,7 @@ exports.exec = async function(params) {
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/attachVMToVxLANBridge.sh`,
-            vm_name, vnet_name, vnetRecord.vnetnum
+            vm_name, vnet_name, vnetRecord.vnetnum, nanoID
         ]
     }
     const results = await xforge(xforgeArgs);

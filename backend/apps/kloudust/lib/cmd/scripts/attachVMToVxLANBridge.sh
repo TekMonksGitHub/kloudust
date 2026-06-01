@@ -11,10 +11,12 @@
 # {1} VM Name 
 # {2} VxLAN Name (not used currently)
 # {3} VxLAN ID (it is a number)
+# {4} Nano ID - it is a nano ID for this used to derive interface name
 #########################################################################################################
 VM_NAME={1}
 VLAN_NAME=kd{3}
 BR_NAME="$VLAN_NAME"_br
+NANO_ID={4}
 
 function exitFailed() {
     echo Failed
@@ -27,5 +29,5 @@ if [ -n "$MAC" ]; then
     exit 0
 fi
 
-if ! virsh attach-interface --domain $VM_NAME --type bridge --source "$BR_NAME" --model virtio --config --live; then exitFailed; fi
+if ! virsh attach-interface --domain $VM_NAME --type bridge --source "$BR_NAME" --target "$NANO_ID" --model virtio --config --live; then exitFailed; fi
 echo Done.
