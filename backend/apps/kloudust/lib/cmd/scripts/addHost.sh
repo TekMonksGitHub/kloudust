@@ -98,7 +98,8 @@ sudo tee /tmp/kdfail2ban.jail.local > /dev/null <<EOF
 bantime = 3600
 
 # Override /etc/fail2ban/jail.d/00-firewalld.conf:
-banaction = iptables-multiport
+banaction = nftables-multiport
+banaction_allports = nftables-allports
 
 [sshd]
 enabled = true
@@ -130,7 +131,8 @@ if ! sudo mkdir -p /kloudust/metadata/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/snapshots/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/temp/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/recyclebin/; then exitFailed; fi
-if ! sudo mkdir -p /kloudust/system/; then exitFailed; fi
+if ! sudo mkdir -p /kloudust/system/hostinit; then exitFailed; fi
+if ! sudo mkdir -p /kloudust/system/vmhooks; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/etc/; then exitFailed; fi
 
 
@@ -180,7 +182,7 @@ After=multi-user.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/run-parts --regex ".*" /kloudust/system
+ExecStart=/usr/bin/run-parts --regex ".*" /kloudust/system/hostinit
 StandardOutput=append:/var/log/kdrunparts.log
 StandardError=append:/var/log/kdrunparts.log
 
@@ -190,23 +192,42 @@ EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo systemctl enable kd-startup.service; then exitFailed; fi    
 
-# Create NFT firewall auto-restart service
-sudo tee "/kloudust/system/000-start-nftables" > /dev/null <<EOF
+
+# Create VM hooks master script
+if ! sudo mkdir -p /etc/libvirt/hooks; then exitFailed; fi  
+sudo tee "/etc/libvirt/hooks/qemu" > /dev/null <<EOF
+#!/bin/bash
+# Loop through each executable file in the VM hooks directory
+for HOOK_SCRIPT in "/kloudust/system/vmhooks"/*; do
+    if [ -x "\$HOOK_SCRIPT" ] && [ -f "\$HOOK_SCRIPT" ]; then
+        # Run the hook script and pass the desired arguments
+        "\$HOOK_SCRIPT" "\$@"
+    fi
+done
+EOF
+if [ $? -ne 0 ]; then exitFailed; fi
+if ! sudo chmod +x /etc/libvirt/hooks/qemu; then exitFailed; fi  
+
+
+# Create NFT firewall auto-restart service on host reboot and VM reboots
+sudo tee "/kloudust/system/hostinit/000-start-nftables" > /dev/null <<EOF
 #!/bin/bash
 /usr/bin/systemctl restart nftables.service
 systemctl restart libvirtd  # this sets up LIBVIRT iptabes
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
-if ! sudo chmod +x /kloudust/system/000-start-nftables; then exitFailed; fi    
+if ! sudo chmod +x /kloudust/system/hostinit/000-start-nftables; then exitFailed; fi  
+if ! sudo ln -s /kloudust/system/hostinit/000-start-nftables /kloudust/system/vmhooks/000-start-nftables; then exitFailed; fi   
+ 
 
 # Create default network start service as virsh net-autostart is not reliable
-sudo tee "/kloudust/system/010-start-$DEFAULT_KD_NET-net" > /dev/null <<EOF
+sudo tee "/kloudust/system/hostinit/010-start-$DEFAULT_KD_NET-net" > /dev/null <<EOF
 #!/bin/bash
 VIRSH=\`command -v virsh\`
 \$VIRSH net-start $DEFAULT_KD_NET
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
-if ! sudo chmod +x /kloudust/system/010-start-$DEFAULT_KD_NET-net; then exitFailed; fi  
+if ! sudo chmod +x /kloudust/system/hostinit/010-start-$DEFAULT_KD_NET-net; then exitFailed; fi  
 
 
 printf "\n\nSetting up Bridge Netfilter kernel module for virtual machine firewall support\n"
@@ -215,6 +236,7 @@ if ! sudo modprobe br_netfilter; then exitFailed; fi
 sudo tee "/etc/sysctl.d/99-bridge-nf.conf" > /dev/null <<EOF
 net.bridge.bridge-nf-call-iptables=1
 net.bridge.bridge-nf-call-ip6tables=1
+net.bridge.bridge-nf-call-arptables=1
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo sysctl -p /etc/sysctl.d/99-bridge-nf.conf > /dev/null; then exitFailed; fi
@@ -230,8 +252,8 @@ if ! sudo nft add rule inet kdhostfirewall input iifname $DEFAULT_KD_NET_BRIDGE 
 if ! sudo nft add rule inet kdhostfirewall input ct state established,related accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
-if ! sudo nft rule inet kdhostfirewall input udp dport 8472 accept; then exitFailed; fi   # VxLAN port
-if ! sudo nft chain inet kdhostfirewall input { policy drop\; }; then exitFailed; fi
+if ! sudo nft add rule inet kdhostfirewall input udp dport 8472 accept; then exitFailed; fi   # VxLAN port
+if ! sudo nft add chain inet kdhostfirewall input { policy drop\; }; then exitFailed; fi
 if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 
 if ! sudo systemctl enable nftables; then exitFailed; fi                                  # Reboot will enforce the firewall
 # Setup IP forwarding and ARP forwarding support
