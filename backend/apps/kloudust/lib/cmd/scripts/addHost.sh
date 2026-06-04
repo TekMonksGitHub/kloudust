@@ -212,6 +212,7 @@ if ! sudo chmod +x /etc/libvirt/hooks/qemu; then exitFailed; fi
 # Create NFT firewall auto-restart service on host reboot and VM reboots
 sudo tee "/kloudust/system/hostinit/000-start-nftables" > /dev/null <<EOF
 #!/bin/bash
+if [ -n "\$1" ] && [ "\$1" != "started" ]; then exit 0; fi      # if called via Qemu then only do this on VM starts
 /usr/bin/systemctl restart nftables.service
 systemctl restart libvirtd  # this sets up LIBVIRT iptabes
 EOF
