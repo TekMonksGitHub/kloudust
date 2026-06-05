@@ -21,7 +21,7 @@ BR_NAME="$VLAN_NAME"_br
 IP_ADDRESS_DASHED=$(echo "$IP_ADDRESS" | tr '.' '-')
 
 SCRIPT_PATH=$(readlink -f "$0")
-ASSIGN_IP_BOOT_SCRIPT="/kloudust/system/20assign_${IP_ADDRESS_DASHED}.sh"
+ASSIGN_IP_BOOT_SCRIPT="/kloudust/system/hostinit/20assign_${IP_ADDRESS_DASHED}.sh"
 
 echoerr() { echo "$@" 1>&2; }
 

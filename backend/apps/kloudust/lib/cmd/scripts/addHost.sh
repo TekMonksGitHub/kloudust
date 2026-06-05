@@ -201,7 +201,7 @@ sudo tee "/etc/libvirt/hooks/qemu" > /dev/null <<EOF
 for HOOK_SCRIPT in "/kloudust/system/vmhooks"/*; do
     if [ -x "\$HOOK_SCRIPT" ] && [ -f "\$HOOK_SCRIPT" ]; then
         # Run the hook script and pass the desired arguments
-        "\$HOOK_SCRIPT" "\$@"
+        /bin/bash "\$HOOK_SCRIPT" "\$@"
     fi
 done
 EOF
@@ -218,6 +218,7 @@ systemctl restart libvirtd  # this sets up LIBVIRT iptabes
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /kloudust/system/hostinit/000-start-nftables; then exitFailed; fi  
+rm /kloudust/system/vmhooks/000-start-nftables &> /dev/null     # cleanup if it exists
 if ! sudo ln -s /kloudust/system/hostinit/000-start-nftables /kloudust/system/vmhooks/000-start-nftables; then exitFailed; fi   
  
 
@@ -225,7 +226,11 @@ if ! sudo ln -s /kloudust/system/hostinit/000-start-nftables /kloudust/system/vm
 sudo tee "/kloudust/system/hostinit/010-start-$DEFAULT_KD_NET-net" > /dev/null <<EOF
 #!/bin/bash
 VIRSH=\`command -v virsh\`
-\$VIRSH net-start $DEFAULT_KD_NET
+if ! \$VIRSH net-info $DEFAULT_KD_NET 2>/dev/null | grep -q "Active:.*yes"; then    # start the net if not already active
+    ip link set $DEFAULT_KD_NET_BRIDGE down &> /dev/null                            # Cleanup if needed
+    ip link delete $DEFAULT_KD_NET_BRIDGE type bridge &> /dev/null                  # Cleanup if needed
+    \$VIRSH net-start $DEFAULT_KD_NET
+fi
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /kloudust/system/hostinit/010-start-$DEFAULT_KD_NET-net; then exitFailed; fi  
