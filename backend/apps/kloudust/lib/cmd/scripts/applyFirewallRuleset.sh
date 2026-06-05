@@ -51,6 +51,10 @@ INGRESS_CHAIN="kd_$(echo "${RULESET_NAME}_${VM_NAME}_${VNET_ID}_i" | md5sum | cu
 # Create netdev table if not exists
 if ! sudo nft add table netdev kdhostfirewall_netdev 2>/dev/null; then true; fi
 
+# Clean up existing chains for this VM if present (e.g. ruleset update)
+sudo nft delete chain netdev kdhostfirewall_netdev "$EGRESS_CHAIN" 2>/dev/null || true
+sudo nft delete chain netdev kdhostfirewall_netdev "$INGRESS_CHAIN" 2>/dev/null || true
+
 # Create egress chain (traffic FROM network/internet TO VM)
 if ! sudo nft add chain netdev kdhostfirewall_netdev "$EGRESS_CHAIN" \
     { type filter hook egress device \"$VNET_IFACE\" priority 0\; policy accept\; comment \"$RULESET_NAME-$VM_NAME-$VNET_ID\"\; }; then
@@ -124,8 +128,9 @@ if [ "$RULES_FAILED" = "1" ]; then
 fi
 
 # Persist
-if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 
-if ! sudo systemctl enable nftables; then exitFailed; fi
+if ! cp "$0" /kloudust/system/firewall/fw_$VM_NAME.sh; then exitFailed; fi
+if ! sudo chmod 755 /kloudust/system/firewall/fw_$VM_NAME.sh; then exitFailed; fi
+
 
 echo "Firewall rules applied for $VM_NAME, ruleset $RULESET_NAME and Vnet $VNET_ID"
 exit 0

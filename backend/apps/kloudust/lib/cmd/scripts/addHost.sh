@@ -133,6 +133,7 @@ if ! sudo mkdir -p /kloudust/temp/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/recyclebin/; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/system/hostinit; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/system/vmhooks; then exitFailed; fi
+if ! sudo mkdir -p /kloudust/system/firewall; then exitFailed; fi
 if ! sudo mkdir -p /kloudust/etc/; then exitFailed; fi
 
 
@@ -200,8 +201,9 @@ sudo tee "/etc/libvirt/hooks/qemu" > /dev/null <<EOF
 # Loop through each executable file in the VM hooks directory
 for HOOK_SCRIPT in "/kloudust/system/vmhooks"/*; do
     if [ -x "\$HOOK_SCRIPT" ] && [ -f "\$HOOK_SCRIPT" ]; then
-        # Run the hook script and pass the desired arguments
+        echo "\$(date '+%Y-%m-%d %H:%M:%S') Running hook \$HOOK_SCRIPT with args: \$@" >> /kloudust/temp/kdlog
         /bin/bash "\$HOOK_SCRIPT" "\$@"
+        echo "\$(date '+%Y-%m-%d %H:%M:%S') Hook \$HOOK_SCRIPT exited with code: \$?" >> /kloudust/temp/kdlog
     fi
 done
 EOF
@@ -209,17 +211,30 @@ if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /etc/libvirt/hooks/qemu; then exitFailed; fi  
 
 
-# Create NFT firewall auto-restart service on host reboot and VM reboots
+# Create firewall hook script for VMs
+sudo tee "/kloudust/system/vmhooks/010-start-vmfirewall" > /dev/null <<EOF
+#!/bin/bash
+if [ -n "\$1" ] && [ "\$1" != "started" ]; then exit 0; fi  # we only run on VM starts
+VM_NAME="\$1"
+if [ -n "\$VM_NAME" ] && [ -f "/kloudust/system/firewall/fw_\${VM_NAME}.sh" ]; then
+    /bin/bash /kloudust/system/firewall/fw_\${VM_NAME}.sh
+    echo "\$(date '+%Y-%m-%d %H:%M:%S') Firewall re-applied for \${VM_NAME}." >> /kloudust/temp/kdlog
+fi
+EOF
+if [ $? -ne 0 ]; then exitFailed; fi
+if ! sudo chmod +x /kloudust/system/vmhooks/010-start-vmfirewall; then exitFailed; fi  
+
+
+
+# Create NFT firewall auto-restart service on host reboot
 sudo tee "/kloudust/system/hostinit/000-start-nftables" > /dev/null <<EOF
 #!/bin/bash
-if [ -n "\$1" ] && [ "\$1" != "started" ]; then exit 0; fi      # if called via Qemu then only do this on VM starts
 /usr/bin/systemctl restart nftables.service
-systemctl restart libvirtd  # this sets up LIBVIRT iptabes
+sudo systemctl restart libvirtd  # this sets up LIBVIRT iptables
+echo "\$(date '+%Y-%m-%d %H:%M:%S') NFT tables restored." >> /kloudust/temp/kdlog
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /kloudust/system/hostinit/000-start-nftables; then exitFailed; fi  
-rm /kloudust/system/vmhooks/000-start-nftables &> /dev/null     # cleanup if it exists
-if ! sudo ln -s /kloudust/system/hostinit/000-start-nftables /kloudust/system/vmhooks/000-start-nftables; then exitFailed; fi   
  
 
 # Create default network start service as virsh net-autostart is not reliable
@@ -230,6 +245,7 @@ if ! \$VIRSH net-info $DEFAULT_KD_NET 2>/dev/null | grep -q "Active:.*yes"; then
     ip link set $DEFAULT_KD_NET_BRIDGE down &> /dev/null                            # Cleanup if needed
     ip link delete $DEFAULT_KD_NET_BRIDGE type bridge &> /dev/null                  # Cleanup if needed
     \$VIRSH net-start $DEFAULT_KD_NET
+    echo "\$(date '+%Y-%m-%d %H:%M:%S') $DEFAULT_KD_NET started." >> /kloudust/temp/kdlog
 fi
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
