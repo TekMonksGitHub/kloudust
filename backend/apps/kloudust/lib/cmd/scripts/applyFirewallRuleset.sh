@@ -127,10 +127,11 @@ if [ "$RULES_FAILED" = "1" ]; then
     exitFailed
 fi
 
-# Persist
-if ! cp "$0" /kloudust/system/firewall/fw_$VM_NAME.sh; then exitFailed; fi
-if ! sudo chmod 755 /kloudust/system/firewall/fw_$VM_NAME.sh; then exitFailed; fi
-
+# Persist only if not already running from the firewall directory
+if [ "$0" != "/kloudust/system/firewall/fw_$VM_NAME.sh" ]; then
+    if ! cp "$0" /kloudust/system/firewall/fw_$VM_NAME.sh; then exitFailed; fi
+    if ! sudo chmod 755 /kloudust/system/firewall/fw_$VM_NAME.sh; then exitFailed; fi
+fi
 
 echo "Firewall rules applied for $VM_NAME, ruleset $RULESET_NAME and Vnet $VNET_ID"
 exit 0

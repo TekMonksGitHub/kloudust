@@ -35,7 +35,9 @@ ip route del $IP_ADDRESS/24                                              # Remov
 ip route del $IP_ADDRESS/32                                              # Remove any existing routes
 if ! ip route add $IP_ADDRESS/32 dev $BR_NAME; then exitFailed; fi       # Add new route
 
-cp $SCRIPT_PATH $ASSIGN_IP_BOOT_SCRIPT                                               # Ensure we survive a boot
-chmod +x $ASSIGN_IP_BOOT_SCRIPT
+if [ "$0" != "$ASSIGN_IP_BOOT_SCRIPT" ]; then                            # Ensure we survive a boot
+    cp $SCRIPT_PATH $ASSIGN_IP_BOOT_SCRIPT                                   
+    chmod +x $ASSIGN_IP_BOOT_SCRIPT
+fi;
 
 echo Done.
