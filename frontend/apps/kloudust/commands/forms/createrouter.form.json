@@ -1,0 +1,75 @@
+{
+"id": "createrouter",
+"command": "createRouter",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["router_name", "router_description", "router_settings"],
+
+"title": "{{{i18n.RouterTitle}}}",
+
+"i18n": {
+    "en": {
+        "RouterTitle": "Create Router",
+        "RouterDescription": "Create a Router.",
+        "RouterDescriptionField": "Description",
+        "RouterName": "Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "RouterCreateLabel": "Create"
+    },
+    "hi": {
+        "RouterTitle": "Create Router",
+        "RouterDescription": "Create a Router.",
+        "RouterDescriptionField": "Description",
+        "RouterName": "नाम",
+        "FieldValidationErrorGeneric": "Validation error",
+        "RouterCreateLabel": "Create"
+    },
+    "ja": {
+        "RouterTitle": "Create Router",
+        "RouterDescription": "Create a Router.",
+        "RouterDescriptionField": "Description",
+        "RouterName": "名",
+        "FieldValidationErrorGeneric": "Validation error",
+        "RouterCreateLabel": "Create"
+    },
+    "zh": {
+        "RouterTitle": "Create Router",
+        "RouterDescription": "Create a Router.",
+        "RouterDescriptionField": "Description",
+        "RouterName": "姓名",
+        "FieldValidationErrorGeneric": "Validation error",
+        "RouterCreateLabel": "Create"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.RouterDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "router_name", "type": "text", "placeholder": "{{{i18n.RouterName}}}", "required": true, 
+        "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "router_description", "type": "text", "placeholder": "{{{i18n.RouterDescriptionField}}}"},
+    {"id": "router_settings", "type": "hidden", "value":"[]"},
+    {"id": "routerVnetsComponent", "inputtype": "router-vnets",
+        "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
+    ],
+
+    "submitlabel": "{{{i18n.RouterCreateLabel}}}",
+
+    "submit_javascript": [
+        "const form = arguments[1], shadowroot = form._form_shadowroot;",
+        "const retObject = arguments[0]||{};",
+        "retObject.router_settings = JSON.stringify(shadowroot.querySelector('router-vnets').value);",
+        "return true;"
+    ],
+    
+    "load_javascript": [
+        "const form = arguments[0] || {};",
+        "const vnets = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+        "cmd: `listVnets`, ", "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+        "form.required_fields[3].value = JSON.stringify(vnets.resources.map(v=>v.raw_name).filter(v=>!v.includes('backbone')));",
+        "return form;"
+    ]
+}
+
+}
