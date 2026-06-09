@@ -24,7 +24,7 @@ BR_NAME="$VLAN_NAME"_br
 DEFAULT_BR_VLAN_ID=10                                                            # Not really used
 
 SCRIPT_PATH=$(readlink -f "$0")
-VXLAN_BOOT_SCRIPT=/kloudust/system/10vxlan_"$VLAN_NAME".sh
+VXLAN_BOOT_SCRIPT=/kloudust/system/hostinit/10vxlan_"$VLAN_NAME".sh
 
 echoerr() { echo "$@" 1>&2; }
 

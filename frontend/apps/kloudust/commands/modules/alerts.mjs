@@ -73,12 +73,16 @@ div#main {
     max-height: 100%;
 }
 
-div#alertpartition {
+span#alertpartition {
     font-size: 0.9rem;
     margin: 0.5rem;
     padding: 0rem 1.5rem;
+    cursor: pointer;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
 div#alertcontainer {
     margin: 0em 1.5em;
     border: 1px solid white;
@@ -87,7 +91,6 @@ div#alertcontainer {
     height: 0;
 }
 div#alertcontainer.visible {height: auto;}
-
 div#alertdiv {
     padding: 0.5em;
     box-sizing: border-box;
@@ -125,12 +128,12 @@ span#alerticon img {height: 100%;}
 <div id="alertdiv"><span id="alerticon"><img src="{{{info_icon}}}"></span><span id="alertmessage">No alerts.</span></div>
 {{/alert_stacks}}
 {{#alert_stacks}}
-    <div id="alertpartition" onclick="
+    <span id="alertpartition" onclick="
         const containerThis = this.nextElementSibling;
         containerThis.classList.toggle('visible');
         if (containerThis.classList.contains('visible')) this.innerText = this.innerText.replace('>','⌄');
         else this.innerText = this.innerText.replace('⌄','>');
-    ">&gt;&nbsp;{{{heading}}}</div>
+    ">&gt;&nbsp;{{{heading}}}</span>
     <div id="alertcontainer">
     {{#alerts}}
     <div id="alertdiv"><span id="alerticon"><img src="{{{alerticon}}}"></span><span id="alertmessage">{{{message}}}</span></div>
