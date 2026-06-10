@@ -1,0 +1,90 @@
+<!--
+/* 
+ * (C) 2018 TekMonks. All rights reserved.
+ * License: See enclosed license file.
+ */
+ -->
+
+<style>
+body{
+    margin: 0; padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+select, input {
+    background-color: inherit;
+    color: inherit;
+    border: none;
+    border-bottom: 1px solid;
+    padding: 0.2em 0em 0.2em 0.5em;
+    outline: none;
+}
+
+select option {
+    background-color: white;
+    color: black;
+}
+
+span#vnetsrow {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 2em;
+}
+
+span#buttonspan {
+    display: flex;
+    min-width: 4em;
+    justify-content: space-between;
+    margin-left: 0.5em 
+}
+span.roundbutton {
+    border: 1px solid black;
+    width: 1.4em;
+    height: 1.4em;
+    border-radius: 1.4em;
+    text-align: center;
+    font-size: 1em;
+}
+
+{{#style}}{{{.}}}{{/style}}
+</style>
+
+<div id="vnetscontainer">
+    <span id="vnetsrow">
+        <select name="vnet" id="vnet">
+            <option value="">Select a VNet</option>
+            {{#vnets}}
+                <option value="{{.}}">{{.}}</option>
+            {{/vnets}}
+    </select>
+
+    <input id="ip" type="text" placeholder="Gateway Address">
+
+    <span id="buttonspan">
+        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].addRow(this.parentNode.parentNode)">+</span>
+        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].removeRow(this.parentNode.parentNode)">-</span>
+    </span>
+</span>
+</div>
+
+<template id="vnetsrowtemplate">
+<span id="vnetsrow">
+    <select name="vnet" id="vnet">
+        <option value="">Select a VNet</option>
+        {{#vnets}}
+            <option value="{{.}}">{{.}}</option>
+        {{/vnets}}
+    </select>
+
+    <input id="ip" type="text" placeholder="Gateway Address">
+
+    <span id="buttonspan">
+        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].addRow(this.parentNode.parentNode)">+</span>
+        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].removeRow(this.parentNode.parentNode)">-</span>
+    </span>
+</span>
+</template>
