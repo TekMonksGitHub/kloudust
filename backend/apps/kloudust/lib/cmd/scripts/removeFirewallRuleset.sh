@@ -12,6 +12,7 @@
 VNET_ID="{1}"
 VM_NAME="{2}"
 RULESET_NAME="{3}"
+VNET_NAME="{4}"
 
 echoerr() { echo "$@" 1>&2; }
 
@@ -34,6 +35,10 @@ done < <(sudo nft -j list ruleset | jq -r --arg comment "$RULESET_NAME-$VM_NAME-
   "\(.family) \(.table) \(.name)"
 ')
 
+# Remove only the persisted replay script for this specific VM/VNet/ruleset.
+if [ -f "/kloudust/system/firewall/fw_${VM_NAME}_${VNET_NAME}.sh" ]; then
+    if ! rm -f "/kloudust/system/firewall/fw_${VM_NAME}_${VNET_NAME}.sh"; then exitFailed; fi
+fi
 
 # Persist
 if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 

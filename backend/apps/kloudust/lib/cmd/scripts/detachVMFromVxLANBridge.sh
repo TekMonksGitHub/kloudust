@@ -31,5 +31,6 @@ fi
 
 if [ -n "$VM_NAME" ]; then                                                       
     if ! virsh detach-interface --domain $VM_NAME --type bridge --mac $MAC --config --live; then exitFailed; fi
+    if ! virsh dumpxml "$VM_NAME" > "/kloudust/metadata/${VM_NAME}.xml"; then exitFailed; fi
 fi
 echo Done.
