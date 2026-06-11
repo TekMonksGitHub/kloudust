@@ -30,4 +30,5 @@ if [ -n "$MAC" ]; then
 fi
 
 if ! virsh attach-interface --domain $VM_NAME --type bridge --source "$BR_NAME" --target "$NANO_ID" --model virtio --config --live; then exitFailed; fi
+if ! virsh dumpxml "$VM_NAME" > "/kloudust/metadata/${VM_NAME}.xml"; then exitFailed; fi
 echo Done.
