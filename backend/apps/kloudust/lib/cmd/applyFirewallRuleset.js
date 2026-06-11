@@ -58,7 +58,7 @@ module.exports.exec = async function(params) {
         other: [
             vm_host.hostaddress, vm_host.rootid, vm_host.rootpw, vm_host.hostkey, vm_host.port, 
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/applyFirewallRuleset.sh`, 
-            rules_json, vnet.vnetnum, vm.name, ruleset.name
+            rules_json, vnet.vnetnum, vm.name, ruleset.name, vnet.name
         ] 
     };
     

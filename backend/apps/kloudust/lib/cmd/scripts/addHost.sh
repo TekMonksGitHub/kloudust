@@ -214,12 +214,13 @@ if ! sudo chmod +x /etc/libvirt/hooks/qemu; then exitFailed; fi
 # Create firewall hook script for VMs
 sudo tee "/kloudust/system/vmhooks/010-start-vmfirewall" > /dev/null <<EOF
 #!/bin/bash
-if [ -n "\$1" ] && [ "\$1" != "started" ]; then exit 0; fi  # we only run on VM starts
+if [ -n "\$1" ] && ([ "\$2" != "started" ] || [ "\$3" != "begin" ]); then exit 0; fi
 VM_NAME="\$1"
-if [ -n "\$VM_NAME" ] && [ -f "/kloudust/system/firewall/fw_\${VM_NAME}.sh" ]; then
-    /bin/bash /kloudust/system/firewall/fw_\${VM_NAME}.sh
-    echo "\$(date '+%Y-%m-%d %H:%M:%S') Firewall re-applied for \${VM_NAME}." >> /kloudust/temp/kdlog
-fi
+for FW_SCRIPT in /kloudust/system/firewall/fw_\${VM_NAME}_*.sh; do
+    [ -f "\$FW_SCRIPT" ] || continue
+    /bin/bash "\$FW_SCRIPT"
+    echo "\$(date '+%Y-%m-%d %H:%M:%S') Firewall re-applied for \${VM_NAME} from \${FW_SCRIPT}." >> /kloudust/temp/kdlog
+done
 EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /kloudust/system/vmhooks/010-start-vmfirewall; then exitFailed; fi  

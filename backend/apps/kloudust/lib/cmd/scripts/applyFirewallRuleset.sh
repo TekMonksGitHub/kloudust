@@ -8,6 +8,7 @@
 #  2 - VNet ID for getting mac address of vm interface and for unique comment to grep handles later
 #  3 - VM Name for unique comment to grep handles later
 #  4 - Ruleset name for unique comment to grep handles later
+#  5 - VNet name for unique persisted firewall replay filename
 #
 # (C) 2026 Tekmonks. All rights reserved.
 #########################################################################################################
@@ -16,6 +17,7 @@ RULES_JSON="{1}"
 VNET_ID="{2}"
 VM_NAME="{3}"
 RULESET_NAME="{4}"
+VNET_NAME="{5}"
 BR_NAME="kd${VNET_ID}_br"
 
 echoerr() { echo "$@" 1>&2; }
@@ -25,8 +27,8 @@ function exitFailed() {
     exit 1
 }
 
-# Get VM's MAC address from virsh
-MAC_ADDRESS=`virsh dumpxml $VM_NAME | xmllint --xpath "string(//interface[@type='bridge'][source/@bridge='$BR_NAME']/mac/@address)" -`
+# Get VM's MAC address 
+MAC_ADDRESS=`xmllint --xpath "string(//interface[@type='bridge'][source/@bridge='$BR_NAME']/mac/@address)" /kloudust/metadata/${VM_NAME}.xml`
 if [ -z "$MAC_ADDRESS" ]; then
     echoerr "Could not locate MAC for the VM $VM_NAME attached to VNet $VNET_ID or already detached, skipping."
     exitFailed
@@ -128,9 +130,9 @@ if [ "$RULES_FAILED" = "1" ]; then
 fi
 
 # Persist only if not already running from the firewall directory
-if [ "$0" != "/kloudust/system/firewall/fw_$VM_NAME.sh" ]; then
-    if ! cp "$0" /kloudust/system/firewall/fw_$VM_NAME.sh; then exitFailed; fi
-    if ! sudo chmod 755 /kloudust/system/firewall/fw_$VM_NAME.sh; then exitFailed; fi
+if [ "$0" != "/kloudust/system/firewall/fw_${VM_NAME}_${VNET_NAME}.sh" ]; then
+    if ! cp "$0" "/kloudust/system/firewall/fw_${VM_NAME}_${VNET_NAME}.sh"; then exitFailed; fi
+    if ! sudo chmod 755 "/kloudust/system/firewall/fw_${VM_NAME}_${VNET_NAME}.sh"; then exitFailed; fi
 fi
 
 echo "Firewall rules applied for $VM_NAME, ruleset $RULESET_NAME and Vnet $VNET_ID"

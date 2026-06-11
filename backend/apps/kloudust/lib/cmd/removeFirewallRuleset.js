@@ -52,7 +52,7 @@ module.exports.exec = async function(params) {
         other: [
             host.hostaddress, host.rootid, host.rootpw, host.hostkey, host.port, 
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/removeFirewallRuleset.sh`,
-            vnet.vnetnum, vm.name, ruleset.name
+            vnet.vnetnum, vm.name, ruleset.name, vnet.name
         ] 
     };
     
