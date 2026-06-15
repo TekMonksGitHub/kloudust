@@ -317,6 +317,25 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, 
 }
 
 /**
+ * Adds the given router to the catalog.
+ * @param {string} name The router name
+ * @param {string} name_raw The router name raw 
+ * @param {string} description The router description
+ * @param {string} hostname The hostname
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @return true on success or false otherwise
+ */
+exports.addOrUpdateRouterToDB = async (name, name_raw, description, hostname, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const id = `${org}_${project}_${name}`;
+    const query = "replace into routers(id, name, name_raw, description, hostname, org, projectid) values (?,?,?,?,?,?,?)";
+    return await _db().runCmd(query, [id, name, name_raw ,description, hostname, org, _getProjectID(project, org)]);
+}
+
+/**
  * Returns the VM for the current user, org and project given its name. 
  * @param {string} name The VM Name
  * @param {string} project The project, if skipped is auto picked from the environment
@@ -335,6 +354,24 @@ exports.getVM = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTA
         KLOUD_CONSTANTS.LOGERROR(`Unable to parse disks for VM ${vm.name}`); vm.disks = [];
     };
     return vm;
+}
+
+/**
+ * Returns the router for the current user, org and project given its name. 
+ * @param {string} name The router Name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @return VM object or null
+ */
+exports.getRouter = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const router_id = `${org}_${project}_${name}`, 
+        results = await _db().getQuery("select * from routers where id = ? collate nocase", [router_id]);
+    
+    if ((!results) || (!results.length)) return null;
+    return results[0];
 }
 
 /**
@@ -377,6 +414,27 @@ exports.deleteVM = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CON
     const deletionResult = await _db().runCmd("delete from vms where id = ? collate nocase", [vmid]);
     if (deletionResult) if (!await this.addObjectToRecycleBin(vmid, vm, project, org)) 
         KLOUD_CONSTANTS.LOGWARN(`Unable to add VM ${name} to the recycle bin.`);
+    return deletionResult;
+}
+
+/**
+ * Deletes the router for the current user, org and project given its name. Moves the object to the
+ * recycle bin as well.
+ * @param {string} name The Router Name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @return true on success or false otherwise
+ */
+exports.deleteRouter = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const router = await exports.getRouter(name, project, org); if (!router) return true; // doesn't exist in the DB anyways
+
+    const router_id = `${org}_${project}_${name}`;
+    const deletionResult = await _db().runCmd("delete from routers where id = ? collate nocase", [router_id]);
+    if (deletionResult) if (!await this.addObjectToRecycleBin(router_id, router, project, org)) 
+        KLOUD_CONSTANTS.LOGWARN(`Unable to add Router ${name} to the recycle bin.`);
     return deletionResult;
 }
 
@@ -1192,6 +1250,13 @@ exports.getHostForIP = async function(ip, for_allocation) {
     return results[0]?.hostname;
 }
 
+exports.getHostWithVnets = async function(vnet_ids) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const query = `SELECT pk2 AS hostname, COUNT(*) AS matched_vnet_count, GROUP_CONCAT(pk1) AS matched_vnets FROM relationships WHERE type='vnethost' AND pk1 IN (${vnet_ids.map(_=>"?").join(",")}) GROUP BY pk2 ORDER BY matched_vnet_count DESC LIMIT 1;`;
+    const results = await _db().getQuery(query, vnet_ids);
+    return results[0];
+}
+
 /**
  * Returns an IP that can be assigned to vms
  * @returns An IP that can be assigned to vms
@@ -1206,6 +1271,26 @@ exports.getAssignableIP = async function(hostname) {
 }
 
 /**
+ * Adds the given IP to resource Vnet
+ * @param {string} resource_name The resource name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ip IP
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.addResourceVnetIP = async function(resource_name, vnet_name, ip, relation, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    
+    const resource_id = `${org}_${project}_${resource_name}`;
+    const vnet_id = `${org}_${project}_${vnet_name}`;
+
+    const cmd = "insert into relationships (pk1, pk2, pk3, type) values (?,?,?,?)", params =  [resource_id, vnet_id, ip, relation];
+    const insertResult = await _db().runCmd(cmd, params);
+    return insertResult;
+}
+
+/**
  * Adds the given IP to VM Vnet
  * @param {string} vm_name The VM name
  * @param {string} vnet_name The Vnet name
@@ -1214,16 +1299,18 @@ exports.getAssignableIP = async function(hostname) {
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.addVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
-    
-    const vm_id = `${org}_${project}_${vm_name}`;
-    const vnet_id = `${org}_${project}_${vnet_name}`;
+exports.addVMVnetIP = async (vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.addResourceVnetIP(vm_name, vnet_name, ip, 'vmvnetip', project, org);
 
-    const cmd = "insert into relationships (pk1, pk2, pk3, type) values (?,?,?,?)", params =  [vm_id, vnet_id, ip,'vmvnetip'];
-    const insertResult = await _db().runCmd(cmd, params);
-    return insertResult;
-}
+/**
+ * Adds the given IP to router Vnet
+ * @param {string} router_name The router name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ip IP
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.addRouterVnetIP = async (router_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.addResourceVnetIP(router_name, vnet_name, ip, 'routervnetip', project, org);
 
 /**
  * Removes the given IP from VM Vnet
@@ -1246,20 +1333,38 @@ exports.removeVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CO
 }
 
 /**
+ * Removes all vmvnetip relationships for the given resource
+ * @param {string} resource_name The resource name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeAllResourceVnetIPRelationships = async function(resource_name, relation_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    
+    const resource_id = `${org}_${project}_${resource_name}`;
+    const cmd = "delete from relationships where pk1 = ? and type = ?", params =  [resource_id, relation_name];
+    const deleteResult = await _db().runCmd(cmd, params);
+    return deleteResult;
+}
+
+/**
  * Removes all vmvnetip relationships for the given VM
  * @param {string} vm_name The VM name
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.removeAllVMVnetIPRelationships = async function(vm_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
-    
-    const vm_id = `${org}_${project}_${vm_name}`;
-    const cmd = "delete from relationships where pk1 = ? and type = ?", params =  [vm_id, 'vmvnetip'];
-    const deleteResult = await _db().runCmd(cmd, params);
-    return deleteResult;
-}
+exports.removeAllVMVnetIPRelationships = async (vm_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeAllResourceVnetIPRelationships(vm_name, 'vmvnetip', project, org)
+
+/**
+ * Removes all vmvnetip relationships for the given router
+ * @param {string} router_name The router name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeAllRouterVnetIPRelationships = async (router_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeAllResourceVnetIPRelationships(router_name, 'routervnetip', project, org)
 
 /**
  * Removes the given IP from VM Vnet
