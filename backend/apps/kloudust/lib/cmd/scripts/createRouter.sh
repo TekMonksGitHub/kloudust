@@ -7,6 +7,9 @@
 ROUTER_NAME="{1}"
 VNET_GATEWAYS={2}
 
+SCRIPT_PATH=$(readlink -f "$0")
+ROUTER_BOOT_SCRIPT="/kloudust/system/hostinit/30router_${ROUTER_NAME}.sh"
+
 function exitFailed() {
     echo "Failed"
     exit 1
@@ -75,5 +78,10 @@ while read -r entry; do
     if ! ip netns exec "${ROUTER_NAME}" ip link set "${VETH_NS}" up; then exitFailed; fi
 
 done < <(jq -c '.[]' <<< "${VNET_GATEWAYS}")
+
+if [ "$0" != "$ROUTER_BOOT_SCRIPT" ]; then
+    cp $SCRIPT_PATH $ROUTER_BOOT_SCRIPT                                   
+    chmod +x $ROUTER_BOOT_SCRIPT
+fi;
 
 echo "Router '${ROUTER_NAME}' configured successfully"
