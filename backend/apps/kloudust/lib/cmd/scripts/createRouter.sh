@@ -30,6 +30,7 @@ while read -r entry; do
     VNET_NAME=$(jq -r '.vnet' <<< "${entry}")
     GATEWAY_IP=$(jq -r '.gateway_address' <<< "${entry}")
     VNET_NUM=$(jq -r '.vnetnum' <<< "${entry}")
+    VNET_NAME_HASH=$(jq -r '.vnet_name_hash' <<< "${entry}")
 
     if [[ -z "${VNET_NAME}" || "${VNET_NAME}" == "null" ]]; then
         echo "Invalid vnet field"
@@ -47,8 +48,6 @@ while read -r entry; do
     fi
 
     BRIDGE_NAME="kd${VNET_NUM}_br"
-
-    VNET_NAME_HASH=$(echo -n "$VNET_NAME" | sha256sum | cut -c1-12)
     VETH_BR="${VNET_NAME_HASH}_br"
     VETH_NS="${VNET_NAME_HASH}_ns"
 
@@ -61,9 +60,9 @@ while read -r entry; do
         exitFailed
     fi
 
-    if ! ip link del "${VETH_BR}" >/dev/null 2>&1; then exitFailed; fi
-
-    if ! ip netns exec "${ROUTER_NAME}" ip link del "${VETH_NS}" >/dev/null 2>&1; then exitFailed; fi
+    if ip link show "${VETH_BR}" >/dev/null 2>&1; then
+        ip link del "${VETH_BR}" || exitFailed
+    fi
 
     if ! ip link add "${VETH_BR}" type veth peer name "${VETH_NS}"; then exitFailed; fi
 

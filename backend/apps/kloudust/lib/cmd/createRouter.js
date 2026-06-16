@@ -8,6 +8,7 @@
  */
 
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
+const crypto = require('crypto');
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const vnetModule = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
@@ -35,7 +36,7 @@ module.exports.exec = async function(params) {
     const vnet_promises = vnets.map(async vnet => {
         const vnet_details = await dbAbstractor.getVnet(vnetModule.resolveVnetName(vnet.vnet));
         if (!vnet_details) return false;
-        return { ...vnet_details, gateway_address: vnet.ip }
+        return { ...vnet_details, gateway_address: vnet.ip, vnet_name_hash: crypto.createHash('sha256').update(vnet_details.name,'utf8').digest('hex').slice(0,12) };
     });
 
     const vnet_infos = await Promise.all(vnet_promises);
@@ -70,7 +71,7 @@ module.exports.exec = async function(params) {
         console: params.consoleHandlers,
         other: [hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/createRouter.sh`, router_name, 
-            JSON.stringify(JSON.stringify(vnet_infos.map(vnet_info => ({vnet: vnet_info.name, gateway_address: vnet_info.gateway_address, vnetnum: vnet_info.vnetnum}))))
+            JSON.stringify(JSON.stringify(vnet_infos.map(vnet_info => ({vnet: vnet_info.name, gateway_address: vnet_info.gateway_address, vnetnum: vnet_info.vnetnum, vnet_name_hash: vnet_info.vnet_name_hash}))))
         ]
     }
 
