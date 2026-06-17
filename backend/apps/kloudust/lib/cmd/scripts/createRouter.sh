@@ -2,7 +2,7 @@
 
 # Params
 # {1} The router name
-# {2} The JSON string containing the VNet and gateway IP information. It should be an array of objects with the following structure: [{"vnet": "vnet_name", "gateway_ip": "gateway_ip", vnetnum: 1}, ...]
+# {2} The JSON string containing the VNet, gateway IP information and Vnet name hash . It should be an array of objects with the following structure: [{"vnet": "vnet_name", "gateway_ip": "gateway_ip", vnetnum: 1, vnet_name_hash : "vnetnamehash"}, ...]
 
 ROUTER_NAME="{1}"
 VNET_GATEWAYS={2}
@@ -23,8 +23,6 @@ fi
 
 if ! ip netns exec "${ROUTER_NAME}" ip link set lo up; then exitFailed; fi
 
-if ! ip netns exec "${ROUTER_NAME}" sysctl -q -w net.ipv4.ip_forward=1 >/dev/null; then exitFailed; fi
-
 while read -r entry; do
 
     VNET_NAME=$(jq -r '.vnet' <<< "${entry}")
@@ -44,6 +42,11 @@ while read -r entry; do
 
     if [[ -z "${VNET_NUM}" || "${VNET_NUM}" == "null" ]]; then
         echo "Invalid vnetnum field"
+        exitFailed
+    fi
+
+    if [[ -z "${VNET_NAME_HASH}" || "${VNET_NAME_HASH}" == "null" ]]; then
+        echo "Invalid vnet_name_hash field"
         exitFailed
     fi
 
