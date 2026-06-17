@@ -57,11 +57,12 @@ module.exports.exec = async function(params) {
     
     if(host.matched_vnet_count != vnet_infos.length) {
         const missing_vnets = vnet_infos.filter(vnet_info => !host.matched_vnets.split(",").includes(vnet_info.id))
-        const vnetExpansionPromises= missing_vnets.map(missing_vnet => vnetModule.expandVnetToHost(missing_vnet.name, host.hostname, params.consoleHandlers, false));
-        const missingVNetExpansionResults = await Promise.all(vnetExpansionPromises);
-        if(missingVNetExpansionResults.some(result => !result)) {
-            params.consoleHandlers.LOGERROR(`Vnet expansion to router host ${host.hostname} failed. Aborting router creation.`);
-            return CMD_CONSTANTS.FALSE_RESULT(`Failed to create router. Vnet expansion to router host ${host.hostname} failed.`);
+        for (const missing_vnet of missing_vnets) {
+            const result = await vnetModule.expandVnetToHost(missing_vnet.name,host.hostname,params.consoleHandlers,false);
+            if (!result) {
+                params.consoleHandlers.LOGERROR(`Vnet expansion to router host ${host.hostname} failed. Aborting router creation.`);
+                return CMD_CONSTANTS.FALSE_RESULT(`Failed to create router. Vnet expansion to router host ${host.hostname} failed.`);
+            }
         }
     }
 
@@ -80,15 +81,17 @@ module.exports.exec = async function(params) {
     if(results.result){
         const routerAddResult = await dbAbstractor.addOrUpdateRouterToDB(router_name,router_name_raw,router_description,host.hostname);
         if(routerAddResult){
-            const vnetRouterAddResults = await Promise.all(vnet_infos.map(vnet_info => dbAbstractor.addRouterVnetIP(router_name, vnet_info.name, vnet_info.gateway_address))); //add all router-vnet-ip relations in db
-            if(vnetRouterAddResults.every(result => result)) {
-                params.consoleHandlers.LOGINFO(`Router ${router_name} created successfully.`);
-                return CMD_CONSTANTS.TRUE_RESULT("Router created successfully");
-            }else{
-                const deleteRouterParams = [router_name_raw]; deleteRouterParams.consoleHandlers = params.consoleHandlers;
-                const deleteRouterResult = await deleteRouter.exec(deleteRouterParams);
-                if(!deleteRouterResult.result) params.consoleHandlers.LOGERROR(`Router cleanup failed. Manual cleanup might be required for router ${router_name} on host ${host.hostname}`);
+            for (const vnet_info of vnet_infos) {
+                const result = await dbAbstractor.addRouterVnetIP(router_name,vnet_info.name,vnet_info.gateway_address);
+                if (!result) {
+                    const deleteRouterParams = [router_name_raw]; deleteRouterParams.consoleHandlers = params.consoleHandlers;
+                    const deleteRouterResult = await deleteRouter.exec(deleteRouterParams);
+                    if (!deleteRouterResult.result) params.consoleHandlers.LOGERROR(`Router cleanup failed. Manual cleanup might be required for router ${router_name} on host ${host.hostname}`);
+                    return CMD_CONSTANTS.FALSE_RESULT("Failed to create router-vnet relation");
+                }
             }
+            params.consoleHandlers.LOGINFO(`Router ${router_name} created successfully.`);
+            return CMD_CONSTANTS.TRUE_RESULT("Router created successfully");
         }else{
             const deleteResults = await deleteRouter.deleteRouterFromHost(router_name, hostInfo, params.consoleHandlers); //cleanup router from host if db addition failed
             if(!deleteResults.result) params.consoleHandlers.LOGERROR(`Router cleanup failed. Manual cleanup might be required for router ${router_name} on host ${host.hostname}`);
