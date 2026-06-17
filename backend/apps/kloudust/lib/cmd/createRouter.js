@@ -56,7 +56,8 @@ module.exports.exec = async function(params) {
     const hostInfo = await dbAbstractor.getHostEntry(host.hostname);
     
     if(host.matched_vnet_count != vnet_infos.length) {
-        const missing_vnets = vnet_infos.filter(vnet_info => !host.matched_vnets.split(",").includes(vnet_info.id))
+        const matched_vnets_set = new Set(host.matched_vnets.split(","));
+        const missing_vnets = vnet_infos.filter(vnet_info => !matched_vnets_set.has(vnet_info.id));
         for (const missing_vnet of missing_vnets) {
             const result = await vnetModule.expandVnetToHost(missing_vnet.name,host.hostname,params.consoleHandlers,false);
             if (!result) {
