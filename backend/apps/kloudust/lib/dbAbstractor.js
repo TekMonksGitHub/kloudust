@@ -481,6 +481,21 @@ exports.listVMsForOrgOrProject = async (types, org=KLOUD_CONSTANTS.env.org(), pr
 }
 
 /**
+ * Returns routers for the given org and / or current project. 
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @param {string} project The project, if skipped is auto picked from the environment if needed
+ * @return The list of routers
+ */
+exports.listRouters = async (project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    if (project) project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    const projectid = _getProjectID(project, org)
+    const query = "select * from routers where projectid = ? collate nocase and org = ? collate nocase";
+    const results = await _db().getQuery(query, [projectid, org]);
+    return results;
+}
+
+/**
  * Returns VMs for the given host. All VMs are returned if hostname is skipped. 
  * This is for cloud admins.
  * @param {array} types The VM types
@@ -1476,6 +1491,21 @@ exports.getVMsForVnet = async function(vnet_name, project=KLOUD_CONSTANTS.env.pr
     const query = "select distinct pk2 from relationships where pk1 = ? and type = ?";
     const results = await _db().getQuery(query, [vnet_id,"vnetvm"]);
     return _objectArrayToFlatArray(results, "pk2");
+}
+
+/**
+ * Returns the vnets and ip pairs that belong to the given router 
+ * @param {string} router_name The router name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns array of vnets
+ */
+exports.getVnetIPsForRouter = async function(router_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const router_id = `${org}_${project}_${router_name}`;
+    const query = "select distinct pk2, pk3 from relationships where pk1 = ? and type = ?";
+    const results = await _db().getQuery(query, [router_id,"routervnetip"]);
+    return results;
 }
 
 /**
