@@ -1,0 +1,54 @@
+{
+"id": "deleterouter",
+"command": "deleteRouter",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["router_name"],
+
+"title": "{{{i18n.RouterDeleteTitle}}}",
+
+"i18n": {
+    "en": {
+        "RouterDeleteTitle": "Delete Router",
+        "RouterDeleteDescription": "Delete a router from the cloud. Complete the required tab then submit.",
+        "RouterName": "Router Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteRouterSubmitLabel": "Delete"
+    },
+    "hi": {
+        "RouterDeleteTitle": "Delete Router",
+        "RouterDeleteDescription": "Delete a router from the cloud. Complete the required tab then submit.",
+        "RouterName": "Router Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteRouterSubmitLabel": "Delete"
+    },
+    "ja": {
+        "RouterDeleteTitle": "Delete Router",
+        "RouterDeleteDescription": "Delete a router from the cloud. Complete the required tab then submit.",
+        "RouterName": "Router Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteRouterSubmitLabel": "Delete"
+    },
+    "zh": {
+        "RouterDeleteTitle": "Delete Router",
+        "RouterDeleteDescription": "Delete a router from the cloud. Complete the required tab then submit.",
+        "RouterName": "Router Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteRouterSubmitLabel": "Delete"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.RouterDeleteDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "router_name", "type": "text", "placeholder": "{{{i18n.RouterName}}}", "required": true, 
+        "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._routers_form_data.name_raw}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._routers_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._routers_form_data.name_raw}}"}
+    ],
+
+    "submitlabel": "{{{i18n.DeleteRouterSubmitLabel}}}"
+}
+
+}
