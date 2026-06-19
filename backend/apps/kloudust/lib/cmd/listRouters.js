@@ -16,7 +16,7 @@
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
-const vnetModule = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
+const getRouter = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getRouter.js`);
 
 /**
  * Lists the Routers
@@ -27,13 +27,12 @@ module.exports.exec = async function(params) {
     const [org, project] = [...params];
 
     const routers = await dbAbstractor.listRouters(project, org);
-
-    const routers_ret = await Promise.all(routers.map(async (router) => {
-        const vnet_ips = await dbAbstractor.getVnetIPsForRouter(router.name);
-        const vnets = await Promise.all(vnet_ips.map(async (vi) => {
-        const vnet = await dbAbstractor.getVnetName(vi.pk2); return vnetModule.unresolveVnetName(vnet.name);}));
-        return {...router, vnets, ips: vnet_ips.map(vi => vi.pk3)};
-    }));
+    const routers_promise = routers.map(router => {
+        const getRouterParams = [router.name_raw]; getRouterParams.consoleHandlers = params.consoleHandlers;
+        return getRouter.exec(getRouterParams);
+    })
+    const routers_promise_result = await Promise.all(routers_promise);
+    const routers_ret = routers_promise_result.map(result=>result.router);
 
     let out = "Router information from the database follows.";
 
