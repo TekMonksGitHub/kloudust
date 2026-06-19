@@ -1503,7 +1503,7 @@ exports.getVMsForVnet = async function(vnet_name, project=KLOUD_CONSTANTS.env.pr
 exports.getVnetIPsForRouter = async function(router_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     const router_id = `${org}_${project}_${router_name}`;
-    const query = "select distinct pk2, pk3 from relationships where pk1 = ? and type = ?";
+    const query = "select distinct pk2 as vnet, pk3 as ip from relationships where pk1 = ? and type = ?";
     const results = await _db().getQuery(query, [router_id,"routervnetip"]);
     return results;
 }
