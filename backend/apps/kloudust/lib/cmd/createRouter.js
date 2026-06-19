@@ -36,7 +36,7 @@ module.exports.exec = async function(params) {
     const vnet_promises = vnets.map(async vnet => {
         const vnet_details = await dbAbstractor.getVnet(vnetModule.resolveVnetName(vnet.vnet));
         if (!vnet_details) return false;
-        return { ...vnet_details, gateway_address: vnet.ip, vnet_name_hash: crypto.createHash('sha256').update(vnet_details.name,'utf8').digest('hex').slice(0,12) };
+        return { ...vnet_details, gateway_address: vnet.ip, vnet_name_hash: crypto.createHash('sha256').update(router_name+vnet_details.name,'utf8').digest('hex').slice(0,12) };
     });
 
     const vnet_infos = await Promise.all(vnet_promises);
