@@ -54,7 +54,7 @@ if [ $CDROMDEVICE ]; then
 fi
 
 echo Starting $DOMAIN Live Migration
-if ! sshpass -p "$HOSTTOPW" virsh migrate --verbose --live --unsafe --persistent --copy-storage-all --migrate-disks $DISKDEVICETOMIGRATE $DOMAIN qemu+ssh://$HOSTTOHOSTNAME:$HOSTTOPORT/system; then
+if ! sshpass -p "$HOSTTOPW" virsh migrate --verbose --live --unsafe --persistent --copy-storage-all --migrate-disks $DISKDEVICETOMIGRATE  --migrateuri tcp://$HOSTTO:49152 --disks-port 49153 $DOMAIN qemu+ssh://$HOSTTOHOSTNAME:$HOSTTOPORT/system; then
     exitFailed "VM migration failed." 
 fi
 
