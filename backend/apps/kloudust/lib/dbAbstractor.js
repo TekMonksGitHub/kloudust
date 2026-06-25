@@ -1328,6 +1328,26 @@ exports.addVMVnetIP = async (vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env
 exports.addRouterVnetIP = async (router_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.addResourceVnetIP(router_name, vnet_name, ip, 'routervnetip', project, org);
 
 /**
+ * Removes the given IP from Resource Vnet
+ * @param {string} resource_name The resource name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ip IP
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeResourceVnetIP = async function(resource_name, vnet_name, ip, relation, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    
+    const resource_id = `${org}_${project}_${resource_name}`;
+    const vnet_id = `${org}_${project}_${vnet_name}`;
+
+    const cmd = "delete from relationships where pk1 = ? and pk2 = ? and pk3 = ? and type = ?", params =  [resource_id, vnet_id, ip, relation];
+    const deleteResult = await _db().runCmd(cmd, params);
+    return deleteResult;
+}
+
+/**
  * Removes the given IP from VM Vnet
  * @param {string} vm_name The VM name
  * @param {string} vnet_name The Vnet name
@@ -1336,16 +1356,19 @@ exports.addRouterVnetIP = async (router_name, vnet_name, ip, project=KLOUD_CONST
  * @param {string} org The org, if skipped is auto picked from the environment
  * @returns true on success or false on failure
  */
-exports.removeVMVnetIP = async function(vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
-    
-    const vm_id = `${org}_${project}_${vm_name}`;
-    const vnet_id = `${org}_${project}_${vnet_name}`;
+exports.removeVMVnetIP = async (vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeResourceVnetIP(vm_name, vnet_name, ip, 'vmvnetip', project, org);
 
-    const cmd = "delete from relationships where pk1 = ? and pk2 = ? and pk3 = ? and type = ?", params =  [vm_id, vnet_id, ip, 'vmvnetip'];
-    const deleteResult = await _db().runCmd(cmd, params);
-    return deleteResult;
-}
+/**
+ * REmoves the given IP from Router Vnet
+ * @param {string} router_name The router name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ip IP
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeRouterVnetIP = async (router_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeResourceVnetIP(router_name, vnet_name, ip, 'routervnetip', project, org);
+
 
 /**
  * Removes all vmvnetip relationships for the given resource
