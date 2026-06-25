@@ -1,43 +1,43 @@
 {
-"id": "createrouter",
+"id": "editrouter",
 "command": "createOrUpdateRouter",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["router_name", "router_description", "router_settings"],
+"kloudust_cmdline_params": ["router_name", "router_description", "router_settings","update"],
 
 "title": "{{{i18n.RouterTitle}}}",
 
 "i18n": {
     "en": {
-        "RouterTitle": "Create Router",
-        "RouterDescription": "Create a Router.",
+        "RouterTitle": "Edit Router",
+        "RouterDescription": "Edit a Router.",
         "RouterDescriptionField": "Description",
         "RouterName": "Name",
         "FieldValidationErrorGeneric": "Validation error",
-        "RouterCreateLabel": "Create"
+        "RouterCreateLabel": "Edit"
     },
     "hi": {
-        "RouterTitle": "Create Router",
-        "RouterDescription": "Create a Router.",
+        "RouterTitle": "Edit Router",
+        "RouterDescription": "Edit a Router.",
         "RouterDescriptionField": "Description",
         "RouterName": "नाम",
         "FieldValidationErrorGeneric": "Validation error",
-        "RouterCreateLabel": "Create"
+        "RouterCreateLabel": "Edit"
     },
     "ja": {
-        "RouterTitle": "Create Router",
-        "RouterDescription": "Create a Router.",
+        "RouterTitle": "Edit Router",
+        "RouterDescription": "Edit a Router.",
         "RouterDescriptionField": "Description",
         "RouterName": "名",
         "FieldValidationErrorGeneric": "Validation error",
-        "RouterCreateLabel": "Create"
+        "RouterCreateLabel": "Edit"
     },
     "zh": {
-        "RouterTitle": "Create Router",
-        "RouterDescription": "Create a Router.",
+        "RouterTitle": "Edit Router",
+        "RouterDescription": "Edit a Router.",
         "RouterDescriptionField": "Description",
         "RouterName": "姓名",
         "FieldValidationErrorGeneric": "Validation error",
-        "RouterCreateLabel": "Create"
+        "RouterCreateLabel": "Edit"
     }
 },
 
@@ -47,8 +47,13 @@
     "required_label": "{{{i18n.Required}}}",
     "required_fields": [
     {"id": "router_name", "type": "text", "placeholder": "{{{i18n.RouterName}}}", "required": true, 
-        "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
-    {"id": "router_description", "type": "text", "placeholder": "{{{i18n.RouterDescriptionField}}}"},
+        "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._routers_form_data.name_raw}}}", 
+        "readonly":"{{#APP_CONSTANTS.ENV._routers_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._routers_form_data.name_raw}}"
+    },
+    {"id": "router_description", "type": "text", "placeholder": "{{{i18n.RouterDescriptionField}}}",
+        "value":"{{{APP_CONSTANTS.ENV._routers_form_data.description}}}"},
+    {"id": "update", "type": "hidden", "value": "true"},
     {"id": "router_settings", "type": "hidden", "value":"[]"},
     {"id": "routerVnetsComponent", "inputtype": "router-vnets",
         "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
@@ -65,9 +70,15 @@
     
     "load_javascript": [
         "const form = arguments[0] || {};",
-        "const vnets = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+        "let vnets = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
         "cmd: `listVnets`, ", "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
-        "form.required_fields[3].value = JSON.stringify({'vnets' : vnets.resources.map(v=>v.raw_name).filter(v=>!v.includes('backbone'))});",
+        "vnets = vnets.resources.map(v=>v.raw_name).filter(v=>!v.includes('backbone'));",
+        "const router_name = APP_CONSTANTS.ENV._routers_form_data.name_raw;",
+        "const router = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+        "cmd: `getRouter ${router_name}`, ", "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+        "const vnet_ips = (router?.router?.vnet_ips||[]).map(routerEntry => ({ip: routerEntry.ip,",
+        "vnets: vnets.map(vnet => ({name: vnet,selected: vnet === routerEntry.vnet ? 'selected' : ''}))}));",
+        "form.required_fields[4].value = JSON.stringify({vnets, vnet_ips})",
         "return form;"
     ]
 }
