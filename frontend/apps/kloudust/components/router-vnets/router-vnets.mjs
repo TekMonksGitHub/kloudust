@@ -17,6 +17,11 @@ function elementConnected(host) {
 	router_vnets.setDataByHost(host, data);
 }
 
+function elementRendered(host) {
+	const shadowRoot = router_vnets.getShadowRootByHost(host);
+	_addFirstRouterVnetRow(shadowRoot);
+}
+
 function addRow(callingRow) {
 	const shadowRoot = router_vnets.getShadowRootByContainedElement(callingRow);
 	const templateRow = shadowRoot.querySelector("template#vnetsrowtemplate");
@@ -68,5 +73,5 @@ function _addFirstRouterVnetRow(shadowRoot) {
 	vnetsContainer.appendChild(nodesToInject);
 }
 
-export const router_vnets = {trueWebComponentMode: true, elementConnected, addRow, removeRow}
+export const router_vnets = {trueWebComponentMode: true, elementConnected, elementRendered, addRow, removeRow}
 monkshu_component.register("router-vnets", `${COMPONENT_PATH}/router-vnets.html`, router_vnets);
