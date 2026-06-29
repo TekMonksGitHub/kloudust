@@ -35,10 +35,10 @@ EPOCH=`date +%s`
 if ! virsh undefine $NAME --nvram; then exitFailed; fi
 for VM_DISK in "${VM_DISKS[@]}"; do
     DISK_THIS=`echo $VM_DISK | grep -Po "$NAME.*"`
-    if ! mv $VM_DISK /kloudust/recyclebin/$DISK_THIS.$EPOCH.qcow2; then exitFailed; fi
+    if ! mv $VM_DISK /kloudust/recyclebin/$DISK_THIS.$EPOCH.qcow2; then echo Failed to move the vm disk to recyclebin; fi
 done
-if ! mv /kloudust/metadata/$NAME.xml /kloudust/recyclebin/$NAME.$EPOCH.xml; then exitFailed; fi
-if ! mv /kloudust/metadata/$NAME.metadata /kloudust/recyclebin/$NAME.$EPOCH.metadata; then exitFailed; fi
+if ! mv /kloudust/metadata/$NAME.xml /kloudust/recyclebin/$NAME.$EPOCH.xml; then echo Failed to move the vm xml to recyclebin; fi
+if ! mv /kloudust/metadata/$NAME.metadata /kloudust/recyclebin/$NAME.$EPOCH.metadata; then echo Failed to move the vm metadata to recyclebin; fi
 
 printf "\n\nVM $NAME deleted successfully\n"
 exit 0
