@@ -276,6 +276,7 @@ if ! sudo nft add rule inet kdhostfirewall input ct state established,related ac
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
 if ! sudo nft add rule inet kdhostfirewall input udp dport 8472 accept; then exitFailed; fi   # VxLAN port
+if ! sudo nft add rule inet kdhostfirewall input tcp dport 49152-49215 accept; then exitFailed; fi  # Migration port range
 if ! sudo nft add chain inet kdhostfirewall input { policy drop\; }; then exitFailed; fi
 if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 
 if ! sudo systemctl enable nftables; then exitFailed; fi                                  # Reboot will enforce the firewall
