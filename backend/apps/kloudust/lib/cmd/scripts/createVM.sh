@@ -20,6 +20,7 @@
 # {17} No guest agent - By default QEMU Guest Agent is enabled, if this is true it is disabled
 # {18} Network name - By default vnet.KD_DEFAULT_HOST_NETWORK variable is used, set to none if no default network should be used
 # {19} VM Nano ID - The ID for the VM which should be unique, used to create vnet connections - max 10 characters
+# {20} CPU model to be used for VM creation based on host processor architecture
 
 NAME="{1}"
 DESCRIPTION="{2}"
@@ -41,6 +42,7 @@ VIRT_INSTALL_PARAMS="{16}"
 NO_GUEST_AGENT={17}
 KVM_NETWORK_NAME={18}
 VM_NANO_ID={19}
+CPU_MODEL_ARG="{20}"
 
 function exitFailed() {
     echo Failed
@@ -160,6 +162,7 @@ if ! virt-install --name $NAME --metadata name=$NAME --metadata title="$DESCRIPT
     $NETWORK_ARGS \
     $ISO_VNC_ARGS \
     $VIRT_INSTALL_PARAMS \
+    $CPU_MODEL_ARG \
     $QEMU_GUEST_AGENT \
     $WIN_KVM_ARGS \
     $WIN_DISK_ARGS \
