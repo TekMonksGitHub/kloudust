@@ -66,7 +66,7 @@ exports.runRemoteSSHScript = async (conf, remote_script, extra_params, streamer,
 async function _agentExec(conf, expanded_remote_script, deployPath, streamer) {
     const aesKey = conf.aeskey || (conf.user + conf.password + 
         (conf.user.length + conf.password.length < 30 ? 
-        new Array(30 - conf.user.length + conf.password.length).fill(0).join('') : ''));
+        new Array(30 - (conf.user.length + conf.password.length)).fill(0).join('') : ''));
     let pyshellport = conf.pyshellport || (parseInt(conf.port||22)+DEFAULT_PYSHELL_PORT_INCREMENT);
     if ((!conf.pyshellport) && (pyshellport > HIGHEST_PYSHELL_PORT)) pyshellport = parseInt(conf.port)-DEFAULT_PYSHELL_PORT_INCREMENT;
     const pyShellURL = `${conf.host}:${pyshellport}`; agentURL = conf.apiurl || `http://${pyShellURL}`;
