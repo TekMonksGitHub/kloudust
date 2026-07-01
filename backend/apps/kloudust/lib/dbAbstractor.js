@@ -277,8 +277,7 @@ exports.getAvailableHosts = async (vcpu, ram, disk, arch, factors) => {
         WHERE free_cpu  >= ?
           AND free_ram  >= ?
           AND free_disk >= ?
-        ORDER BY free_cpu DESC, free_ram DESC, free_disk DESC
-        LIMIT 1;`;
+        ORDER BY free_cpu DESC, free_ram DESC, free_disk DESC;`;
 
     const hosts = await _db().getQuery(query, [arch, orgMatch, vcpu, ram, disk]);
     return hosts;
