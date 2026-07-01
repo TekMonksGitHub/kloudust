@@ -39,7 +39,7 @@ const main = async _ => {
 	await _addPageLoadInterceptors(); await _registerComponents();
 
 	const decodedURL = new URL($$.librouter.decodeURL(window.location.href)), 
-		justURL = new URL(`${decodedURL.protocol}//${decodedURL.hostname}${decodedURL.pathname}`).href;
+		justURL = new URL(`${decodedURL.protocol}//${decodedURL.host}${decodedURL.pathname}`).href;
 	if ($$.libsecurityguard.isAllowed(justURL)) $$.librouter.loadPage(decodedURL.href);
 	else $$.librouter.loadPage(APP_CONSTANTS.LOGIN_HTML);
 }
