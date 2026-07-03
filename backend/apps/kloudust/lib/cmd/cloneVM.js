@@ -24,7 +24,6 @@ module.exports.exec = async function(params) {
     const [vm_name_raw, cloned_vm_name_raw, number_of_clones_raw, hosting_project] = [...params]; 
     const number_of_clones = number_of_clones_raw.trim().length ? parseInt(number_of_clones_raw) : 1;
     const vm_name = createVM.resolveVMName(vm_name_raw);
-    const cloned_vm_name  = createVM.resolveVMName(cloned_vm_name_raw, hosting_project);
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return false;}
     
@@ -32,8 +31,10 @@ module.exports.exec = async function(params) {
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname or host not found"); return false;}
 
     const finalResults = [];
-    for (let i = 1; i < number_of_clones; i++) {
-        const results = _cloneVMReal(vm, `${cloned_vm_name}${i>0?i+1:""}`, hostInfo, hosting_project); 
+    for (let i = 0; i < number_of_clones; i++) {
+        const clone_vm_name_raw = i > 0 ? `${cloned_vm_name_raw}${i+1}` : cloned_vm_name_raw;
+        const clone_vm_name = createVM.resolveVMName(clone_vm_name_raw, hosting_project);
+        const results = await _cloneVMReal(vm, clone_vm_name, hostInfo, hosting_project, clone_vm_name_raw, params); 
         finalResults.push(results);
         if (!results.result) return _getFinalResult(finalResults);    // failed
     }
@@ -50,7 +51,7 @@ function _getFinalResult(allResults) {
     return finalResult;
 }
 
-async function _cloneVMReal(vm, cloned_vm_name, hostInfo, hosting_project) {
+async function _cloneVMReal(vm, clone_vm_name, hostInfo, hosting_project, clone_vm_name_raw, params) {
     const availableHosts = await dbAbstractor.getAvailableHosts(vm.cpus, vm.memory, vm.disk, vm.arch,
         {cpu_factor: KLOUD_CONSTANTS.CONF.VCPU_TO_PHYSICAL_CPU_FACTOR, mem_factor: KLOUD_CONSTANTS.CONF.VMEM_TO_PHYSICAL_MEM_FACTOR});
     let currentHostCanHost = false; for (const availableHost of availableHosts) if (availableHost.hostname == hostInfo.hostname) currentHostCanHost = true;
@@ -66,14 +67,14 @@ async function _cloneVMReal(vm, cloned_vm_name, hostInfo, hosting_project) {
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/cloneVM.sh`,
-            vm_name, cloned_vm_name
+            vm.name, clone_vm_name
         ]
     }
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
-        if (await dbAbstractor.addOrUpdateVMToDB(cloned_vm_name, vm.description, vm.hostname, vm.arch, 
-            vm.os, vm.cpus, vm.memory, vm.disks, vm.creationcmd, cloned_vm_name_raw, vm.vmtype, 
+        if (await dbAbstractor.addOrUpdateVMToDB(clone_vm_name, vm.description, vm.hostname, vm.arch, 
+            vm.os, vm.cpus, vm.memory, vm.disks, vm.creationcmd, clone_vm_name_raw, vm.vmtype, 
             undefined, hosting_project)) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;
