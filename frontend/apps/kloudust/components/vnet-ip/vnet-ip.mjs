@@ -14,33 +14,33 @@ function elementConnected(host) {
 	const value = host.getAttribute("value")||"";
 	const vnets = value.trim() === "" ? [] : JSON.parse(value);
 	const data = {style_start: "<style>", style_end: "</style>", style, vnets};
-	router_vnets.setDataByHost(host, data);
+	vnet_ip.setDataByHost(host, data);
 }
 
 function elementRendered(host) {
-	const shadowRoot = router_vnets.getShadowRootByHost(host);
-	_addFirstRouterVnetRow(shadowRoot);
+	const shadowRoot = vnet_ip.getShadowRootByHost(host);
+	_addFirstVnetIPRow(shadowRoot);
 }
 
 function addRow(callingRow) {
-	const shadowRoot = router_vnets.getShadowRootByContainedElement(callingRow);
+	const shadowRoot = vnet_ip.getShadowRootByContainedElement(callingRow);
 	const templateRow = shadowRoot.querySelector("template#vnetsrowtemplate");
 	const nodesToInject = templateRow.content.cloneNode(true);
 	if (callingRow.nextSibling) callingRow.parentNode.insertBefore(nodesToInject, callingRow.nextSibling);
 	else callingRow.parentNode.appendChild(nodesToInject);
-	console.debug(JSON.stringify(_getValue(router_vnets.getHostElementByContainedElement(callingRow))));
+	console.debug(JSON.stringify(_getValue(vnet_ip.getHostElementByContainedElement(callingRow))));
 }
 
 function removeRow(callingRow) {
-	const shadowRoot = router_vnets.getShadowRootByContainedElement(callingRow);
+	const shadowRoot = vnet_ip.getShadowRootByContainedElement(callingRow);
 	const vnetsContainer = shadowRoot.querySelector("div#vnetscontainer");
 	callingRow.remove();
 	const allRows = vnetsContainer.querySelectorAll("span#vnetsrow");
-	if (!allRows.length) _addFirstRouterVnetRow(shadowRoot);
+	if (!allRows.length) _addFirstVnetIPRow(shadowRoot);
 }
 
 function _getValue(host) {
-	const shadowRoot = router_vnets.getShadowRootByHost(host);
+	const shadowRoot = vnet_ip.getShadowRootByHost(host);
 	const vnetsContainer = shadowRoot.querySelector("div#vnetscontainer");
 	const allRows = vnetsContainer.querySelectorAll("span#vnetsrow");
 	const vnets = []; for (const row of allRows) {
@@ -56,7 +56,7 @@ function _getValue(host) {
 }
 
 function _setValue(vnets, host) {
-	const shadowRoot = router_vnets.getShadowRootByHost(host);
+	const shadowRoot = vnet_ip.getShadowRootByHost(host);
 	const templateRow = shadowRoot.querySelector("template#vnetsrowtemplate");
 	const vnetsContainer = shadowRoot.querySelector("div#vnetscontainer");
 	for (const vnet of vnets) {
@@ -66,12 +66,12 @@ function _setValue(vnets, host) {
 	}
 }
 
-function _addFirstRouterVnetRow(shadowRoot) {
+function _addFirstVnetIPRow(shadowRoot) {
 	const templateRow = shadowRoot.querySelector("template#vnetsrowtemplate");
 	const nodesToInject = templateRow.content.cloneNode(true);
 	const vnetsContainer = shadowRoot.querySelector("div#vnetscontainer");
 	vnetsContainer.appendChild(nodesToInject);
 }
 
-export const router_vnets = {trueWebComponentMode: true, elementConnected, elementRendered, addRow, removeRow}
-monkshu_component.register("vnet-ip", `${COMPONENT_PATH}/vnet-ip.html`, router_vnets);
+export const vnet_ip = {trueWebComponentMode: true, elementConnected, elementRendered, addRow, removeRow}
+monkshu_component.register("vnet-ip", `${COMPONENT_PATH}/vnet-ip.html`, vnet_ip);
