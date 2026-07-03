@@ -66,8 +66,8 @@ span.roundbutton {
     <input id="ip" type="text" placeholder="Gateway Address" value={{ip}}>
 
     <span id="buttonspan">
-        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].addRow(this.parentNode.parentNode)">+</span>
-        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].removeRow(this.parentNode.parentNode)">-</span>
+        <span class="roundbutton" onclick="monkshu_env.components['vnet-ip'].addRow(this.parentNode.parentNode)">+</span>
+        <span class="roundbutton" onclick="monkshu_env.components['vnet-ip'].removeRow(this.parentNode.parentNode)">-</span>
     </span>
 </span>
 {{/vnets.vnet_ips}}
@@ -82,11 +82,11 @@ span.roundbutton {
         {{/vnets.vnets}}
     </select>
 
-    <input id="ip" type="text" placeholder="Gateway Address">
+    <input id="ip" type="text" placeholder="IP Address">
 
     <span id="buttonspan">
-        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].addRow(this.parentNode.parentNode)">+</span>
-        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].removeRow(this.parentNode.parentNode)">-</span>
+        <span class="roundbutton" onclick="monkshu_env.components['vnet-ip'].addRow(this.parentNode.parentNode)">+</span>
+        <span class="roundbutton" onclick="monkshu_env.components['vnet-ip'].removeRow(this.parentNode.parentNode)">-</span>
     </span>
 </span>
 </template>

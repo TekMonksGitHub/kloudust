@@ -74,4 +74,4 @@ function _addFirstRouterVnetRow(shadowRoot) {
 }
 
 export const router_vnets = {trueWebComponentMode: true, elementConnected, elementRendered, addRow, removeRow}
-monkshu_component.register("router-vnets", `${COMPONENT_PATH}/router-vnets.html`, router_vnets);
+monkshu_component.register("vnet-ip", `${COMPONENT_PATH}/vnet-ip.html`, router_vnets);

@@ -55,7 +55,7 @@
         "value":"{{{APP_CONSTANTS.ENV._routers_form_data.description}}}"},
     {"id": "update", "type": "hidden", "value": "true"},
     {"id": "router_settings", "type": "hidden", "value":"[]"},
-    {"id": "routerVnetsComponent", "inputtype": "router-vnets",
+    {"id": "routerVnetsComponent", "inputtype": "vnet-ip",
         "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
     ],
 
@@ -64,7 +64,7 @@
     "submit_javascript": [
         "const form = arguments[1], shadowroot = form._form_shadowroot;",
         "const retObject = arguments[0]||{};",
-        "retObject.router_settings = JSON.stringify(shadowroot.querySelector('router-vnets').value);",
+        "retObject.router_settings = JSON.stringify(shadowroot.querySelector('vnet-ip').value);",
         "return true;"
     ],
     
