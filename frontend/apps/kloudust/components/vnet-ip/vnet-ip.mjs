@@ -20,6 +20,7 @@ function elementConnected(host) {
 function elementRendered(host) {
 	const shadowRoot = vnet_ip.getShadowRootByHost(host);
 	_addFirstVnetIPRow(shadowRoot);
+	_refreshVnetOptions(shadowRoot);
 }
 
 function addRow(callingRow) {
@@ -29,6 +30,7 @@ function addRow(callingRow) {
 	if (callingRow.nextSibling) callingRow.parentNode.insertBefore(nodesToInject, callingRow.nextSibling);
 	else callingRow.parentNode.appendChild(nodesToInject);
 	console.debug(JSON.stringify(_getValue(vnet_ip.getHostElementByContainedElement(callingRow))));
+	_refreshVnetOptions(shadowRoot);
 }
 
 function removeRow(callingRow) {
@@ -37,6 +39,7 @@ function removeRow(callingRow) {
 	callingRow.remove();
 	const allRows = vnetsContainer.querySelectorAll("span#vnetsrow");
 	if (!allRows.length) _addFirstVnetIPRow(shadowRoot);
+	_refreshVnetOptions(shadowRoot);
 }
 
 function _getValue(host) {
@@ -64,6 +67,7 @@ function _setValue(vnets, host) {
 		for (const [key, value] of Object.entries(vnet)) nodesToInject.querySelector(`#${key}`).value = value;
 		vnetsContainer.appendChild(nodesToInject);
 	}
+	_refreshVnetOptions(shadowRoot);
 }
 
 function _addFirstVnetIPRow(shadowRoot) {
@@ -71,6 +75,31 @@ function _addFirstVnetIPRow(shadowRoot) {
 	const nodesToInject = templateRow.content.cloneNode(true);
 	const vnetsContainer = shadowRoot.querySelector("div#vnetscontainer");
 	vnetsContainer.appendChild(nodesToInject);
+}
+
+function _getAvailableVnets(shadowRoot) {
+    const host = shadowRoot.host;
+    const value = host.getAttribute("value") || "";
+    return value.trim() === "" ? [] : JSON.parse(value);
+}
+
+function _refreshVnetOptions(shadowRoot) {
+    const allVnets = _getAvailableVnets(shadowRoot);
+    const selects = [...shadowRoot.querySelectorAll("select#vnet")];
+    const selected = new Set(selects.map(s => s.value).filter(v => v));
+    for (const select of selects) {
+        const current = select.value;
+        select.innerHTML = '<option value="">Select VNet</option>';
+        for (const vnet of allVnets.vnets) {
+            if (vnet === current || !selected.has(vnet)) {
+                const opt = document.createElement("option");
+                opt.value = vnet;
+                opt.text = vnet;
+                if (vnet === current) opt.selected = true;
+                select.appendChild(opt);
+            }
+        }
+    }
 }
 
 export const vnet_ip = {trueWebComponentMode: true, elementConnected, elementRendered, addRow, removeRow}
