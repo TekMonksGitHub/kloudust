@@ -138,9 +138,15 @@ fi
 
 if [ "$INPLACE_DISK_RESIZE" == "true" ]; then
     if ! shutdownVM $NAME; then exitFailed Unable to shutdown $NAME; fi
-    VM_DISK=`virsh dumpxml $NAME | grep -oP "source\sfile=\s*'\K\/kloudust\/disks\/$NAME.+?(?=')"`
-    if [ -z $VM_DISK ]; then
-        echo Error!! Unable to find VM disk. 
+    if [ -n "$DISK_NAME" ]; then                             # a name is given, resize that specific data disk
+        EXPECTED_DISK=/kloudust/disks/"$NAME"_"$DISK_NAME".qcow2
+    else                                                    # no name given, resize the primary/boot disk
+        EXPECTED_DISK=/kloudust/disks/"$NAME".qcow2
+    fi
+    # look the disk up in the live domain XML so we only resize a disk actually attached to the VM
+    VM_DISK=`virsh dumpxml $NAME | grep -oP "source\s+file='\K[^']+" | grep -Fx "$EXPECTED_DISK"`
+    if [ -z "$VM_DISK" ]; then
+        echo Error!! Disk $EXPECTED_DISK is not attached to $NAME.
         exitFailed
     fi
     if ! qemu-img resize $VM_DISK "$ADDITIONAL_DISK"G; then exitFailed; fi
