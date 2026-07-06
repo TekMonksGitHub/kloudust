@@ -81,6 +81,7 @@ if [ $CORES ]; then
     echo Increasing vCPUS to $CORES
     if ! virsh setvcpus $NAME $CORES --config; then exitFailed "vCPU increased failed."; fi
     if ! virsh setvcpus $NAME $CORES --current; then exitFailed "vCPU increased failed."; fi
+    echo "vCPUs: resized to $CORES cores for the Virtual Machine $NAME."
 fi
 
 
@@ -88,6 +89,7 @@ if [ $MEMORY ]; then
     echo Increasing memory to $MEMORY MB
     if ! virsh setmem $NAME "$MEMORY"MB --config; then exitFailed "memory increased failed."; fi
     if ! virsh setmem $NAME "$MEMORY"MB --current; then exitFailed "memory increased failed."; fi
+    echo "Memory: resized to $MEMORY MB for the Virtual Machine $NAME."
 fi
 
 if [ $ADDITIONAL_DISK ] && [ "$INPLACE_DISK_RESIZE" != "true" ]; then
@@ -108,6 +110,7 @@ if [ $ADDITIONAL_DISK ] && [ "$INPLACE_DISK_RESIZE" != "true" ]; then
     if ! virsh attach-disk $NAME $DISK_FILE $NEXT_DRIVE_NAME --persistent --config --subdriver qcow2; then 
         exitFailed Attachment of the new disk at $DISK_FILE to $NAME failed.
     fi
+    echo "Disk: $DISK_NAME of size $ADDITIONAL_DISK GB added to the Virtual Machine $NAME."
 fi
 
 if [ "$REMOVE_DISK" == "true" ] || [ "$REMOVE_DISK" == "delete" ]; then
@@ -116,8 +119,10 @@ if [ "$REMOVE_DISK" == "true" ] || [ "$REMOVE_DISK" == "delete" ]; then
     if ! virsh detach-disk --domain $NAME $DISK_FILE --config --persistent; then 
         exitFailed "Removal of disk $DISK_NAME from $NAME failed."
     fi
+    echo "Disk: $DISK_NAME Detached Successfully."
     if [ "$REMOVE_DISK" == "delete" ]; then
         if ! rm -rf $DISK_FILE; then exitFailed "Disk $DISK_NAME deletion failed for VM $NAME."; fi
+        echo "Disk: $DISK_NAME Deleted Successfully."
     fi
 fi
 
@@ -134,6 +139,7 @@ if [ "$ATTACH_DISK" == "true" ]; then
     if ! virsh attach-disk $NAME $DISK_FILE $NEXT_DRIVE_NAME --persistent --config --subdriver qcow2; then 
         exitFailed Attachment of the disk $DISK_NAME to $NAME failed.
     fi
+    echo "Disk: $DISK_NAME Attached Successfully."
 fi
 
 if [ "$INPLACE_DISK_RESIZE" == "true" ]; then
