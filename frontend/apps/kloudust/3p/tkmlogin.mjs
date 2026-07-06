@@ -24,7 +24,7 @@ async function login(appname, redirect, otkapi, bgcolor, unifiedloginbaseurl=UNI
         console.error(`OTK API failed for Tekmonks Unified Login, error was undefined OTK.`); return; }
 
     // call tekmonks unified login
-    const search = `an=${encodeURIComponent(appname)}&rdr=${encodeURIComponent(redirect)}&otk=${encodeURIComponent(onetimekey)}${bgcolor?`&bgc=${encodeURIComponent(bgcolor)}`:""}`;
+    const search = `an=${encodeURIComponent(appname)}&rdr=${encodeURIComponent(redirect)}&otk=${encodeURIComponent(onetimekey)}${bgcolor?`&bgc=${encodeURIComponent(bgcolor)}`:""}${APP_CONSTANTS.TKMLOGINAPP_DISABLE_MFA?`&${APP_CONSTANTS.TKMLOGINAPP_DISABLE_MFA_KEY}=${APP_CONSTANTS.TKMLOGINAPP_DISABLE_MFA}`:""}`;
     window.location.replace(`${unifiedloginbaseurl}?${search}`);
 }
 
