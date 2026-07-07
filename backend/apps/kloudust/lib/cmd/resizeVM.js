@@ -7,7 +7,7 @@
  * 2 - memory to resize in MB or empty if leaving it as is,
  * 3 - disk size to add in GB or to resize to, empty if leaving it as is,
  * 4 - disk name (needed when adding a new disk, resizing a named disk, detaching or re-attaching a named disk),
- * 5 - in place resize, will resize the selected disk but will shut down the VM
+ * 5 - in place resize, will resize the selected disk; done live if the VM is running, no shutdown needed
  * 6 - restart should be set to true if needed,
  * 7 - remove disk, set to 'true' to detach the named disk from the VM (the disk
  *     file is kept on the host), or to 'delete' to detach it and also physically
@@ -30,7 +30,7 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
  */
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
-    const [vm_name_raw, cores, memory, disk_new_gb, disk_name, inplace_disk_resize, restart, remove_disk, attach_disk] = [...params], shutdown_wait_timeout = KLOUD_CONSTANTS.CONF.DEFAULT_VM_SHUTDOWN_WAIT;
+    const [vm_name_raw, cores, memory, disk_new_gb, disk_name, inplace_disk_resize, restart, remove_disk, attach_disk] = [...params];
     const vm_name = createVM.resolveVMName(vm_name_raw);
 
     const isInplaceResize = inplace_disk_resize?.toString().toLowerCase() == 'true';
@@ -61,7 +61,7 @@ module.exports.exec = async function(params) {
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/resizeVM.sh`,
             vm_name, cores||"", memory||"", parseInt(disk_new_gb)||"", disk_name||"", isAttachDisk?"true":"false",
-            isRemoveDisk?removeDiskMode:"false", isInplaceResize?"true":"false", restart?.toLowerCase()||"false", shutdown_wait_timeout
+            isRemoveDisk?removeDiskMode:"false", isInplaceResize?"true":"false", restart?.toLowerCase()||"false"
         ]
     }
 

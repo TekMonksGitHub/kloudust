@@ -8,9 +8,8 @@
 # {5} Disk name - must be provided if a new disk is to be added, attached or detached
 # {6} Attach disk - if true the disk name provided will be attached
 # {7} Remove disk - if true the disk name provided will be removed, if set to delete it will also be physically deleted
-# {8} Inplace resize - if true the disk is resized in place
+# {8} Inplace resize - if true the disk is resized in place; done live if the VM is running, no shutdown needed
 # {9} Restart VM for changes to take effect (should be true, if needed)
-# {10} Restart wait - time to wait for VM shutdown if needed
 
 
 NAME="{1}"
@@ -22,8 +21,6 @@ ATTACH_DISK={6}
 REMOVE_DISK={7}
 INPLACE_DISK_RESIZE={8}
 RESTART={9}
-SHUTDOWN_WAIT={10}
-SHUTDOWN_WAIT="${SHUTDOWN_WAIT:-90}"    # Default it to 90 seconds if not provided
 
 function exitFailed() {
     echo Error: $1
@@ -33,41 +30,6 @@ function exitFailed() {
 
 function testDiskNameProvided() {
     if [ -z $DISK_NAME ]; then exitFailed "Disk name must be provided."; fi
-}
-
-function waitProcessKilled() {
-    PID=$1
-    TIME_TO_WAIT=$2
-
-    WAITED_SO_FAR=0
-    while [ $WAITED_SO_FAR -lt $TIME_TO_WAIT ]; do
-        ps --pid $PID
-        if [ "$?" == "1" ]; then return 0; 
-        else 
-            sleep 5
-            WAITED_SO_FAR=$(($WAITED_SO_FAR+5))
-        fi
-    done
-    return 1
-}
-
-function shutdownVM() {
-    VMNAME=$1
-    VMPID=`ps ax | grep $VMNAME | grep kvm | tr -s " " | xargs  | cut -d" " -f1`
-    if ! virsh shutdown $VMNAME; then exitFailed; fi
-    waitProcessKilled $VMPID $SHUTDOWN_WAIT
-    if [ "$?" == "1" ]; then  
-        echo VM graceful shutdown timed out for $VMNAME after waiting $SHUTDOWN_WAIT seconds, destroying it instead. 
-        if ! virsh destroy $VMNAME; then 
-            echo VM destroy failed as well for $VMNAME.
-            return 1
-        else
-            echo VM $VMNAME was shutdown via forced destroy.
-        fi
-    else
-        echo Warning!! VM $VMNAME was shutdown gracefully.
-    fi
-    return 0
 }
 
 SPACE_PATTERN=" |'"
@@ -143,7 +105,6 @@ if [ "$ATTACH_DISK" == "true" ]; then
 fi
 
 if [ "$INPLACE_DISK_RESIZE" == "true" ]; then
-    if ! shutdownVM $NAME; then exitFailed Unable to shutdown $NAME; fi
     if [ -n "$DISK_NAME" ]; then                             # a name is given, resize that specific data disk
         EXPECTED_DISK=/kloudust/disks/"$NAME"_"$DISK_NAME".qcow2
     else                                                    # no name given, resize the primary/boot disk
@@ -155,8 +116,12 @@ if [ "$INPLACE_DISK_RESIZE" == "true" ]; then
         echo Error!! Disk $EXPECTED_DISK is not attached to $NAME.
         exitFailed
     fi
-    if ! qemu-img resize $VM_DISK "$ADDITIONAL_DISK"G; then exitFailed; fi
-    echo VM disk located at $VM_DISK, resized successfully.
+    if [ "`virsh domstate $NAME`" == "running" ]; then
+        if ! virsh blockresize $NAME $VM_DISK "$ADDITIONAL_DISK"G; then exitFailed "Live disk resize failed."; fi
+    else
+        if ! qemu-img resize $VM_DISK "$ADDITIONAL_DISK"G; then exitFailed; fi
+    fi
+    echo "Disk: located at $VM_DISK resized to $ADDITIONAL_DISK GB Successfully."
 fi
 
 
