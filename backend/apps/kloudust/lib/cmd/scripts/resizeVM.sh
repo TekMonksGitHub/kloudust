@@ -81,6 +81,7 @@ if [ $CORES ]; then
     echo Increasing vCPUS to $CORES
     if ! virsh setvcpus $NAME $CORES --config; then exitFailed "vCPU increased failed."; fi
     if ! virsh setvcpus $NAME $CORES --current; then exitFailed "vCPU increased failed."; fi
+    echo "vCPUs: resized to $CORES cores for the Virtual Machine $NAME."
 fi
 
 
@@ -88,6 +89,7 @@ if [ $MEMORY ]; then
     echo Increasing memory to $MEMORY MB
     if ! virsh setmem $NAME "$MEMORY"MB --config; then exitFailed "memory increased failed."; fi
     if ! virsh setmem $NAME "$MEMORY"MB --current; then exitFailed "memory increased failed."; fi
+    echo "Memory: resized to $MEMORY MB for the Virtual Machine $NAME."
 fi
 
 if [ $ADDITIONAL_DISK ] && [ "$INPLACE_DISK_RESIZE" != "true" ]; then
@@ -108,6 +110,7 @@ if [ $ADDITIONAL_DISK ] && [ "$INPLACE_DISK_RESIZE" != "true" ]; then
     if ! virsh attach-disk $NAME $DISK_FILE $NEXT_DRIVE_NAME --persistent --config --subdriver qcow2; then 
         exitFailed Attachment of the new disk at $DISK_FILE to $NAME failed.
     fi
+    echo "Disk: $DISK_NAME of size $ADDITIONAL_DISK GB added to the Virtual Machine $NAME."
 fi
 
 if [ "$REMOVE_DISK" == "true" ] || [ "$REMOVE_DISK" == "delete" ]; then
@@ -116,8 +119,10 @@ if [ "$REMOVE_DISK" == "true" ] || [ "$REMOVE_DISK" == "delete" ]; then
     if ! virsh detach-disk --domain $NAME $DISK_FILE --config --persistent; then 
         exitFailed "Removal of disk $DISK_NAME from $NAME failed."
     fi
+    echo "Disk: $DISK_NAME Detached Successfully."
     if [ "$REMOVE_DISK" == "delete" ]; then
         if ! rm -rf $DISK_FILE; then exitFailed "Disk $DISK_NAME deletion failed for VM $NAME."; fi
+        echo "Disk: $DISK_NAME Deleted Successfully."
     fi
 fi
 
@@ -134,13 +139,20 @@ if [ "$ATTACH_DISK" == "true" ]; then
     if ! virsh attach-disk $NAME $DISK_FILE $NEXT_DRIVE_NAME --persistent --config --subdriver qcow2; then 
         exitFailed Attachment of the disk $DISK_NAME to $NAME failed.
     fi
+    echo "Disk: $DISK_NAME Attached Successfully."
 fi
 
 if [ "$INPLACE_DISK_RESIZE" == "true" ]; then
     if ! shutdownVM $NAME; then exitFailed Unable to shutdown $NAME; fi
-    VM_DISK=`virsh dumpxml $NAME | grep -oP "source\sfile=\s*'\K\/kloudust\/disks\/$NAME.+?(?=')"`
-    if [ -z $VM_DISK ]; then
-        echo Error!! Unable to find VM disk. 
+    if [ -n "$DISK_NAME" ]; then                             # a name is given, resize that specific data disk
+        EXPECTED_DISK=/kloudust/disks/"$NAME"_"$DISK_NAME".qcow2
+    else                                                    # no name given, resize the primary/boot disk
+        EXPECTED_DISK=/kloudust/disks/"$NAME".qcow2
+    fi
+    # look the disk up in the live domain XML so we only resize a disk actually attached to the VM
+    VM_DISK=`virsh dumpxml $NAME | grep -oP "source\s+file='\K[^']+" | grep -Fx "$EXPECTED_DISK"`
+    if [ -z "$VM_DISK" ]; then
+        echo Error!! Disk $EXPECTED_DISK is not attached to $NAME.
         exitFailed
     fi
     if ! qemu-img resize $VM_DISK "$ADDITIONAL_DISK"G; then exitFailed; fi
