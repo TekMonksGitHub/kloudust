@@ -58,5 +58,40 @@ if ! sshpass -p "$HOSTTOPW" virsh migrate --verbose --live --unsafe --persistent
     exitFailed "VM migration failed." 
 fi
 
+echo Copying VM metadata
+if [ ! -f "/kloudust/metadata/$DOMAIN.metadata" ]; then exitFailed "Unable to locate VM metadata."; fi
+if ! sshpass -p "$HOSTTOPW" scp -p -P $HOSTTOPORT -o StrictHostKeyChecking=accept-new \
+    "/kloudust/metadata/$DOMAIN.metadata" "$HOSTTOID@$HOSTTO:/kloudust/metadata/$DOMAIN.metadata"; then
+    exitFailed "Unable to copy VM metadata."
+fi
+
+echo Dumping fresh VM XML on destination
+if ! sshpass -p "$HOSTTOPW" ssh -o StrictHostKeyChecking=accept-new -p $HOSTTOPORT $HOSTTOID@$HOSTTO \
+    "virsh dumpxml $DOMAIN > /kloudust/metadata/$DOMAIN.xml"; then
+    exitFailed "Unable to create VM XML on destination."
+fi
+
+# Copy firewall scripts on destination
+FIREWALL_SCRIPT=0
+for FW_SCRIPT in /kloudust/system/firewall/fw_${DOMAIN}_*.sh; do
+    [ -f "$FW_SCRIPT" ] || continue
+    FIREWALL_SCRIPT=1
+
+    echo Copying firewall script $FW_SCRIPT
+    if ! sshpass -p "$HOSTTOPW" scp -p -P $HOSTTOPORT -o StrictHostKeyChecking=accept-new \
+        "$FW_SCRIPT" "$HOSTTOID@$HOSTTO:$FW_SCRIPT"; then
+        exitFailed "Unable to copy firewall script $FW_SCRIPT."
+    fi
+done
+
+# Reapply firewall on destination
+if [ "$FIREWALL_SCRIPT" = "1" ]; then
+    echo Reapplying firewall on destination
+    if ! sshpass -p "$HOSTTOPW" ssh -o StrictHostKeyChecking=accept-new -p $HOSTTOPORT $HOSTTOID@$HOSTTO \
+        "for FW_SCRIPT in /kloudust/system/firewall/fw_${DOMAIN}_*.sh; do [ -f \"\$FW_SCRIPT\" ] || continue; /bin/bash \"\$FW_SCRIPT\" || exit 1; done"; then
+        exitFailed "Unable to reapply firewall on destination."
+    fi
+fi
+
 printf "\n\nVM migrated successfully\n"
 exit 0
