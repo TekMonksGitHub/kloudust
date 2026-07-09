@@ -40,5 +40,11 @@ done
 if ! mv /kloudust/metadata/$NAME.xml /kloudust/recyclebin/$NAME.$EPOCH.xml; then echo Failed to move the vm xml to recyclebin; fi
 if ! mv /kloudust/metadata/$NAME.metadata /kloudust/recyclebin/$NAME.$EPOCH.metadata; then echo Failed to move the vm metadata to recyclebin; fi
 
+# Removal of firewall scripts
+for FW_SCRIPT in /kloudust/system/firewall/fw_${NAME}_*.sh; do
+    [ -f "$FW_SCRIPT" ] || continue
+    if ! rm -f "$FW_SCRIPT"; then echo Failed to remove the vm firewall script $FW_SCRIPT; fi
+done
+
 printf "\n\nVM $NAME deleted successfully\n"
 exit 0
