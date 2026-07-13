@@ -12,6 +12,7 @@ const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const deleteVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/deleteVM.js`);
 const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
 const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
+const liveMigrateHostHelper = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/liveMigrateHostHelper.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
@@ -32,6 +33,25 @@ module.exports.exec = async function(params) {
 
     const hostToInfo = await dbAbstractor.getHostEntry(hostToName); 
     if (!hostToInfo) {params.consoleHandlers.LOGERROR("Bad hostname for host to."); return CMD_CONSTANTS.FALSE_RESULT();}
+
+    const compatibleHostsResult = await liveMigrateHostHelper.getCompatibleHostsForLiveMigration(vm_name_raw);
+    if (!compatibleHostsResult.result) {
+        params.consoleHandlers.LOGERROR(compatibleHostsResult.error || "Unable to locate compatible hosts for live migration");
+        return CMD_CONSTANTS.FALSE_RESULT(compatibleHostsResult.error || "Unable to locate compatible hosts for live migration");
+    }
+
+    let isCompatibleHost = false;
+    for (const compatibleHost of compatibleHostsResult.hosts) {
+        if (compatibleHost.hostname == hostToName) {
+            isCompatibleHost = true;
+            break;
+        }
+    }
+
+    if (!isCompatibleHost) {
+        params.consoleHandlers.LOGERROR(`Host ${hostToName} is not a compatible destination for live migration of VM ${vm_name_raw}`);
+        return CMD_CONSTANTS.FALSE_RESULT(`Host ${hostToName} is not a compatible destination for live migration of VM ${vm_name_raw}`);
+    }
 
     const vm_vnets = await addVMVnet.getVMVnets(vm.name_raw);
     for (const vm_vnet of vm_vnets) {
