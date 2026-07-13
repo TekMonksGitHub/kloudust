@@ -49,14 +49,14 @@ exports.getAgentConfig = function(host, user, new_password, new_sshport) {
     if (pyshellPort > 64998) pyshellPort = parseInt(new_sshport)-PYSHELL_PORT_INCREMENT;
     return {
         host, port: pyshellPort, poll_frequency: PYSHELL_POLL_FREQUENCY, timeout: PYSHELL_PROCESS_TIMEOUT, apiurl: `http://${host}:${pyshellPort}`,
-        aeskey: (user + new_password + (user.length + new_password.length < 30 ? new Array(30 - user.length + new_password.length).fill(0).join('') : '')), 
+        aeskey: (user + new_password + (user.length + new_password.length < 30 ? new Array(30 - (user.length + new_password.length)).fill(0).join('') : '')), 
     };
 }
 
 function ssh_cmd(host, user, password, hostkey, port=22, shellScriptPath, scriptParams, streamer, agent_config={}) {
     (streamer?streamer.LOGINFO:KLOUD_CONSTANTS.LOGINFO)(`[SSH_CMD]: ${user}@${host}:${port} -> ${scriptParams.join(" ")}`);
     const aeskey = agent_config.aeskey || (user + password + (user.length + password.length < 30 ? 
-        new Array(30 - user.length + password.length).fill(0).join('') : ''));
+        new Array(30 - (user.length + password.length)).fill(0).join('') : ''));
     const pyshellport = agent_config.port || (parseInt(port)+PYSHELL_PORT_INCREMENT);
     const pyshell_poll_frequency = agent_config.poll_frequency || PYSHELL_POLL_FREQUENCY;
     const timeout = agent_config.timeout || PYSHELL_PROCESS_TIMEOUT;
