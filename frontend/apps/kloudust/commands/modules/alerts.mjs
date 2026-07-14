@@ -30,11 +30,11 @@ body {height: 100%; margin: 0;}
 
 div#body {
     overflow: hidden;
-    max-height: 100%;
+    max-height: 100vh;
     box-sizing: border-box;
     color: #DCDCDC;
     background-color: #4C4C4C;
-    height: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -68,9 +68,9 @@ div#main {
     flex-direction: column;
     width: 100%;
     box-sizing: border-box;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    max-height: 100%;
 }
 
 span#alertpartition {
@@ -82,6 +82,7 @@ span#alertpartition {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 0;
 }
 div#alertcontainer {
     margin: 0em 1.5em;
@@ -89,6 +90,7 @@ div#alertcontainer {
     border-radius: 1em;
     overflow: clip;
     height: 0;
+    flex-shrink: 0;
 }
 div#alertcontainer.visible {height: auto;}
 div#alertdiv {
