@@ -40,9 +40,7 @@ if [ -f "/kloudust/system/firewall/fw_${VM_NAME}_${VNET_NAME}.sh" ]; then
     if ! rm -f "/kloudust/system/firewall/fw_${VM_NAME}_${VNET_NAME}.sh"; then exitFailed; fi
 fi
 
-# Persist
-if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 
-if ! sudo systemctl enable nftables; then exitFailed; fi
+# No persist step needed - VM firewalls are added if VM is up using Hooks
 
 echo "Firewall rules removed for $VM_NAME, ruleset $RULESET_NAME and Vnet $VNET_ID"
 exit 0
