@@ -35,26 +35,42 @@ if ! cat /etc/hosts | grep $HOSTTOHOSTNAME; then
 fi
 echo Host to hostname detected and set as $HOSTTOHOSTNAME
 
-DISKTOMIGRATE=`virsh domblklist $DOMAIN | grep qcow2|tr -s " "|xargs|cut -d" " -f2`
-DISKDEVICETOMIGRATE=`virsh domblklist $DOMAIN | grep qcow2|tr -s " "|xargs|cut -d" " -f1`
-DISKSIZE=`virsh domblkinfo $DOMAIN $DISKDEVICETOMIGRATE | grep -i Capacity | tr -s " " | cut -d" " -f2`
-DISKSIZEGB=`echo "$DISKSIZE / 1073741824" | bc`
+mapfile -t DISKINFOS < <(virsh domblklist "$DOMAIN" | awk '/\.qcow2$/ {print $1 "|" $2}')
+
+if [ ${#DISKINFOS[@]} -eq 0 ]; then exitFailed "Unable to detect disk files to migrate"; fi
+
+DISKDEVICESTOMIGRATE=""
 
 echo Disk information for the VM to migrate
-echo DISKTOMIGRATE=$DISKTOMIGRATE
-echo DISKDEVICETOMIGRATE=$DISKDEVICETOMIGRATE
-echo DISKSIZE=$DISKSIZE
-echo DISKSIZEGB=$DISKSIZEGB
+for DISKINFO in "${DISKINFOS[@]}"; do
+    DISKDEVICE=`echo "$DISKINFO" | cut -d"|" -f1`
+    DISKTOMIGRATE=`echo "$DISKINFO" | cut -d"|" -f2`
+    DISKSIZE=`virsh domblkinfo "$DOMAIN" "$DISKDEVICE" | grep -i Capacity | tr -s " " | cut -d" " -f2`
+    DISKSIZEGB=`echo "$DISKSIZE / 1073741824" | bc`
 
-if [ -z $DISKTOMIGRATE ]; then exitFailed "Unable to detect disk file to migrate"; fi
-if [ -z $DISKDEVICETOMIGRATE ]; then exitFailed "Unable to detect disk device to migrate"; fi
-if [ -z $DISKSIZE ]; then exitFailed "Unable to detect disk size to migrate"; fi
-if [ -z $DISKSIZEGB ]; then exitFailed "Unable to detect disk size in GB to migrate"; fi
+    echo DISKDEVICE=$DISKDEVICE
+    echo DISKTOMIGRATE=$DISKTOMIGRATE
+    echo DISKSIZE=$DISKSIZE
+    echo DISKSIZEGB=$DISKSIZEGB
 
-echo Creating remote migration disk 
-if ! sshpass -p "$HOSTTOPW" ssh -o StrictHostKeyChecking=accept-new -p $HOSTTOPORT $HOSTTOID@$HOSTTOHOSTNAME qemu-img create -f qcow2 $DISKTOMIGRATE "$DISKSIZEGB"G; then 
-    exitFailed "Migration disk creation failed." 
-fi
+    if [ -z "$DISKDEVICE" ]; then exitFailed "Unable to detect disk device to migrate"; fi
+    if [ -z "$DISKTOMIGRATE" ]; then exitFailed "Unable to detect disk file to migrate"; fi
+    if [ -z "$DISKSIZE" ]; then exitFailed "Unable to detect disk size to migrate for $DISKDEVICE"; fi
+    if [ -z "$DISKSIZEGB" ]; then exitFailed "Unable to detect disk size in GB to migrate for $DISKDEVICE"; fi
+
+    echo Creating remote migration disk $DISKTOMIGRATE
+    if ! remoteSSH "qemu-img create -f qcow2 \"$DISKTOMIGRATE\" \"${DISKSIZEGB}G\""; then
+        exitFailed "Migration disk creation failed for $DISKTOMIGRATE."
+    fi
+
+    if [ -z "$DISKDEVICESTOMIGRATE" ]; then
+        DISKDEVICESTOMIGRATE="$DISKDEVICE"
+    else
+        DISKDEVICESTOMIGRATE="$DISKDEVICESTOMIGRATE,$DISKDEVICE"
+    fi
+done
+
+echo DISKDEVICESTOMIGRATE=$DISKDEVICESTOMIGRATE
 CDROMDEVICE=`virsh domblklist $DOMAIN | grep cloudinit.iso | tr -s " " | xargs | cut -d" " -f1`
 if [ $CDROMDEVICE ]; then 
     echo Cloudinit CDROM detect at device $CDROMDEVICE. Ejecting.
@@ -62,7 +78,7 @@ if [ $CDROMDEVICE ]; then
 fi
 
 echo Starting $DOMAIN Live Migration
-if ! sshpass -p "$HOSTTOPW" virsh migrate --verbose --live --unsafe --persistent --copy-storage-all --migrate-disks $DISKDEVICETOMIGRATE $DOMAIN qemu+ssh://$HOSTTOHOSTNAME:$HOSTTOPORT/system; then
+if ! sshpass -p "$HOSTTOPW" virsh migrate --verbose --live --unsafe --persistent --copy-storage-all --migrate-disks "$DISKDEVICESTOMIGRATE" $DOMAIN qemu+ssh://$HOSTTOHOSTNAME:$HOSTTOPORT/system; then
     exitFailed "VM migration failed." 
 fi
 
