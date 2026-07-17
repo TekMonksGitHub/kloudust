@@ -277,7 +277,15 @@ if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept;
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
 if ! sudo nft add rule inet kdhostfirewall input udp dport 8472 accept; then exitFailed; fi   # VxLAN port
 if ! sudo nft add chain inet kdhostfirewall input { policy drop\; }; then exitFailed; fi
-if ! sudo nft list ruleset | sudo tee /etc/nftables.conf > /dev/null; then exitFailed; fi 
+
+# Kloudust Host based firewall and persistence.
+if ! sudo mkdir -p /etc/nftables.d; then exitFailed; fi
+sudo tee /etc/nftables.conf > /dev/null <<'EOF'
+#!/usr/sbin/nft -f
+include "/etc/nftables.d/*.nft"
+EOF
+if [ $? -ne 0 ]; then exitFailed; fi
+if ! { echo "table inet kdhostfirewall"; echo "delete table inet kdhostfirewall"; sudo nft list table inet kdhostfirewall; } | sudo tee /etc/nftables.d/kdhostfirewall.nft > /dev/null; then exitFailed; fi 
 if ! sudo systemctl enable nftables; then exitFailed; fi                                  # Reboot will enforce the firewall
 # Setup IP forwarding and ARP forwarding support
 if ! echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward > /dev/null; then exitFailed; fi   
