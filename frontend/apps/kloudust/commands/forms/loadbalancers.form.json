@@ -1,0 +1,99 @@
+{
+"id": "loadbalancers",
+"command": "tablelist",
+"type": "table_display",
+
+"i18n": {
+"en": {
+    "LBs_name_raw": "Name",
+    "LBs_description": "Description",
+    "LBs_datetime": "Date Created",
+    "LBs_frontendurl": "Frontend",
+    "LBs_backendsconf": "Backends",
+    "LBs_scheduler": "Scheduler",
+
+    "LBsDelete": "Delete"
+},
+
+"hi": {
+    "LBs_name_raw": "Name",
+    "LBs_description": "Description",
+    "LBs_datetime": "Date Created",
+    "LBs_frontendurl": "Frontend",
+    "LBs_backendsconf": "Backends",
+    "LBs_scheduler": "Scheduler",
+
+    "LBsDelete": "Delete"
+},
+
+"ja": {
+    "LBs_name_raw": "Name",
+    "LBs_description": "Description",
+    "LBs_datetime": "Date Created",
+    "LBs_frontendurl": "Frontend",
+    "LBs_backendsconf": "Backends",
+    "LBs_scheduler": "Scheduler",
+
+    "LBsDelete": "Delete"
+},
+
+"zh": {
+    "LBs_name_raw": "Name",
+    "LBs_description": "Description",
+    "LBs_datetime": "Date Created",
+    "LBs_frontendurl": "Frontend",
+    "LBs_backendsconf": "Backends",
+    "LBs_scheduler": "Scheduler",
+
+    "LBsDelete": "Delete"
+}
+},
+
+"tabledef": {
+    "popupform": {
+    "rolelist": {
+        "*":[
+            {"id": "deleteloadbalancer", "label": "{{{i18n.LBsDelete}}}", "logo": "img/delete.svg"}
+        ]
+    }
+    },
+
+    "style": "div#tablebottombar{display: none;}",
+
+    "i18nPrefix": "LBs",
+
+    "enable_copy": true,
+
+    "onclickrow_html": [
+        "<style>div#onclick_html {background-color: #F8F8F8; width: auto;} div#close{display: none !important}</style>",
+        "<style>div#onclickrow_html {height: fit-content;} div#body{background-color: #F8F8F8 !important}</style>",
+        "<style>div#buttons {margin: 0 !important; align-items: flex-start !important; height: 100% !important;}</style>",
+        "<style>div#button {height: unset !important; max-height: 100% !important; margin: 0 !important; color: #BC5205 !important;}</style>",
+        "<style>div#button {width: 6em !important; font-size: 0.8em !important; box-sizing: border-box !important!;}</style>",
+        "<style>div#button {border: 1px solid transparent; border-radius: 0.5em; padding: 0.5em;}</style>",
+        "<style>div#button img {width: 3em !important; height: 3em !important;}</style>",
+        "<style>div#button span {font-size: smaller !important; height: -webkit-fill-available;}</style>",
+        "<style>div#button:hover {border: 1px dashed #BC5205 !important;}</style>"
+    ],
+
+    "clickrow_javascript": [
+        "const data = arguments[0]; APP_CONSTANTS.ENV._loadbalancers_form_data = data;"
+    ],
+
+    "load_javascript": [
+        "const lbs = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+            "cmd: `listLoadBalancers \"${$$.libsession.get(APP_CONSTANTS.USERORG)}\" \"${$$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}\"`, ",
+            "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+        "for (const lb of lbs.loadbalancers||[]) {",
+        "   lb.datetime = new Date(lb.timestamp).toLocaleDateString();",
+        "   lb.frontendurl = `${lb.frontend.ip}:${lb.frontend.port} (${lb.frontend.protocol})`;",
+        "   lb.scheduler = lb.frontend.scheduler;",
+        "   lb.backendsconf = lb.backends.map(b=>`${b.ip}:${b.port||lb.frontend.port}`).join(', ');",
+        "}",
+        "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
+        "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
+        "tabledef.onclickrow_html.push(html);",
+        "return {keys: ['name_raw','description','frontendurl','backendsconf','scheduler','datetime'], table: lbs.loadbalancers||[]};"
+    ]
+}
+}
