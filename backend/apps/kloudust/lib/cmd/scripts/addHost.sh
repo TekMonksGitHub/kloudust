@@ -70,6 +70,7 @@ if [ -f "`which yum`" ]; then
     if ! sudo yum -y install fail2ban; then exitFailed; fi
     if ! sudo yum -y install sshpass; then exitFailed; fi
     if ! sudo yum -y install jq; then exitFailed; fi
+    if ! sudo yum -y ipvsadm jq; then exitFailed; fi
     if ! sudo yum -y install qemu-kvm libvirt virt-top bridge-utils libguestfs-tools virt-install tuned genisoimage; then exitFailed; fi
     if ! sudo systemctl stop firewalld; then exitFailed; fi
     if ! sudo systemctl disable firewalld; then exitFailed; fi
@@ -79,6 +80,7 @@ else
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install fail2ban; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install sshpass; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install jq; then exitFailed; fi
+    if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install ipvsadm; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install net-tools iptables-persistent; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils virtinst libosinfo-bin guestfs-tools tuned genisoimage; then exitFailed; fi
     # Remove snapd on Ububtu as it opens outgoing connections to the snap store
@@ -252,6 +254,16 @@ EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo chmod +x /kloudust/system/hostinit/010-start-$DEFAULT_KD_NET-net; then exitFailed; fi  
 
+printf "\n\nSetting up IPVS kernel modules\n"
+sudo tee "/etc/modules-load.d/ipvs.conf" > /dev/null <<EOF
+ip_vs
+nf_conntrack
+xt_ipvs
+EOF
+if [ $? -ne 0 ]; then exitFailed; fi
+if ! sudo modprobe ip_vs; then exitFailed; fi
+if ! sudo modprobe nf_conntrack; then exitFailed; fi
+if ! sudo modprobe xt_ipvs; then exitFailed; fi
 
 printf "\n\nSetting up Bridge Netfilter kernel module for virtual machine firewall support\n"
 if ! echo "br_netfilter" | sudo tee /etc/modules-load.d/br_netfilter.conf > /dev/null; then exitFailed; fi
@@ -265,7 +277,7 @@ if [ $? -ne 0 ]; then exitFailed; fi
 if ! sudo sysctl -p /etc/sysctl.d/99-bridge-nf.conf > /dev/null; then exitFailed; fi
 
 
-printf "\n\nSetting up the host firewall, packet forwarding and ARP proxy support\n"
+printf "\n\nSetting up the host firewall, packet forwarding, ARP proxy and IPVS connection tracking support\n"
 if ! sudo systemctl stop nftables; then exitFailed; fi                                    # Reboot will restart it
 if ! sudo nft flush ruleset; then exitFailed; fi                                          # This clears libvirt entries but reboot restores them apparently
 if ! sudo nft add table inet kdhostfirewall; then exitFailed; fi
@@ -287,7 +299,7 @@ EOF
 if [ $? -ne 0 ]; then exitFailed; fi
 if ! { echo "table inet kdhostfirewall"; echo "delete table inet kdhostfirewall"; sudo nft list table inet kdhostfirewall; } | sudo tee /etc/nftables.d/kdhostfirewall.nft > /dev/null; then exitFailed; fi 
 if ! sudo systemctl enable nftables; then exitFailed; fi                                  # Reboot will enforce the firewall
-# Setup IP forwarding and ARP forwarding support
+# Setup IP forwarding, ARP forwarding support and IPVS connection tracking
 if ! echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward > /dev/null; then exitFailed; fi   
 if ! sudo grep -qxF 'net.ipv4.ip_forward=1' /etc/sysctl.conf; then
     if ! printf "\nnet.ipv4.ip_forward=1\n" | sudo tee -a /etc/sysctl.conf > /dev/null; then exitFailed; fi
@@ -295,6 +307,10 @@ fi
 if ! echo 1 | sudo tee /proc/sys/net/ipv4/conf/all/proxy_arp > /dev/null; then exitFailed; fi
 if ! sudo grep -qxF 'net.ipv4.conf.all.proxy_arp=1' /etc/sysctl.conf; then
     if ! printf "\nnet.ipv4.conf.all.proxy_arp=1\n" | sudo tee -a /etc/sysctl.conf > /dev/null; then exitFailed; fi
+fi
+if ! echo 1 | sudo tee /proc/sys/net/ipv4/vs/conntrack > /dev/null; then exitFailed; fi
+if ! sudo grep -qxF 'net.ipv4.vs.conntrack=1' /etc/sysctl.conf; then
+    if ! printf "\nnet.ipv4.vs.conntrack=1\n" | sudo tee -a /etc/sysctl.conf > /dev/null; then exitFailed; fi
 fi
 if ! sudo sysctl -p /etc/sysctl.conf; then exitFailed; fi
 
