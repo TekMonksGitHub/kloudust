@@ -29,6 +29,8 @@ while read -r entry; do
     GATEWAY_IP=$(jq -r '.gateway_address' <<< "${entry}")
     VNET_NUM=$(jq -r '.vnetnum' <<< "${entry}")
     VNET_NAME_HASH=$(jq -r '.vnet_name_hash' <<< "${entry}")
+    OP=$(jq -r '.op' <<< "${entry}")
+
 
     if [[ -z "${VNET_NAME}" || "${VNET_NAME}" == "null" ]]; then
         echo "Invalid vnet field"
@@ -48,6 +50,30 @@ while read -r entry; do
     if [[ -z "${VNET_NAME_HASH}" || "${VNET_NAME_HASH}" == "null" ]]; then
         echo "Invalid vnet_name_hash field"
         exitFailed
+    fi
+
+    if [[ -z "${OP}" || "${OP}" == "null" ]]; then
+        echo "Invalid op field"
+        exitFailed
+    fi
+
+    if [[ "${OP}" == "del" ]]; then
+
+        BRIDGE_NAME="kd${VNET_NUM}_br"
+        VETH_BR="${VNET_NAME_HASH}_br"
+        VETH_NS="${VNET_NAME_HASH}_ns"
+
+        echo "Removing ${VNET_NAME}"
+
+        if ip netns exec "${ROUTER_NAME}" ip link show "${VETH_NS}" >/dev/null 2>&1; then
+            ip netns exec "${ROUTER_NAME}" ip link del "${VETH_NS}" || exitFailed
+        fi
+
+        if ip link show "${VETH_BR}" >/dev/null 2>&1; then
+            ip link del "${VETH_BR}" || exitFailed
+        fi
+
+        continue
     fi
 
     BRIDGE_NAME="kd${VNET_NUM}_br"

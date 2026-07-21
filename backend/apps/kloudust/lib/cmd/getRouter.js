@@ -9,7 +9,7 @@
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
-const createRouter = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createRouter.js`);
+const createOrUpdateRouter = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createOrUpdateRouter.js`);
 const vnetModule = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
 
 /**
@@ -21,8 +21,9 @@ module.exports.exec = async function(params) {
     const [router_name_raw] = params;
     if (!router_name_raw) { params.consoleHandlers.LOGERROR("Missing router name!"); return CMD_CONSTANTS.FALSE_RESULT(); }
     
-    const router_name = createRouter.resolveRouterName(router_name_raw);
+    const router_name = createOrUpdateRouter.resolveRouterName(router_name_raw);
     const router = await dbAbstractor.getRouter(router_name);
+    if (!router) {params.consoleHandlers.LOGERROR("Bad router name or router not found"); return CMD_CONSTANTS.FALSE_RESULT("Bad router name or router not found");}
     const vnet_ips = await dbAbstractor.getVnetIPsForRouter(router.name);
 
     const vnet_ips_promise = vnet_ips.map(async vi=>{

@@ -7,7 +7,7 @@
     "MOBILE_MEDIA_QUERY_PORTRAIT_START": "<style>@media only screen and (max-width: 959px) and (orientation: portrait) {",
     "MOBILE_MEDIA_QUERY_PORTRAIT_END": "}</style>",
     "COMPONENTS": ["components/dialog-box", "components/span-with-menu", 
-        "components/form-runner", "components/table-list", "components/firewall-rules", "components/router-vnets" ],
+        "components/form-runner", "components/table-list", "components/firewall-rules", "components/vnet-ip" ],
     "APP_ABOUT_URL": "https://tekmonks.com/",
     "TKMLOGINAPP_URL": "https://login.tekmonks.com",
     "TKMLOGINAPP_DISABLE_MFA_KEY": "dma",

@@ -11,7 +11,8 @@
     "Routers_vnets": "Vnets",
     "Routers_ips": "IPs",
 
-    "RoutersDelete": "Delete"
+    "RoutersDelete": "Delete",
+    "RoutersEdit": "Edit"
 },
 
 "hi": {
@@ -21,7 +22,8 @@
     "Routers_vnets": "Vnets",
     "Routers_ips": "IPs",
 
-    "RoutersDelete": "Delete"
+    "RoutersDelete": "Delete",
+    "RoutersEdit": "Edit"
 },
 
 "ja": {
@@ -31,7 +33,8 @@
     "Routers_vnets": "Vnets",
     "Routers_ips": "IPs",
 
-    "RoutersDelete": "Delete"
+    "RoutersDelete": "Delete",
+    "RoutersEdit": "Edit"
 },
 
 "zh": {
@@ -41,7 +44,8 @@
     "Routers_vnets": "Vnets",
     "Routers_ips": "IPs",
 
-    "RoutersDelete": "Delete"
+    "RoutersDelete": "Delete",
+    "RoutersEdit": "Edit"
 }
 },
 
@@ -49,6 +53,7 @@
     "popupform": {
     "rolelist": {
         "*":[
+            {"id": "editrouter", "label": "{{{i18n.RoutersEdit}}}", "logo": "img/edit.png"},
             {"id": "deleterouter", "label": "{{{i18n.RoutersDelete}}}", "logo": "img/delete.svg"}
         ]
     }
