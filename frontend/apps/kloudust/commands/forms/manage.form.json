@@ -9,7 +9,8 @@
     {"id": "deletevm", "label": "{{{i18n.DeleteVirtualMachine}}}", "logo": "img/deletevm_manage.svg"},
     {"id": "deletevnet", "label": "{{{i18n.DeleteVirtualNetwork}}}", "logo": "img/deletevnet.svg"},
     {"id": "deletefirewallruleset", "label": "{{{i18n.DeleteFirewall}}}", "logo": "img/deletefirewall.svg"},
-    {"id": "deleterouter", "label": "{{{i18n.DeleteRouter}}}", "logo": "img/deleterouter_manage.svg"}
+    {"id": "deleterouter", "label": "{{{i18n.DeleteRouter}}}", "logo": "img/deleterouter_manage.svg"},
+    {"id": "deleteloadbalancer", "label": "{{{i18n.DeleteLoadBalancer}}}", "logo": "img/deleteloadbalancer_manage.svg"}
 ]
 },
 
@@ -19,7 +20,8 @@
     "DeleteVirtualMachine": "Delete virtual machine",
     "DeleteVirtualNetwork": "Delete virtual network",
     "DeleteFirewall": "Delete firewall ruleset",
-    "DeleteRouter": "Delete Router"
+    "DeleteRouter": "Delete Router",
+    "DeleteLoadBalancer": "Delete Load Balancer"
 },
 
 "hi": {
@@ -27,7 +29,8 @@
     "DeleteVirtualMachine": "Delete virtual machine",
     "DeleteVirtualNetwork": "Delete virtual network",
     "DeleteFirewall": "Delete firewall ruleset",
-    "DeleteRouter": "Delete Router"
+    "DeleteRouter": "Delete Router",
+    "DeleteLoadBalancer": "Delete Load Balancer"
 },
 
 "ja": {
@@ -35,7 +38,8 @@
     "DeleteVirtualMachine": "Delete virtual machine",
     "DeleteVirtualNetwork": "Delete virtual network",
     "DeleteFirewall": "Delete firewall ruleset",
-    "DeleteRouter": "Delete Router"
+    "DeleteRouter": "Delete Router",
+    "DeleteLoadBalancer": "Delete Load Balancer"
 },
 
 "zh": {
@@ -43,7 +47,8 @@
     "DeleteVirtualMachine": "Delete virtual machine",
     "DeleteVirtualNetwork": "Delete virtual network",
     "DeleteFirewall": "Delete firewall ruleset",
-    "DeleteRouter": "Delete Router"
+    "DeleteRouter": "Delete Router",
+    "DeleteLoadBalancer": "Delete Load Balancer"
 }
 }
 }

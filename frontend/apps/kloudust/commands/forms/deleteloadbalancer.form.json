@@ -1,0 +1,54 @@
+{
+"id": "deleteloadbalancer",
+"command": "deleteLoadBalancer",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["lb_name"],
+
+"title": "{{{i18n.LBDeleteTitle}}}",
+
+"i18n": {
+    "en": {
+        "LBDeleteTitle": "Delete Load Balancer",
+        "LBDeleteDescription": "Delete a load balancer from the cloud. Complete the required field then submit.",
+        "LBName": "Load Balancer Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteLBSubmitLabel": "Delete"
+    },
+    "hi": {
+        "LBDeleteTitle": "Delete Load Balancer",
+        "LBDeleteDescription": "Delete a load balancer from the cloud. Complete the required field then submit.",
+        "LBName": "Load Balancer Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteLBSubmitLabel": "Delete"
+    },
+    "ja": {
+        "LBDeleteTitle": "Delete Load Balancer",
+        "LBDeleteDescription": "Delete a load balancer from the cloud. Complete the required field then submit.",
+        "LBName": "Load Balancer Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteLBSubmitLabel": "Delete"
+    },
+    "zh": {
+        "LBDeleteTitle": "Delete Load Balancer",
+        "LBDeleteDescription": "Delete a load balancer from the cloud. Complete the required field then submit.",
+        "LBName": "Load Balancer Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "DeleteLBSubmitLabel": "Delete"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.LBDeleteDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "lb_name", "type": "text", "placeholder": "{{{i18n.LBName}}}", "required": true,
+        "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._loadbalancers_form_data.name_raw}}}",
+        "readonly":"{{#APP_CONSTANTS.ENV._loadbalancers_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._loadbalancers_form_data.name_raw}}"}
+    ],
+
+    "submitlabel": "{{{i18n.DeleteLBSubmitLabel}}}"
+}
+
+}
