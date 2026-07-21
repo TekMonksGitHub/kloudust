@@ -13,7 +13,7 @@ const liveMigrateHostHelper = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/liveMigrate
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 module.exports.exec = async function(params) {
-    if (!roleman.checkAccess(roleman.ACTIONS.lookup_cloud_resource_for_project)) {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {
         params.consoleHandlers.LOGUNAUTH();
         return CMD_CONSTANTS.FALSE_RESULT();
     }
