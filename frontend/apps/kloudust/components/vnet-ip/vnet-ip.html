@@ -54,37 +54,39 @@ span.roundbutton {
 </style>
 
 <div id="vnetscontainer">
+{{#vnets.vnet_ips}}
     <span id="vnetsrow">
         <select name="vnet" id="vnet">
             <option value="">Select a VNet</option>
             {{#vnets}}
-                <option value="{{.}}">{{.}}</option>
+              <option value="{{name}}" {{selected}}>{{name}}</option>
             {{/vnets}}
     </select>
 
-    <input id="ip" type="text" placeholder="Gateway Address">
+    <input id="ip" type="text" placeholder="Gateway Address" value={{ip}}>
 
     <span id="buttonspan">
-        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].addRow(this.parentNode.parentNode)">+</span>
-        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].removeRow(this.parentNode.parentNode)">-</span>
+        <span class="roundbutton" onclick="monkshu_env.components['vnet-ip'].addRow(this.parentNode.parentNode)">+</span>
+        <span class="roundbutton" onclick="monkshu_env.components['vnet-ip'].removeRow(this.parentNode.parentNode)">-</span>
     </span>
 </span>
+{{/vnets.vnet_ips}}
 </div>
 
 <template id="vnetsrowtemplate">
 <span id="vnetsrow">
     <select name="vnet" id="vnet">
         <option value="">Select a VNet</option>
-        {{#vnets}}
+        {{#vnets.vnets}}
             <option value="{{.}}">{{.}}</option>
-        {{/vnets}}
+        {{/vnets.vnets}}
     </select>
 
-    <input id="ip" type="text" placeholder="Gateway Address">
+    <input id="ip" type="text" placeholder="IP Address">
 
     <span id="buttonspan">
-        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].addRow(this.parentNode.parentNode)">+</span>
-        <span class="roundbutton" onclick="monkshu_env.components['router-vnets'].removeRow(this.parentNode.parentNode)">-</span>
+        <span class="roundbutton" onclick="monkshu_env.components['vnet-ip'].addRow(this.parentNode.parentNode)">+</span>
+        <span class="roundbutton" onclick="monkshu_env.components['vnet-ip'].removeRow(this.parentNode.parentNode)">-</span>
     </span>
 </span>
 </template>

@@ -11,7 +11,7 @@
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
-const createRouter = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createRouter.js`);
+const createOrUpdateRouter = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createOrUpdateRouter.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
 /**
@@ -20,7 +20,7 @@ const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
  */
 module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
-    const router_name_raw = params[0], router_name = createRouter.resolveRouterName(router_name_raw);
+    const router_name_raw = params[0], router_name = createOrUpdateRouter.resolveRouterName(router_name_raw);
 
     const router = await dbAbstractor.getRouter(router_name);
     if (!router) {params.consoleHandlers.LOGERROR("Bad Router name or Router not found"); return CMD_CONSTANTS.FALSE_RESULT();}

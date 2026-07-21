@@ -1,0 +1,128 @@
+{
+"id": "livemigrate",
+"command": "liveMigrate",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vm_name", "host_to"],
+
+"title": "{{{i18n.LiveMigrateTitle}}}",
+
+"i18n": {
+    "en": {
+        "LiveMigrateTitle": "Live migrate virtual machines",
+        "FieldValidationErrorGeneric": "Validation error",
+        "LiveMigrateSubmitLabel": "Start migration",
+        "LiveMigrateVMName": "Virtual machine name",
+        "LiveMigrateHostToName": "Host to migrate to",
+        "LiveMigrateDescription": "Live migrate a virtual machine while it is running to a new host. Complete the required fields and then submit.",
+        "LiveMigrateNoVMsFound": "No VMs Found",
+        "LiveMigrateNoHostsFound": "No Compatible Hosts Found",
+        "LiveMigrateSelectVM": "Select a VM",
+        "LiveMigrateSelectHost": "Select a destination host"
+    },
+    "hi": {
+        "LiveMigrateTitle": "Live migrate virtual machines",
+        "FieldValidationErrorGeneric": "Validation error",
+        "LiveMigrateSubmitLabel": "Start migration",
+        "LiveMigrateVMName": "Virtual machine name",
+        "LiveMigrateHostToName": "Host to migrate to",
+        "LiveMigrateDescription": "Live migrate a virtual machine while it is running to a new host. Complete the required fields and then submit.",
+        "LiveMigrateNoVMsFound": "No VMs Found",
+        "LiveMigrateNoHostsFound": "No Compatible Hosts Found",
+        "LiveMigrateSelectVM": "Select a VM",
+        "LiveMigrateSelectHost": "Select a destination host"
+    },
+    "ja": {
+        "LiveMigrateTitle": "Live migrate virtual machines",
+        "FieldValidationErrorGeneric": "Validation error",
+        "LiveMigrateSubmitLabel": "Start migration",
+        "LiveMigrateVMName": "Virtual machine name",
+        "LiveMigrateHostToName": "Host to migrate to",
+        "LiveMigrateDescription": "Live migrate a virtual machine while it is running to a new host. Complete the required fields and then submit.",
+        "LiveMigrateNoVMsFound": "No VMs Found",
+        "LiveMigrateNoHostsFound": "No Compatible Hosts Found",
+        "LiveMigrateSelectVM": "Select a VM",
+        "LiveMigrateSelectHost": "Select a destination host"
+    },
+    "zh": {
+        "LiveMigrateTitle": "Live migrate virtual machines",
+        "FieldValidationErrorGeneric": "Validation error",
+        "LiveMigrateSubmitLabel": "Start migration",
+        "LiveMigrateVMName": "Virtual machine name",
+        "LiveMigrateHostToName": "Host to migrate to",
+        "LiveMigrateDescription": "Live migrate a virtual machine while it is running to a new host. Complete the required fields and then submit.",
+        "LiveMigrateNoVMsFound": "No VMs Found",
+        "LiveMigrateNoHostsFound": "No Compatible Hosts Found",
+        "LiveMigrateSelectVM": "Select a VM",
+        "LiveMigrateSelectHost": "Select a destination host"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.LiveMigrateDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "vm_name", "multioption": true, "type": "select", "label": "{{{i18n.LiveMigrateVMName}}}", "options":[],
+        "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}"},
+    {"id": "host_to", "multioption": true, "type": "select", "label": "{{{i18n.LiveMigrateHostToName}}}", "options":[]}
+    ],
+
+    "load_javascript": [
+        "const form = arguments[0]||{};",
+        "const vmSelect = form.required_fields[0];",
+        "const hostSelect = form.required_fields[1];",
+        "const preselectedVM = form.required_fields[0].value||'';",
+        "vmSelect.options.push({value: '', label: '{{{i18n.LiveMigrateSelectVM}}}'});",
+        "hostSelect.options.push({value: '', label: '{{{i18n.LiveMigrateSelectHost}}}'});",
+        "const vmResult = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+        "    cmd: 'listVMsForOrgOrProject',",
+        "    project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)",
+        "}, true);",
+        "if (vmResult.result && vmResult.vms?.length) {",
+        "    for (const vm of vmResult.vms) vmSelect.options.push({value: vm.name_raw, label: `${vm.name_raw} - ${vm.hostname}`});",
+        "} else {",
+        "    vmSelect.options.push({value: '', label: '{{{i18n.LiveMigrateNoVMsFound}}}'});",
+        "    hostSelect.options = [{value: '', label: '{{{i18n.LiveMigrateNoHostsFound}}}'}];",
+        "}",
+        "if (preselectedVM) {",
+        "    const compatibleHostsResult = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+        "        cmd: `listLiveMigrateHosts ${preselectedVM}`,",
+        "        project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)",
+        "    }, true);",
+        "    hostSelect.options = [{value: '', label: '{{{i18n.LiveMigrateSelectHost}}}'}];",
+        "    if (compatibleHostsResult.result && compatibleHostsResult.hosts?.length) {",
+        "        for (const host of compatibleHostsResult.hosts) hostSelect.options.push({value: host.hostname, label: host.hostname});",
+        "    } else hostSelect.options.push({value: '', label: '{{{i18n.LiveMigrateNoHostsFound}}}'});",
+        "}",
+        "return form;"
+    ],
+
+    "rendered_javascript": [
+        "const form = arguments[0], shadowroot = form._form_shadowroot;",
+        "const vmSelect = shadowroot.querySelector('select#vm_name');",
+        "const hostSelect = shadowroot.querySelector('select#host_to');",
+        "const preselectedVM = form.required_fields[0].value||'';",
+
+        "const loadCompatibleHosts = async vmName => {",
+        "    hostSelect.innerHTML = '';",
+        "    hostSelect.add(new Option('{{{i18n.LiveMigrateSelectHost}}}', ''));",
+        "    if (!vmName) return;",
+        "    const compatibleHostsResult = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+        "        cmd: `listLiveMigrateHosts ${vmName}`,",
+        "        project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)",
+        "    }, true);",
+        "    if (compatibleHostsResult.result && compatibleHostsResult.hosts?.length) {",
+        "        for (const host of compatibleHostsResult.hosts) hostSelect.add(new Option(host.hostname, host.hostname));",
+        "    } else hostSelect.add(new Option('{{{i18n.LiveMigrateNoHostsFound}}}', ''));",
+        "};",
+
+        "if (preselectedVM) vmSelect.value = preselectedVM;",
+        "vmSelect.addEventListener('change', async _ => await loadCompatibleHosts(vmSelect.value));",
+        "if (vmSelect.value) await loadCompatibleHosts(vmSelect.value);",
+        "return true;"
+    ],
+
+    "submitlabel": "{{{i18n.LiveMigrateSubmitLabel}}}"
+}
+
+}
