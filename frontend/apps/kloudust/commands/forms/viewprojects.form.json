@@ -80,11 +80,12 @@
     "load_javascript": [
         "const projects = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
             "cmd: `getUserProjects`}, true);",
-        "for (const project of projects.projects||[]) {project.datetime = new Date(project.timestamp).toLocaleDateString();}",
+        "const isCloudAdmin = $$.libsession.get(APP_CONSTANTS.LOGGEDIN_USEROLE) == APP_CONSTANTS.KLOUDUST_ROLES.cloudadmin;",
+        "for (const project of projects.projects||[]) {project.datetime = new Date(project.timestamp).toLocaleDateString(); project.display_name = isCloudAdmin ? `${project.name} (${project.org})` : project.name;}",
         "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
         "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
         "tabledef.onclickrow_html.push(html);",
-        "return {keys: ['name','description','datetime'], table: projects.projects||[]};"
+        "return {keys: ['display_name','description','datetime'], table: projects.projects||[]};"
     ]
 }
 }
