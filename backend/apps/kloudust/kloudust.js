@@ -98,16 +98,16 @@ exports.loginUser = async function(args, consoleHandler) {
         consoleHandler.LOGERROR(`User ${args.user[0]} not found in the cloud, will be allowed if identified as org admin by login.`); 
         if (args.loginAssignedRole?.[0] == KLOUD_CONSTANTS.LOGINAPP_ORG_ADMIN) { // if user is org admin, register the org and the user into the Kloudust DB
             const roleAssigned = await roleman.canBeSetupMode() ? KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN : KLOUD_CONSTANTS.ROLES.ORG_ADMIN;
-            _setupKloudustEnvironment(asyncStorage, args.name[0], args.user[0], args.org[0], roleAssigned, args.project?.[0]);
+            _setupKloudustEnvironment(asyncStorage, args.name[0], args.user[0], args.org[0], roleAssigned, args.project?.[0], args.overrideOrg);
             if ((await _execCommand(["addUser", args.user[0], args.name[0], args.org[0], roleAssigned], consoleHandler)).result) {
                 consoleHandler.LOGINFO(`User ${args.user[0]} from org ${args.org[0]} added to the cloud as ${roleAssigned}.`); 
                 if ((await _execCommand(["initOrg"], consoleHandler)).result) {
                     consoleHandler.LOGINFO(`Initiated ${args.org[0]} with user ${args.user[0]}.`);
                     return true;
-                }
+                }           
             } else consoleHandler.LOGERROR(`User ${args.user[0]} not found in the cloud and adding to Kloudust failed.`); 
         } else if(args.loginAssignedRole?.[0] == KLOUD_CONSTANTS.LOGINAPP_ORG_USER) {
-            _setupKloudustEnvironment(asyncStorage, args.name[0], args.user[0], args.org[0], args.loginAssignedRole[0], args.project?.[0]);
+            _setupKloudustEnvironment(asyncStorage, args.name[0], args.user[0], args.org[0], args.loginAssignedRole[0], args.project?.[0], args.overrideOrg);
             let userProjects = await _execCommand(["getUserProjects"], consoleHandler);
             if (userProjects.result && userProjects.projects.length !== 0) {
                 if (await _execCommand(["addUser", args.user[0], args.name[0], args.org[0], args.loginAssignedRole[0]], consoleHandler)) {
@@ -132,7 +132,7 @@ exports.loginUser = async function(args, consoleHandler) {
         return false;  
     }
 
-    _setupKloudustEnvironment(asyncStorage, userObject.name, userObject.id, userObject.org, userObject.role, args.project?.[0]);
+    _setupKloudustEnvironment(asyncStorage, userObject.name, userObject.id, userObject.org, userObject.role, args.project?.[0], args.overrideOrg);
     
     return true;
 }
@@ -162,9 +162,10 @@ async function _execCommand(params, consoleHandler, project) {
     }
 }
 
-function _setupKloudustEnvironment(asyncContextStorage, name, id, org, role, project=KLOUD_CONSTANTS.DEFAULT_PROJECT) {
+function _setupKloudustEnvironment(asyncContextStorage, name, id, org, role, project=KLOUD_CONSTANTS.DEFAULT_PROJECT, overrideOrg) {
     const store = asyncContextStorage.getStore();
-    store.username = name; store.id = id; store.org = org; store.role = role; store.project = project; 
+    const effectiveOrg = role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN && overrideOrg ? overrideOrg : org;
+    store.username = name; store.id = id; store.org = effectiveOrg; store.role = role; store.project = project; 
 
     KLOUD_CONSTANTS.env.username = _ => asyncContextStorage.getStore()?.username;
     KLOUD_CONSTANTS.env.userid = _ => asyncContextStorage.getStore()?.id.toLocaleLowerCase();

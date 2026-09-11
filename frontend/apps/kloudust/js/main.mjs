@@ -6,6 +6,8 @@
 
 import {cmdlist} from "./cmdlist.mjs";
 import {cmdmanager as cmdman} from "./cmdmanager.mjs";
+import {rolemanager} from "./rolemanager.mjs";
+import {cloudAdminHandler} from "./cloudAdminHandler.mjs";
 
 const LEFTBAR_COMMANDS = `${APP_CONSTANTS.FORMS_PATH}/main_leftbar.json`, 
     MAIN_COMMANDS = `${APP_CONSTANTS.FORMS_PATH}/main_content.json`;
@@ -52,17 +54,30 @@ function hideOpenContent(disableAnimation) {showContent(undefined, disableAnimat
 /** Plugs in our data interceptor which loads initial main and leftbar contents */
 const interceptPageLoadData = _ => $$.librouter.addOnLoadPageData(APP_CONSTANTS.MAIN_HTML, async (data, _url) => {
     const mustache = await $$.librouter.getMustache(), mainPageData = {};
+    cloudAdminHandler.installKloudustAPIHelper();
     mainPageData.welcomeHeading = mustache.render(await $$.libi18n.get("WelcomeHeading"), {user: $$.libsession.get(APP_CONSTANTS.USERNAME)});
 	mainPageData.leftbarCommands = await cmdlist.fetchCommands(LEFTBAR_COMMANDS); 
     mainPageData.mainCommands = await cmdlist.fetchCommands(MAIN_COMMANDS);
     const projectsLookupResult = await window.monkshu_env.frameworklibs.apimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 
         'POST', {cmd: 'getUserProjects'}, true);
     mainPageData.userprojects = projectsLookupResult?projectsLookupResult.projects:[];
+    mainPageData.isCloudAdmin = rolemanager.isCloudAdminLoggedIn();
+    for (const project of mainPageData.userprojects || []) {
+        project.displayName = mainPageData.isCloudAdmin ? `${project.name} (${project.org})` : project.name;
+    }
 
-    const selectedProject = $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT) || mainPageData.userprojects[0]?.name;
-    const selectProjectIndex = mainPageData.userprojects.findIndex(prj=>prj.name==selectedProject);
-    if (selectProjectIndex != -1) mainPageData.userprojects[selectProjectIndex].selected = true;
-    $$.libsession.set(APP_CONSTANTS.ACTIVE_PROJECT, selectedProject);
+    const activeProject = $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT);
+    const activeOrg = $$.libsession.get(APP_CONSTANTS.USERORG);
+    const selectedProject = mainPageData.isCloudAdmin ?
+        (mainPageData.userprojects.find(prj => prj.name == activeProject && prj.org == activeOrg) || mainPageData.userprojects[0]) :
+        (mainPageData.userprojects.find(prj => prj.name == activeProject) || mainPageData.userprojects[0]);
+    if (selectedProject) {
+        selectedProject.selected = true;
+        $$.libsession.set(APP_CONSTANTS.ACTIVE_PROJECT, selectedProject.name);
+        if (mainPageData.isCloudAdmin) {
+            $$.libsession.set(APP_CONSTANTS.USERORG, selectedProject.org);
+        }
+    }
 
     data.mainPageData = mainPageData;
     
@@ -70,8 +85,12 @@ const interceptPageLoadData = _ => $$.librouter.addOnLoadPageData(APP_CONSTANTS.
         cmdman.registerCommand(cmd); } catch (err) {LOG.error(`Error registering command ${cmd.id}.`);}
 });
 
-function activeProjectChanged(new_project) {
-    $$.libsession.set(APP_CONSTANTS.ACTIVE_PROJECT, new_project);
+function activeProjectChanged(option) {
+    const newProject = option?.value, newOrg = option?.dataset?.org;
+    $$.libsession.set(APP_CONSTANTS.ACTIVE_PROJECT, newProject);
+    if (rolemanager.isCloudAdminLoggedIn()) {
+        $$.libsession.set(APP_CONSTANTS.USERORG, newOrg);
+    }
 }
 
 function _getHTMLNodesToInsert(htmlContent) {
