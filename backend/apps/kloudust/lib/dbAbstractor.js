@@ -129,6 +129,62 @@ exports.addHostResource = async (name, uri, processor_architecture, description,
 }
 
 /**
+ * Adds the given Org data to the tracking DB
+ * @param {string} org Unique org name
+ * @param {string} name The org data name
+ * @param {string} data The org data
+ * @param {string} description Description of the org data
+ * @param {string} type The data type - eg: orgcatalog, orgsettings, etc
+ * @param {string} processor_architecture The processor architecture eg amd64
+ * @param {string} extrainfo Any extra information
+ * @returns true on success or false otherwise
+ */
+exports.addOrgData = async (org, name, data, description, type, processorarchitecture, extrainfo) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_org_data)) {_logUnauthorized(); return false; }
+
+    const query = "replace into orgdata(id, name, data, description, type, processorarchitecture, extrainfo) values (?,?,?,?,?,?,?)";
+    return await _db().runCmd(query, [org, name, data, description, type, processorarchitecture, extrainfo]);
+}
+
+/**
+ * Deletes the given Org data from the tracking DB
+ * @param {string} org Unique org name
+ * @param {string} name The org data name
+ * @returns true on success or false otherwise
+ */
+exports.deleteOrgData = async (org, name) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_org_data)) {_logUnauthorized(); return false; }
+
+    const query = "delete from orgdata where id=? and name=?";
+    return await _db().runCmd(query, [org, name]);
+}
+
+/**
+ * Returns the given Org catalogs for org/cloud admin
+ * @param {string} org The org name
+ * @return org catalogs array on success or null otherwise
+ */
+exports.getOrgCatalogs = async org => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_org_data)) {_logUnauthorized(); return false; }
+    const query = "select * from orgdata where id=? and type='orgcatalog' collate nocase";
+    const catalogs = await _db().getQuery(query, [org]);
+    if ((!catalogs) || (!catalogs.length)) return null; else return catalogs;
+}
+
+/**
+ * Returns the given Org catalog for the specified org and image name
+ * @param {string} org The org name
+ * @param {string} name The catalog name
+ * @returns The org catalog object on success or null otherwise
+ */
+exports.getOrgCatalogForProject = async (org, name) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_org_data)) {_logUnauthorized(); return false; }
+    const query = "select * from orgdata where id=? and name=? and type='orgcatalog' collate nocase";
+    const catalogs = await _db().getQuery(query, [org, name]);
+    if ((!catalogs) || (!catalogs.length)) return null; else return catalogs[0];
+}
+
+/**
  * Returns the given host resource for cloud admin
  * @param {string} name The resource name
  * @return host resource object on success or null otherwise
