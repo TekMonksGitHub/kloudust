@@ -43,11 +43,17 @@
 
     "load_javascript": [
         "const { cmdmanager } = await import(`${APP_CONSTANTS.LIB_PATH}/cmdmanager.mjs`);",
+        "const { rolemanager } = await import(`${APP_CONSTANTS.LIB_PATH}/rolemanager.mjs`);",
         "const form = arguments[0]||{};",
         "const vmResult = await cmdmanager.kdcmd('listVMImages', [], {}, undefined, true);",
-        "if (vmResult.result) for (const vm of vmResult.resources) { ",
-        "   const imageNameFormField = form.required_fields[form.required_fields.length-1];",
-        "   imageNameFormField.options.push({value: vm.name, label: vm.description}); }",
+        "if (vmResult.result) { let vmResources=[];",
+        "   if(!rolemanager.isCloudAdminLoggedIn()) vmResources = vmResult.orgCatalogs || [];",
+        "   else if (vmResult.orgCatalogs) vmResources = vmResult.resources.concat(vmResult.orgCatalogs);",
+        "   else vmResources = vmResult.resources;",
+        "   for (const vm of vmResources) { ",
+        "       const imageNameFormField = form.required_fields[form.required_fields.length-1];",
+        "       imageNameFormField.options.push({value: vm.name, label: vm.description}); }",
+        "}",
         "return form;"
     ],
 
