@@ -39,9 +39,18 @@ const VMIMAGE = "vm";
  * @param {array} params The incoming params, see above for params
  */
 module.exports.exec = async function(params) {
-    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT(); }
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource) && !roleman.checkAccess(roleman.ACTIONS.edit_org_data)) {
+        params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT(); }
 
     const [imgname, imguri, processorarchitecture, description, extrainfo, runasjob, retryjob] = [...params];
+    if(roleman.isOrgAdminLoggedIn()) {  // if org admin then just add the image to the org data, no need to update hosts
+        const addImgToOrgData = await dbAbstractor.addOrgData(roleman.getCurrentOrg(), imgname, imguri, 
+            description, 'orgcatalog', processorarchitecture.toLowerCase(), extrainfo);
+        if (!addImgToOrgData) {
+            params.consoleHandlers.LOGERROR(`Error adding image ${imgname} to org data.`);
+            return CMD_CONSTANTS.FALSE_RESULT();
+        } return CMD_CONSTANTS.TRUE_RESULT();
+    }
 
     const hostinfos = await dbAbstractor.getHostsMatchingProcessorArchitecture(processorarchitecture.toLowerCase());
     if ((!hostinfos) || (!hostinfos.length)) {
