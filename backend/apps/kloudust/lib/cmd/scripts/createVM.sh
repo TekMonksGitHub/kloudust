@@ -43,8 +43,17 @@ NO_GUEST_AGENT={17}
 KVM_NETWORK_NAME={18}
 VM_NANO_ID={19}
 CPU_MODEL_ARG="{20}"
+DONT_CACHE_IMAGE="{21}"
+DONT_CACHE_IMAGE=${DONT_CACHE_IMAGE:-"false"}
+
+function removeTempImg() {
+    if [ "$DONT_CACHE_IMAGE" == "true" ]; then
+        rm -f "/kloudust/temp/$INSTALL_DISK"
+    fi
+}
 
 function exitFailed() {
+    removeTempImg
     echo Failed
     exit 1
 }
@@ -82,9 +91,14 @@ if virsh list --all | grep "$NAME"; then
     fi
 fi
 
-if [ ! -f /kloudust/catalog/$INSTALL_DISK ]; then
+INSTALL_PATH="/kloudust/catalog/$INSTALL_DISK"
+if [ "$DONT_CACHE_IMAGE" == "true" ]; then
+    INSTALL_PATH="/kloudust/temp/$INSTALL_DISK"
+    printf "Downloading VM install disk temporarily.\n"
+    if ! curl $INSTALL_URI > "$INSTALL_PATH"; then exitFailed; fi
+elif [ ! -f "$INSTALL_PATH" ]; then
     printf "VM install disk not found cached locally. Downloading first.\n"
-    if ! curl $INSTALL_URI > /kloudust/catalog/$INSTALL_DISK; then exitFailed; fi
+    if ! curl $INSTALL_URI > "$INSTALL_PATH"; then exitFailed; fi
 fi
 
 printf "Creating VM $NAME\n"
@@ -93,7 +107,7 @@ DISK="path=/kloudust/disks/$NAME.qcow2,discard=unmap,format=qcow2"
 BOOTCMD="--boot hd"
 CLOUD_INIT="--cloud-init user-data=/kloudust/temp/ci_$NAME.yaml"
 if [ "$CLOUD_IMAGE" == "true" ]; then # this is a cloud image file in QCow2 format, convert and load, else it is a CD-ROM ISO file
-    if ! qemu-img convert -f qcow2 -O qcow2 /kloudust/catalog/$INSTALL_DISK /kloudust/disks/$NAME.qcow2; then exitFailed; fi
+    if ! qemu-img convert -f qcow2 -O qcow2 "$INSTALL_PATH" /kloudust/disks/$NAME.qcow2; then exitFailed; fi
     if ! qemu-img resize /kloudust/disks/$NAME.qcow2 "$DISK_SIZE"G; then exitFailed; fi
     if [ "$CLOUDINIT_USERDATA" != "undefined" ] && [ -n "$CLOUDINIT_USERDATA" ]; then # check if a cloud init is provided 
         if ! printf "#cloud-config\n\n$CLOUDINIT_USERDATA" > /kloudust/temp/ci_$NAME.yaml; then exitFailed; fi
@@ -104,7 +118,7 @@ if [ "$CLOUD_IMAGE" == "true" ]; then # this is a cloud image file in QCow2 form
 else
     echo !WARNING! $NAME is being initialized using a non-cloud ready image. Manual install will be required.
     DISK="$DISK",size=$DISK_SIZE
-    BOOTCMD="--cdrom /kloudust/catalog/$INSTALL_DISK"
+    BOOTCMD="--cdrom $INSTALL_PATH"
     CLOUD_INIT=""
     ISO_VNC_ARGS="--graphics vnc,listen=0.0.0.0"
 fi
@@ -214,4 +228,5 @@ if ! virsh dumpxml $NAME > /kloudust/metadata/$NAME.xml; then exitFailed; fi
 #if shutdownVM $NAME; then virsh start $NAME; fi
 
 printf "\n\nVM created successfully\n"
+removeTempImg
 exit 0
