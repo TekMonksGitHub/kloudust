@@ -17,7 +17,10 @@ exports.ACTIONS = Object.freeze({
 
     edit_org: Symbol("edit_org"),
     lookup_org: Symbol("lookup_org"),
-    add_user_to_org: Symbol("add_user_to_org")
+    add_user_to_org: Symbol("add_user_to_org"),
+
+    edit_org_data: Symbol("edit_org_data"),
+    lookup_org_data: Symbol("lookup_org_data")
 });
 
 /**
@@ -50,6 +53,10 @@ exports.checkAccess = function(access_for, user_role=KLOUD_CONSTANTS.env.role?.(
         user_role == roles.ORG_ADMIN || (user_role == roles.USER && 
             dbAbstractor.checkUserBelongsToProject(KLOUD_CONSTANTS.env.prj()))) return true;
 
+    if (access_for == actions.edit_org_data) if (user_role == roles.CLOUD_ADMIN || 
+        user_role == roles.ORG_ADMIN) return true;
+    if (access_for == actions.lookup_org_data) if (user_role == roles.CLOUD_ADMIN || 
+        user_role == roles.ORG_ADMIN || user_role == roles.USER) return true;
     return false;
 }
 

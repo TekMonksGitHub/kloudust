@@ -11,6 +11,10 @@
     {"id": "deleteimage", "label": "{{{i18n.DeleteImage}}}", "logo": "img/deleteimage.svg"},
     {"id": "livemigrate", "label": "{{{i18n.LiveMigrate}}}", "logo": "img/migratevm.svg"},
     {"id": "customcmd", "label": "{{{i18n.CustomCmd}}}", "logo": "img/customcmd.svg"}
+],
+"orgadmin": [
+    {"id": "addimage", "label": "{{{i18n.AddImage}}}", "logo": "img/addimage.svg"},
+    {"id": "deleteimage", "label": "{{{i18n.DeleteImage}}}", "logo": "img/deleteimage.svg"}
 ]
 },
 

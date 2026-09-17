@@ -21,11 +21,12 @@ module.exports.exec = async function(params) {
     const vmImageType = params[0] || addImage.VMIMAGE;
 
     const hostResources = await dbAbstractor.getHostResources(vmImageType); 
+    const orgCatalogs = await dbAbstractor.getOrgCatalogs(roleman.getCurrentOrg());
     if (!hostResources) {const err = "No registered host resources found"; params.consoleHandlers.LOGERROR(err); 
         return CMD_CONSTANTS.FALSE_RESULT(err); }
 
     const out = `Host resource information follows\n${JSON.stringify(hostResources)}`; 
 
     params.consoleHandlers.LOGINFO(out);
-    return {result: true, err: "", out, stdout: out, resources: hostResources};
+    return {result: true, err: "", out, stdout: out, resources: hostResources, orgCatalogs};
 }

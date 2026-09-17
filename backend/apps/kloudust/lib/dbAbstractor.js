@@ -129,6 +129,81 @@ exports.addHostResource = async (name, uri, processor_architecture, description,
 }
 
 /**
+ * Adds the given Org data to the tracking DB
+ * @param {string} org  org name
+ * @param {string} data org data
+ * @param {string} type data type - eg: orgcatalog, orgsettings, etc
+ * @returns true on success or false otherwise
+ */
+exports.addOrgData = async (org, data, type) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_org_data)) {_logUnauthorized(); return false; }
+
+    const query = "insert into orgdata(org, data, type) values (?,?,?)";
+    return await _db().runCmd(query, [org, data, type]);
+}
+
+/**
+ * Adds the given catalog to the tracking DB
+ * @param {string} org org name
+ * @param {string} name Unique name
+ * @param {string} uri Download URL usually
+ * @param {string} processor_architecture The processor architecture eg amd64
+ * @param {string} description Description 
+ * @param {string} extra Extra information 
+ * @param {string} type Type of image
+ * @returns true on success or false otherwise
+ */
+exports.addOrgCatalog = async (org, name, uri, processorarchitecture, description, extrainfo, type) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_org_data)) {_logUnauthorized(); return false; }
+
+    const data = JSON.stringify({name, uri, processorarchitecture, description, extrainfo, type});
+    const query = "insert into orgdata(org, data, type) values (?,?,?)";
+    return await _db().runCmd(query, [org, data, 'orgcatalog']);
+}
+
+/**
+ * Deletes the given catalog from the tracking DB
+ * @param {string} org  org name
+ * @param {string} name Unique catalog/image name
+ * @returns true on success or false otherwise
+ */
+exports.deleteOrgCatalogForProject = async (org, name) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_org_data)) {_logUnauthorized(); return false; }
+
+    const query = "delete from orgdata where org=? and type='orgcatalog' and data ->> '$.name'=?;";
+    return await _db().runCmd(query, [org, name]);
+}
+
+/**
+ * Returns the given Org catalogs for org/cloud admin
+ * @param {string} org org name
+ * @return org catalogs array on success or null otherwise
+ */
+exports.getOrgCatalogs = async org => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_org_data)) {_logUnauthorized(); return false; }
+
+    const query = "select json_group_array(json(data)) from orgdata where org=? and type='orgcatalog';";
+    const rows = await _db().getQuery(query, [org]);
+    if (!rows) return null;
+    return rows[0] ? JSON.parse(rows[0]["json_group_array(json(data))"]) : null;
+}
+
+/**
+ * Returns the given Org catalog for the specified org and image name
+ * @param {string} org The org name
+ * @param {string} name The catalog/image name
+ * @returns The org catalog object on success or null otherwise
+ */
+exports.getOrgCatalogForProject = async (org, name) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_org_data)) {_logUnauthorized(); return false; }
+    
+    const query = "select data from orgdata where org=? and type='orgcatalog' and data ->> '$.name'=?;";
+    const rows =  await _db().getQuery(query, [org, name]);
+    if (!rows) return null;
+    return rows[0] ? JSON.parse(rows[0]["data"]) : null;
+}
+
+/**
  * Returns the given host resource for cloud admin
  * @param {string} name The resource name
  * @return host resource object on success or null otherwise

@@ -5,6 +5,7 @@
     {"id": "automations", "label": "{{{i18n.Automations}}}", "logo": "img/automations.svg"}
 ],
 "orgadmin": [
+    {"id": "cloudadmin", "label": "{{{i18n.CloudAdmin}}}", "logo": "img/cloudadmin.svg"},
     {"id": "automations", "label": "{{{i18n.Automations}}}", "logo": "img/automations.svg"}
 ],
 "*":[
