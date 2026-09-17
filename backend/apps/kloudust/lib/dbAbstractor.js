@@ -335,6 +335,27 @@ exports.addOrUpdateRouterToDB = async (name, name_raw, description, hostname, pr
 }
 
 /**
+ * Adds the given lb to the catalog.
+ * @param {string} name The lb name
+ * @param {string} name_raw The lb name raw 
+ * @param {string} description The lb description
+ * @param {string} frontend The lb fronted
+ * @param {string} backends The lb backends
+ * @param {string} hostname The hostname
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @return true on success or false otherwise
+ */
+exports.addOrUpdateLoadBalancerToDB = async (name, name_raw, description, frontend, backends, hostname, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const id = `${org}_${project}_${name}`;
+    const query = "replace into loadbalancers(id, name, name_raw, description, frontend, backends, hostname, org, projectid) values (?,?,?,?,?,?,?,?,?)";
+    return await _db().runCmd(query, [id, name, name_raw, description, frontend, backends, hostname, org, _getProjectID(project, org)]);
+}
+
+/**
  * Returns the VM for the current user, org and project given its name. 
  * @param {string} name The VM Name
  * @param {string} project The project, if skipped is auto picked from the environment
@@ -369,6 +390,25 @@ exports.getRouter = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CO
     const router_id = `${org}_${project}_${name}`, 
         results = await _db().getQuery("select * from routers where id = ? collate nocase", [router_id]);
     
+    if ((!results) || (!results.length)) return null;
+    return results[0];
+}
+
+
+/**
+ * Returns the loadbalancer for the current user, org and project given its name. 
+ * @param {string} name The loadbalancer Name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @return VM object or null
+ */
+exports.getLoadBalancer = async (name, project = KLOUD_CONSTANTS.env.prj(), org = KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const lb_id = `${org}_${project}_${name}`,
+        results = await _db().getQuery("select * from loadbalancers where id = ? collate nocase", [lb_id]);
+
     if ((!results) || (!results.length)) return null;
     return results[0];
 }
@@ -438,6 +478,27 @@ exports.deleteRouter = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD
 }
 
 /**
+ * Deletes the lb for the current user, org and project given its name. Moves the object to the
+ * recycle bin as well.
+ * @param {string} name The lb Name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @return true on success or false otherwise
+ */
+exports.deleteLoadBalancer = async (name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    const lb = await exports.getLoadBalancer(name, project, org); if (!lb) return true; // doesn't exist in the DB anyways
+
+    const lbid = `${org}_${project}_${name}`;
+    const deletionResult = await _db().runCmd("delete from loadbalancers where id = ? collate nocase", [lbid]);
+    if (deletionResult) if (!await this.addObjectToRecycleBin(lbid, lb, project, org)) 
+        KLOUD_CONSTANTS.LOGWARN(`Unable to add Load Balancer ${name} to the recycle bin.`);
+    return deletionResult;
+}
+
+/**
  * Changes hostname hosting the given VM. Only cloud admins can run this.
  * @param {string} name VM ID (getVM returns this)
  * @param {string} newHostname New hostname
@@ -490,6 +551,20 @@ exports.listRouters = async (project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTA
     if (project) project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
     const projectid = _getProjectID(project, org)
     const query = "select * from routers where projectid = ? collate nocase and org = ? collate nocase";
+    const results = await _db().getQuery(query, [projectid, org]);
+    return results;
+}
+/**
+ * Returns lbs for the given org and / or current project. 
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @param {string} project The project, if skipped is auto picked from the environment if needed
+ * @return The list of routers
+ */
+exports.listLoadBalancers = async (project = KLOUD_CONSTANTS.env.prj(), org = KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) { _logUnauthorized(); return false; }
+    if (project) project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+    const projectid = _getProjectID(project, org)
+    const query = "select * from loadbalancers where projectid = ? collate nocase and org = ? collate nocase";
     const results = await _db().getQuery(query, [projectid, org]);
     return results;
 }
@@ -1327,6 +1402,17 @@ exports.addVMVnetIP = async (vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env
 exports.addRouterVnetIP = async (router_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.addResourceVnetIP(router_name, vnet_name, ip, 'routervnetip', project, org);
 
 /**
+ * Adds the given IP to lb Vnet
+ * @param {string} lb_name The lb name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ip IP
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.addLoadBalancerVnetIP = async (lb_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.addResourceVnetIP(lb_name, vnet_name, ip, 'loadbalancervnetip', project, org);
+
+/**
  * Removes the given IP from Resource Vnet
  * @param {string} resource_name The resource name
  * @param {string} vnet_name The Vnet name
@@ -1368,6 +1454,17 @@ exports.removeVMVnetIP = async (vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.
  */
 exports.removeRouterVnetIP = async (router_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeResourceVnetIP(router_name, vnet_name, ip, 'routervnetip', project, org);
 
+/**
+ * Removes the given IP from lb Vnet
+ * @param {string} lb_name The lb name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ip IP
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeLoadBalancerVnetIP = async (lb_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeResourceVnetIP(lb_name, vnet_name, ip, 'loadbalancervnetip', project, org);
+
 
 /**
  * Removes all vmvnetip relationships for the given resource
@@ -1402,6 +1499,15 @@ exports.removeAllVMVnetIPRelationships = async (vm_name, project=KLOUD_CONSTANTS
  * @returns true on success or false on failure
  */
 exports.removeAllRouterVnetIPRelationships = async (router_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeAllResourceVnetIPRelationships(router_name, 'routervnetip', project, org)
+
+/**
+ * Removes all loadbalancervnetip relationships for the given lb
+ * @param {string} lb_name The lb name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeAllLoadBalancerVnetIPRelationships = async (lb_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeAllResourceVnetIPRelationships(lb_name, 'loadbalancervnetip', project, org)
 
 /**
  * Removes the given IP from VM Vnet
@@ -1527,6 +1633,21 @@ exports.getVnetIPsForRouter = async function(router_name, project=KLOUD_CONSTANT
     const router_id = `${org}_${project}_${router_name}`;
     const query = "select distinct pk2 as vnet, pk3 as ip from relationships where pk1 = ? and type = ?";
     const results = await _db().getQuery(query, [router_id,"routervnetip"]);
+    return results;
+}
+
+/**
+ * Returns the vnets and ip pairs that belong to the given lb 
+ * @param {string} lb_name The lb name
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns array of vnets
+ */
+exports.getVnetIPsForLoadBalancer = async function(lb_name, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const lb_id = `${org}_${project}_${lb_name}`;
+    const query = "select distinct pk2 as vnet, pk3 as ip from relationships where pk1 = ? and type = ?";
+    const results = await _db().getQuery(query, [lb_id,"loadbalancervnetip"]);
     return results;
 }
 

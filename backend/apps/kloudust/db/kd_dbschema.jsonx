@@ -85,5 +85,9 @@
         description varchar, hostname varchar not null, org varchar not null, projectid varchar not null, \
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
+    "CREATE TABLE loadbalancers(id varchar not null primary key, name varchar not null, name_raw varchar not null, \
+        description varchar, frontend varchar not null, backends varchar not null, hostname varchar not null, org varchar not null, \
+        projectid varchar not null, timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
+
     "COMMIT TRANSACTION"
 ]
