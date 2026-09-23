@@ -385,7 +385,11 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, 
     let totaldisk = 0; for (const disk of disks) totaldisk += disk.size;
 
     const id = `${org}_${project}_${name}`;
-    const query = "replace into vms  (id, name, description, hostname, arch, org, projectid, os, cpus, memory, disk, disksjson, creationcmd, name_raw, vmtype, ips) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    const query = "insert into vms (id, name, description, hostname, arch, org, projectid, os, cpus, memory, disk, disksjson, creationcmd, name_raw, vmtype, ips) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) \
+        on conflict(id) do update set name=excluded.name, description=excluded.description, hostname=excluded.hostname, \
+        arch=excluded.arch, org=excluded.org, projectid=excluded.projectid, os=excluded.os, cpus=excluded.cpus, memory=excluded.memory, \
+        disk=excluded.disk, disksjson=excluded.disksjson, creationcmd=excluded.creationcmd, name_raw=excluded.name_raw, \
+        vmtype=excluded.vmtype, ips=excluded.ips";
     return await _db().runCmd(query, [id, name, description, hostname, arch, org, _getProjectID(project, org), 
         os, cpus, memory, totaldisk, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips]);
 }
