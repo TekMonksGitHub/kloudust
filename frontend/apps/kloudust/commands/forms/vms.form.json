@@ -165,6 +165,7 @@
         "   vm.ips = vm.ips.trim()===''?'Not Assigned':vm.ips; vm.vnets = vm.vnets.length === 0 ?'No Vnets Found':vm.vnets.join(',');",
         "   vm.privateips = vm.private_ips.length === 0 ? 'No IPs Assigned' : vm.private_ips.join(','); ",
         "   vm.rulesets = vm.rulesets.length === 0 ? 'No Rulesets Applied' : vm.rulesets.join(',');",
+        "   if (Date.now() - vm.lastcheckedits > 10*60*1000) vm.powerstate = 'Unknown';",
         "}",
         "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
         "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
