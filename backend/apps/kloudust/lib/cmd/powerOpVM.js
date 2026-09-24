@@ -22,7 +22,7 @@ const POWER_OP_PARAMS_MAP = {
 
 // autostart / noautostart don't change the power state so aren't here
 const POWER_OP_STATES_MAP = {
-    "start": "Booting", "reboot": "Booting", "hardboot": "Booting", "default": "Booting", "resume": "Running",
+    "start": "Running", "reboot": "Booting", "hardboot": "Booting", "default": "Running", "resume": "Running",
     "stop": "Stopped", "forcestop": "Stopped", "pause": "Stopped"
 }
 
