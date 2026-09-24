@@ -21,7 +21,6 @@ const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const getVMVnets = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMVnets.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
-const { addVMStatuses } = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/listVMsForHost.js`);
 const createFirewallRuleset = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createFirewallRuleset.js`);
 
 /**
@@ -46,8 +45,6 @@ module.exports.exec = async function(params) {
         vm.rulesets = vm_rulesets.map(ruleset=>createFirewallRuleset.unresolveRulesetName(ruleset));
         vm.private_ips = await dbAbstractor.getVMPrivateIPs(vm.name);    
     }
-
-    await addVMStatuses(vms_ret, params.consoleHandlers);
 
     let out = "VM information from the database follows.";
     for (const vm of vms_ret) out += "\n"+JSON.stringify(vm);

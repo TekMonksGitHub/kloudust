@@ -12,12 +12,8 @@
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
-const getVMReadiness = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMReadiness.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
-
-const VM_READINESS_LIST_MAX_WAIT = 10;
-const DEFULT_BOOT_TIME_AFTER_CREATE_VM = 10 * 60 * 1000; // 10 minutes in milliseconds
 
 /**
  * Lists the host VMs - either all or running (default)
@@ -34,8 +30,6 @@ module.exports.exec = async function(params) {
         params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error); }
     const vms = await dbAbstractor.listVMsForCloudAdmin(vmtypes, hostname);
     const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push({...vm, creationcmd: undefined});
-
-    await exports.addVMStatuses(vms_ret, params.consoleHandlers);
 
     let out = "VM information from the database follows.";
     for (const vm of vms_ret) out += "\n"+JSON.stringify(vm);
@@ -54,25 +48,4 @@ module.exports.exec = async function(params) {
         const xforgeResults = await xforge(xforgeArgs); 
         out += "\n"+xforgeResults.stdout; return {...xforgeResults, out, stdout: out, vms: vms_ret};
     } else return {result: true, out, stdout: out, err: "", stderr: "", vms: vms_ret};
-}
-
-/** Adds readiness statuses without failing the list or overloading hosts with status checks. */
-module.exports.addVMStatuses = async(vms, consoleHandlers) => {
-    const pendingVMs = [...vms], maxConcurrentChecks = 5;
-    await Promise.all(Array.from({length: Math.min(maxConcurrentChecks, pendingVMs.length)}, async () => {
-        let vm; while ((vm = pendingVMs.shift())) {
-            try {
-                const isOldVM = vm.timestamp && (Date.now() - vm.timestamp > DEFULT_BOOT_TIME_AFTER_CREATE_VM);
-                if (isOldVM) vm.status = true;
-                else {
-                    const statusParams = [vm.name_raw, VM_READINESS_LIST_MAX_WAIT];
-                    statusParams.consoleHandlers = consoleHandlers;
-                    vm.status = Boolean((await getVMReadiness.exec(statusParams)).status);
-                }
-            } catch (error) {
-                vm.status = false;
-                consoleHandlers.LOGWARN(`Unable to determine readiness for VM ${vm.name_raw}: ${error.message}`);
-            }
-        }
-    }));
 }
