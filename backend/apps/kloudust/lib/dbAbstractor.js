@@ -396,6 +396,22 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, 
 }
 
 /**
+ * Saves the VM's power state and the time it was checked.
+ * @param {string} name The VM name
+ * @param {string} powerstate The power state - Booting, Running, Stopped or Unknown
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @return true on success or false otherwise
+ */
+exports.setVMPowerState = async (name, powerstate, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
+
+    return await _db().runCmd("update vms set powerstate = ?, lastcheckedits = ? where id = ? collate nocase",
+        [powerstate, Date.now(), `${org}_${project}_${name}`]);
+}
+
+/**
  * Adds the given router to the catalog.
  * @param {string} name The router name
  * @param {string} name_raw The router name raw 

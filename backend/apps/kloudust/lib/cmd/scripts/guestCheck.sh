@@ -17,6 +17,11 @@ MAX_WAIT="${MAX_WAIT:-120}"
 INTERVAL=10
 MAX_ATTEMPTS=$(( MAX_WAIT / INTERVAL ))
 
+# The guest agent can only answer if the VM is running, so don't wait on a stopped VM
+STATE=$(virsh -c qemu:///system domstate "$VM" 2>/dev/null | xargs)
+echo "KD_DOMSTATE=$STATE"
+if [ "$STATE" != "running" ]; then exit 1; fi
+
 for ((i=1; i<=MAX_ATTEMPTS; i++)); do
     if virsh -c qemu:///system qemu-agent-command "$VM" \
         '{"execute":"guest-ping"}' >/dev/null 2>&1; then
