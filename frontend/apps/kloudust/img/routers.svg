@@ -1,6 +1,6 @@
 <svg width="256" height="256" viewBox="22 22 84 76" xmlns="http://www.w3.org/2000/svg">
   <!-- Router -->
-  <g fill="none" stroke="#3B82F6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="#03B3FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
 
     <!-- Antennas -->
     <line x1="40" y1="26" x2="40" y2="58"/>
@@ -26,6 +26,6 @@
     <!-- WiFi -->
     <path d="M52 46 Q64 34 76 46"/>
     <path d="M58 54 Q64 48 70 54"/>
-    <circle cx="64" cy="60" r="1.5" fill="#3B82F6"/>
+    <circle cx="64" cy="60" r="1.5" fill="#03B3FF"/>
   </g>
 </svg>
