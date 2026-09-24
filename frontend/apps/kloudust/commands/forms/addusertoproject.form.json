@@ -2,7 +2,7 @@
     "id": "addusertoproject",
     "command": "addUserToProject",
     "type": "kloudust_cmdline",
-    "kloudust_cmdline_params": ["userid", "project_name"],
+    "kloudust_cmdline_params": ["userid", "project_id"],
     
     "title": "{{{i18n.AddUserToProjectTitle}}}",
     
@@ -11,7 +11,7 @@
             "AddUserToProjectTitle": "Add User To Project",
             "AddUserToProjectDescription": "Add a user to a project.",
             "ProjectUserID": "User ID",
-            "ProjectName": "Project Name",
+            "ProjectID": "Project ID",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
             "AddUserToProjectSubmitLabel": "Submit"
@@ -20,7 +20,7 @@
             "AddUserToProjectTitle": "Add User To Project",
             "AddUserToProjectDescription": "Add a user to a project.",
             "ProjectUserID": "User ID",
-            "ProjectName": "Project Name",
+            "ProjectID": "Project ID",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
             "AddUserToProjectSubmitLabel": "Submit"
@@ -29,7 +29,7 @@
             "AddUserToProjectTitle": "Add User To Project",
             "AddUserToProjectDescription": "Add a user to a project.",
             "ProjectUserID": "User ID",
-            "ProjectName": "Project Name",
+            "ProjectID": "Project ID",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
             "AddUserToProjectSubmitLabel": "Submit"
@@ -38,7 +38,7 @@
             "AddUserToProjectTitle": "Add User To Project",
             "AddUserToProjectDescription": "Add a user to a project.",
             "ProjectUserID": "User ID",
-            "ProjectName": "Project Name",
+            "ProjectID": "Project ID",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
             "AddUserToProjectSubmitLabel": "Submit"
@@ -50,10 +50,10 @@
     
         "required_label": "{{{i18n.Required}}}",
         "required_fields": [
-        {"id": "project_name", "type": "text", "placeholder": "{{{i18n.ProjectName}}}",
+        {"id": "project_id", "type": "text", "placeholder": "{{{i18n.ProjectID}}}",
             "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
-            "value":"{{{APP_CONSTANTS.ENV._projects_form_data.name}}}", 
-            "readonly":"{{#APP_CONSTANTS.ENV._projects_form_data.name}}true{{/APP_CONSTANTS.ENV._projects_form_data.name}}"},
+            "value":"{{{APP_CONSTANTS.ENV._projects_form_data.id}}}", 
+            "readonly":"{{#APP_CONSTANTS.ENV._projects_form_data.id}}true{{/APP_CONSTANTS.ENV._projects_form_data.id}}"},
         {"id": "projectlist", "multioption": true, "type": "select", "label": "{{{i18n.ProjectListCommand}}}", "options":[]},
         {"id": "userid", "type": "text", "placeholder": "{{{i18n.ProjectUserID}}}", 
             "required": true, "pattern":"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\/.[A-Za-z]{2,}$", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"}
@@ -69,9 +69,10 @@
             "   form.required_fields[form.required_fields.length-3].type = 'hidden';",
             "   const projects = await cmdmanager.kdcmd('getUserProjects', [], {}, undefined, true);",
             "   if(projects.result){",
+            "       const isCloudAdmin = cmdmanager.isCloudAdminLoggedIn();",
             "       for(const project of projects.projects) {",
             "           const projectlist = form.required_fields[form.required_fields.length-2];",
-            "          projectlist.options.push({value: project.name, label: project.name});",
+            "          projectlist.options.push({value: project.id, label: isCloudAdmin?`${project.name} (${project.org})`:project.name});",
             "       }",
             "   }",
             "}",
@@ -81,7 +82,7 @@
         "submit_javascript":[
             "const retObject = arguments[0]||{};",
             "if(retObject.projectlist && retObject.projectlist!=='') {",
-                "retObject.project_name = retObject.projectlist;",
+                "retObject.project_id = retObject.projectlist;",
             "}",
             "return true;"
         ],

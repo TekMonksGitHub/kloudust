@@ -2,7 +2,7 @@
     "id": "deleteproject",
     "command": "deleteProject",
     "type": "kloudust_cmdline",
-    "kloudust_cmdline_params": ["project_name"],
+    "kloudust_cmdline_params": ["project_id"],
     
     "title": "{{{i18n.DeleteProjectTitle}}}",
     
@@ -10,7 +10,7 @@
         "en": {
             "DeleteProjectTitle": "Delete Project",
             "DeleteProjectDescription": "Delete a project.",
-            "ProjectName": "Project Name",
+            "ProjectID": "Project ID",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
             "NoProjectsToDelete": "No projects to be deleted.",
@@ -19,7 +19,7 @@
         "hi": {
             "DeleteProjectTitle": "Delete Project",
             "DeleteProjectDescription": "Delete a project.",
-            "ProjectName": "Project Name",
+            "ProjectID": "Project ID",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
             "NoProjectsToDelete": "No projects to be deleted.",
@@ -28,7 +28,7 @@
         "ja": {
             "DeleteProjectTitle": "Delete Project",
             "DeleteProjectDescription": "Delete a project.",
-            "ProjectName": "Project Name",
+            "ProjectID": "Project ID",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
             "NoProjectsToDelete": "No projects to be deleted.",
@@ -37,7 +37,7 @@
         "zh": {
             "DeleteProjectTitle": "Delete Project",
             "DeleteProjectDescription": "Delete a project.",
-            "ProjectName": "Project Name",
+            "ProjectID": "Project ID",
             "ProjectListCommand": "Select a project",
             "FieldValidationErrorGeneric": "Validation error",
             "NoProjectsToDelete": "No projects to be deleted.",
@@ -50,10 +50,10 @@
     
         "required_label": "{{{i18n.Required}}}",
         "required_fields": [
-        {"id": "project_name", "type": "text", "placeholder": "{{{i18n.ProjectName}}}",
+        {"id": "project_id", "type": "text", "placeholder": "{{{i18n.ProjectName}}}",
             "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
-            "value":"{{{APP_CONSTANTS.ENV._projects_form_data.name}}}", 
-            "readonly":"{{#APP_CONSTANTS.ENV._projects_form_data.name}}true{{/APP_CONSTANTS.ENV._projects_form_data.name}}"},
+            "value":"{{{APP_CONSTANTS.ENV._projects_form_data.id}}}", 
+            "readonly":"{{#APP_CONSTANTS.ENV._projects_form_data.id}}true{{/APP_CONSTANTS.ENV._projects_form_data.id}}"},
         {"id": "projectlist", "multioption": true, "type": "select", "label": "{{{i18n.ProjectListCommand}}}", "options":[]}
         ],
         "load_javascript": [
@@ -66,6 +66,7 @@
             "   form.required_fields[form.required_fields.length-2].type = 'hidden';",
             "   const projects = await cmdmanager.kdcmd('getUserProjects', [], {}, undefined, true);",
             "   if(projects.result){",
+            "       const isCloudAdmin = cmdmanager.isCloudAdminLoggedIn();",
             "       const projectlist = form.required_fields[form.required_fields.length-1];",
             "       const filteredProjects = projects.projects.filter(prj => prj.name !== APP_CONSTANTS.DEFAULT_PROJECT);",
             "       if (filteredProjects.length === 0) {",
@@ -73,7 +74,7 @@
             "           projectlist.disabled = true;",
             "       } else {",
             "           for(const project of filteredProjects) {",
-            "              projectlist.options.push({value: project.name, label: project.name});",
+            "              projectlist.options.push({value: project.id, label: isCloudAdmin?`${project.name} (${project.org})`:project.name});",
             "           }",
             "       }",
             "   }",
@@ -84,7 +85,7 @@
         "submit_javascript":[
             "const retObject = arguments[0]||{};",
             "if (retObject.projectlist && retObject.projectlist!=='') {",
-                "retObject.project_name = retObject.projectlist;",
+                "retObject.project_id = retObject.projectlist;",
             "}",
             "return true;"
         ],
