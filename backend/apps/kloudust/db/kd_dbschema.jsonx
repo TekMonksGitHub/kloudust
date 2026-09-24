@@ -50,6 +50,8 @@
         org varchar not null, projectid varchar not null, os varchar not null, cpus integer not null, \
         memory integer not null, disk integer not null default 0, disksjson varchar not null, creationcmd varchar not null, \
         name_raw varchar not null, vmtype varchar default 'vm', ips varchar not null default '', \
+        powerstate varchar not null default 'Unknown', \
+        lastcheckedits integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)), \
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)))",
 
     // Vnets container table - the trigger generates vnetnum if not supplied (best if it is not)
