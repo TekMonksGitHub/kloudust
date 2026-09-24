@@ -122,7 +122,8 @@ exports.loginUser = async function(args, consoleHandler) {
         consoleHandler.EXITFAILED(); return false; 
     }
     
-    asyncStorage.getStore().org = userObject.org;
+    const effectiveOrg = userObject.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN && args.overrideOrg?.[0] ? args.overrideOrg[0] : userObject.org;
+    asyncStorage.getStore().org = effectiveOrg;
     KLOUD_CONSTANTS.env.org = _=> asyncStorage.getStore().org; // the project check below needs this
     const project_check = (userObject.role == KLOUD_CONSTANTS.ROLES.ORG_ADMIN || 
         userObject.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) ? true : await dbAbstractor.checkUserBelongsToAnyProject(userObject.id);  
@@ -132,7 +133,7 @@ exports.loginUser = async function(args, consoleHandler) {
         return false;  
     }
 
-    _setupKloudustEnvironment(asyncStorage, userObject.name, userObject.id, userObject.org, userObject.role, args.project?.[0]);
+    _setupKloudustEnvironment(asyncStorage, userObject.name, userObject.id, effectiveOrg, userObject.role, args.project?.[0]);
     
     return true;
 }

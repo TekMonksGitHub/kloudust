@@ -90,8 +90,10 @@ async function kdcmd(formCommand, formKloudust_cmdline_params, values, projectOv
     const project = projectOverride || $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT, APP_CONSTANTS.DEFAULT_PROJECT);
     const alertID = Date.now();
     if (!disableAlertsAndSSE) _processCommandOutput(alertID, `Running command for project ${project} - ${command}`, false);
+    const request = {cmd: command, project};
+    if (roleman.isCloudAdminLoggedIn()) request.override_org = $$.libsession.get(APP_CONSTANTS.USERORG);
     const cmdResult = await apiman.rest({url: APP_CONSTANTS.API_KLOUDUSTCMD, type: "POST", 
-        req: {cmd: command, project}, sendToken: true, sseURL: disableAlertsAndSSE? null : APP_CONSTANTS.API_SSE});
+        req: request, sendToken: true, sseURL: disableAlertsAndSSE? null : APP_CONSTANTS.API_SSE});
     if (!disableAlertsAndSSE) { if (cmdResult?.result) {
             _processCommandOutput(alertID, `Success. Command output follows.`);
             if ((cmdResult.out||"").trim() != "") _processCommandOutput(alertID, cmdResult.out); 
