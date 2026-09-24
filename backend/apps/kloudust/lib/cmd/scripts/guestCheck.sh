@@ -24,7 +24,9 @@ for ((i=1; i<=MAX_ATTEMPTS; i++)); do
         exit 0
     fi
 
-    sleep "$INTERVAL"
+    if (( i < MAX_ATTEMPTS )); then
+        sleep "$INTERVAL"
+    fi
 done
 
 echo "Timed out waiting for QEMU guest agent in VM: $VM"

@@ -12,7 +12,7 @@
     "VMS_cpus": "Cores",
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
-    "VMS_state": "State",
+    "VMS_boot_status": "Status",
     "VMS_ips": "Public IP",
     "VMS_vnets": "Vnets",
     "VMS_privateips": "Private IPs",
@@ -27,7 +27,10 @@
     "VMSResize": "Resize",
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
-    "VMSClone": "Clone"
+    "VMSClone": "Clone",
+    "VMSGetStatus": "Get Status",
+    "VMSBooting": "Booting…",
+    "VMSReady": "Ready"
 },
 
 "hi": {
@@ -38,7 +41,7 @@
     "VMS_cpus": "Cores",
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
-    "VMS_state": "State",
+    "VMS_boot_status": "Status",
     "VMS_ips": "Public IP",
     "VMS_vnets": "Vnets",
     "VMS_privateips": "Private IPs",
@@ -53,7 +56,10 @@
     "VMSResize": "Resize",
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
-    "VMSClone": "Clone"
+    "VMSClone": "Clone",
+    "VMSGetStatus": "Get Status",
+    "VMSBooting": "Booting…",
+    "VMSReady": "Ready"
 },
 
 "ja": {
@@ -64,7 +70,7 @@
     "VMS_cpus": "Cores",
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
-    "VMS_state": "State",
+    "VMS_boot_status": "Status",
     "VMS_ips": "Public IP",
     "VMS_vnets": "Vnets",
     "VMS_privateips": "Private IPs",
@@ -79,7 +85,10 @@
     "VMSResize": "Resize",
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
-    "VMSClone": "Clone"
+    "VMSClone": "Clone",
+    "VMSGetStatus": "Get Status",
+    "VMSBooting": "Booting…",
+    "VMSReady": "Ready"
 },
 
 "zh": {
@@ -90,7 +99,7 @@
     "VMS_cpus": "Cores",
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
-    "VMS_state": "State",
+    "VMS_boot_status": "Status",
     "VMS_ips": "Public IP",
     "VMS_vnets": "Vnets",
     "VMS_privateips": "Private IPs",
@@ -106,7 +115,10 @@
     "VMSADDDISK": "Add Disk",
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
-    "VMSClone": "Clone"
+    "VMSClone": "Clone",
+    "VMSGetStatus": "Get Status",
+    "VMSBooting": "Booting…",
+    "VMSReady": "Ready"
 }
 },
 
@@ -114,6 +126,7 @@
     "popupform": {
     "rolelist": {
         "*":[
+            {"id": "getstatusvm", "label": "{{{i18n.VMSGetStatus}}}", "logo": "img/monitor.svg"},
             {"id": "firewallvm", "label": "{{{i18n.VMSFirewall}}}", "logo": "img/firewall.svg"},
             {"id": "assignipvm", "label": "{{{i18n.VMSAssignIP}}}", "logo": "img/assignipvm.svg"},
             {"id": "vnetvm", "label": "{{{i18n.VMSVNet}}}", "logo": "img/vnet.svg"},
@@ -142,7 +155,8 @@
         "<style>div#button {border: 1px solid transparent; border-radius: 0.5em; padding: 0.5em;}</style>",
         "<style>div#button img {width: 3em !important; height: 3em !important;}</style>",
         "<style>div#button span {font-size: smaller !important; height: -webkit-fill-available;}</style>",
-        "<style>div#button:hover {border: 1px dashed #BC5205 !important;}</style>"
+        "<style>div#button:hover {border: 1px dashed #BC5205 !important;}</style>",
+        "<style>div#button.locked {opacity: 0.4; pointer-events: none;}</style>"
     ],
 
     "clickrow_javascript": [
@@ -158,11 +172,26 @@
         "   vm.ips = vm.ips.trim()===''?'Not Assigned':vm.ips; vm.vnets = vm.vnets.length === 0 ?'No Vnets Found':vm.vnets.join(',');",
         "   vm.privateips = vm.private_ips.length === 0 ? 'No IPs Assigned' : vm.private_ips.join(','); ",
         "   vm.rulesets = vm.rulesets.length === 0 ? 'No Rulesets Applied' : vm.rulesets.join(',');",
+        "   vm.boot_status = vm.status ? '{{{i18n.VMSReady}}}' : '{{{i18n.VMSBooting}}}';",
         "}",
         "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
         "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
-        "tabledef.onclickrow_html.push(html);",
-        "return {keys: ['name_raw','description','ips','privateips','vnets','rulesets','os','disk','cpus','memory','datetime'], table: vms.vms||[]};"
+        "const tag = name => '{'+'{'+name+'}'+'}';  ",
+        "const statusButton = /<div id=\"button\" onclick=\"[^\"]*'getstatusvm'\\)\">[\\s\\S]*?<\\/div>/;   // Get Status only shows for booting VMs",
+        "const readyHTML = html.replace(statusButton, '');",
+        "const bootingHTML = html.replace(/<div id=\"button\" onclick=\"(?![^\"]*'getstatusvm')/g, '<div id=\"button\" class=\"locked\" onclick=\"');",
+        "tabledef.onclickrow_html.push(tag('^status')+bootingHTML+tag('/status')+tag('#status')+readyHTML+tag('/status'));",
+        "const keys = ['name_raw','description','boot_status','ips','privateips','vnets','rulesets','os','disk','cpus','memory','datetime'];",
+        "APP_CONSTANTS.ENV._vmsMarkReady = vm_name => {",
+        "   const root = monkshu_env.components['table-list'].getShadowRootByHostId('vms');",
+        "   for (const tr of root?.querySelectorAll('tbody tr')||[]) {",
+        "       const rowB64 = tr.getAttribute('onclick')?.match(/'([^']+)'\\)/)?.[1]; if (!rowB64) continue;",
+        "       const row = JSON.parse($$.libutil.base64ToString(rowB64)); if (row.name_raw != vm_name) continue;",
+        "       row.status = true; row.boot_status = '{{{i18n.VMSReady}}}'; tr.cells[keys.indexOf('boot_status')].textContent = row.boot_status;",
+        "       tr.setAttribute('onclick', tr.getAttribute('onclick').replace(rowB64, $$.libutil.stringToBase64(JSON.stringify(row))));",
+        "   }",
+        "};",
+        "return {keys, table: vms.vms||[]};"
     ]
 }
 }
