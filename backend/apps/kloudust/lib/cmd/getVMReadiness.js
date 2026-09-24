@@ -13,6 +13,8 @@ const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
+const BOOT_TIME_AFTER_CREATE_VM = 10 * 60 * 1000; // 10 minutes in milliseconds
+
 /**
  * Returns {result, status}, where status is true only when the guest agent is ready.
  * @param {array} params The incoming params - must include the VM name.
@@ -68,9 +70,19 @@ exports.checkReadiness = async function(vm_name, hostInfo, consoleHandlers,
         ]
     });
 
-    const output = results.result ? `${results.stdout}\nVM is ready for Guest-agent operations!!` 
-        : "VM is still booting and not ready for Guest-agent operations!!";
-    return {result: true, status: results.result, out: output, stdout: output};
+    // domstate decides Running vs Stopped, the guest agent only decides Booting vs Running
+    const domstate = results.stdout?.match(/KD_DOMSTATE=(.*)/)?.[1].trim();
+    let powerstate = "Unknown";     // host unreachable or VM paused, crashed etc.
+    if (domstate == "shut off") powerstate = "Stopped";
+    else if (domstate == "running") {
+        const vm = results.result ? null : await dbAbstractor.getVM(vm_name);
+        powerstate = (vm && Date.now() - vm.timestamp < BOOT_TIME_AFTER_CREATE_VM) ? "Booting" : "Running";
+    }
+    await dbAbstractor.setVMPowerState(vm_name, powerstate);
+
+    const output = results.result ? `${results.stdout}\nVM is ready for Guest-agent operations!!`
+        : `VM is ${powerstate} and not ready for Guest-agent operations!!`;
+    return {result: true, status: results.result, powerstate, out: output, stdout: output};
 }
 
 function _getMaxWait(max_wait_raw) {
