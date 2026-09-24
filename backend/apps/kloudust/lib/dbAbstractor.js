@@ -624,8 +624,10 @@ exports.addProject = async(name, description="", orgIn=KLOUD_CONSTANTS.env.org()
 exports.getUserProjects = async userid => {
     if (userid && (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource))) {_logUnauthorized(); return false;}
     if (!userid) userid = KLOUD_CONSTANTS.env.userid();
-    const query = "select * from projects where id in (select projectid from projectusermappings where userid=? collate nocase)";
-    const results = await _db().getQuery(query, userid);
+    let query; if (roleman.isCloudAdminLoggedIn()) query = "select * from projects";
+    else if (roleman.isOrgAdminLoggedIn()) query = `select * from projects where org="${KLOUD_CONSTANTS.env.org()}" collate nocase`;
+    else query = `select * from projects where id in (select projectid from projectusermappings where userid="${userid}" collate nocase)`;
+    const results = await _db().getQuery(query, []);
     return results || [];
 }
 
