@@ -148,8 +148,8 @@
         "<style>div#button img {width: 3em !important; height: 3em !important;}</style>",
         "<style>div#button span {font-size: smaller !important; height: -webkit-fill-available;}</style>",
         "<style>div#button:hover {border: 1px dashed #BC5205 !important;}</style>",
-        "<style>.vm-Booting div#button:not([onclick*=getstatusvm]), .vm-Unknown div#button:not([onclick*=getstatusvm]) {opacity: 0.4; pointer-events: none;}</style>",
-        "<style>.vm-Running div#button[onclick*=getstatusvm], .vm-Stopped div#button[onclick*=getstatusvm] {display: none;}</style>"
+        "<style>.vm-Booting div#button:not([onclick*=_vmsGetStatus]), .vm-Unknown div#button:not([onclick*=_vmsGetStatus]) {opacity: 0.4; pointer-events: none;}</style>",
+        "<style>.vm-Running div#button[onclick*=_vmsGetStatus], .vm-Stopped div#button[onclick*=_vmsGetStatus] {display: none;}</style>"
     ],
 
     "clickrow_javascript": [
@@ -168,7 +168,14 @@
         "   if (Date.now() - vm.lastcheckedits > 10*60*1000) vm.powerstate = 'Unknown';",
         "}",
         "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
-        "const html = await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager);",
+        "APP_CONSTANTS.ENV._vmsGetStatus = async () => {",
+        "   const vm_name = APP_CONSTANTS.ENV._vms_form_data.name_raw;",
+        "   monkshu_env.components['table-list'].getShadowRootByHostId('vms')?.querySelector('div#hider')?.click();   // close the popup",
+        "   const result = await cmdmanager.kdcmd('getVMReadiness', ['vm_name', 'max_wait'], {vm_name, max_wait: 10}, activeProject);",
+        "   if (result.powerstate) APP_CONSTANTS.ENV._vmsSetPowerState(vm_name, result.powerstate);",
+        "};",
+        "const html = (await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager))",
+        "   .replace(\"window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].iconlist.cmdClicked('getstatusvm')\", 'APP_CONSTANTS.ENV._vmsGetStatus()');   // Get Status runs here, no form file",
         "const tag = name => '{'+'{'+name+'}'+'}';  ",
         "tabledef.onclickrow_html.push(\"<div class='vm-\"+tag('powerstate')+\"'>\"+html+\"</div>\"); ",
         "const keys = ['name_raw','description','powerstate','ips','privateips','vnets','rulesets','os','disk','cpus','memory','datetime'];",

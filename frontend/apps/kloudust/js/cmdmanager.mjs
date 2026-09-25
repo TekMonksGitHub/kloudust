@@ -10,7 +10,7 @@ import {rolemanager as roleman} from "./rolemanager.mjs";
 const REGISTERED_COMMANDS = {}, KLOUDUST_CMDLINE = "kloudust_cmdline", AUTOMATION_CMDLINE = "automation_cmdline", 
     FRONTEND_MODULE = "frontend_module", ALERT_OBJECT_KEY = "__com_tekmonks_kloudust_frontend_alerts", 
     ALERT_ERROR = "error", ALERT_INFO = "info", RAW_COMMANDLINE_COMMAND = "RAW_COMMANDLINE", 
-    TABLE_DISPLAY = "table_display", ACTION = "action", apiman = $$.libapimanager;
+    TABLE_DISPLAY = "table_display", apiman = $$.libapimanager;
 
 const cmd_stack = [];
 
@@ -35,10 +35,6 @@ async function cmdClicked(id) {
 
     try {
         const formJSON = await $$.requireJSON(`${APP_CONSTANTS.FORMS_PATH}/${id}.form.json`, APP_CONSTANTS.INSECURE_DEVELOPMENT_MODE?true:undefined);
-        if (formJSON.type.toLowerCase() == ACTION) {    // action forms only run their javascript, no form is shown
-            const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-            await (new AsyncFunction(formJSON.load_javascript.join("\n")))(formJSON); return;
-        }
         const html = await _getFormHTML(formJSON);
         monkshu_env.apps[APP_CONSTANTS.APP_NAME].main.showContent(html, true);
         if (!cmd_stack.length) cmd_stack.push(id); else if (cmd_stack[cmd_stack.length-1] != id) cmd_stack.push(id);
