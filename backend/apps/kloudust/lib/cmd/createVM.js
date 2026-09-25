@@ -107,7 +107,7 @@ module.exports.exec = async function(params) {
     if (results.result) {
         if (await dbAbstractor.addOrUpdateVMToDB(vm_name, vm_description, hostInfo.hostname, kdResource.processorarchitecture,
                 ostype, cores, memory*1024*1024, [{diskname: exports.DEFAULT_DISK, size: disk}], 
-                ["createVM ", ...params].join(" "), vm_name_raw, vmtype)) {
+                ["createVM ", ...params].join(" "), vm_name_raw, vmtype, undefined, undefined, undefined, CMD_CONSTANTS.VM_POWER_STATES.BOOTING)) {
                 
             if (vnet_name && vnet_name.trim().length) {   // add VM to the given Virtual network
                 const paramsVnet = [vm_name_raw, vnet_name, "true"]; paramsVnet.consoleHandlers = params.consoleHandlers;

@@ -21,6 +21,7 @@ const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const getVMVnets = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMVnets.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
+const getVMReadiness = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMReadiness.js`);
 const createFirewallRuleset = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createFirewallRuleset.js`);
 
 /**
@@ -35,7 +36,8 @@ module.exports.exec = async function(params) {
     const vmtypes = vmtypes_raw ? vmtypes_raw.split(",") : [createVM.VM_TYPE_VM];
     const vms = await dbAbstractor.listVMsForOrgOrProject(vmtypes, org, project);
 
-    const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push({...vm, creationcmd: undefined, vnets : await addVMVnet.getVMVnets(vm.name_raw)});
+    const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push(getVMReadiness.addPowerStateInfo(
+        {...vm, creationcmd: undefined, vnets : await addVMVnet.getVMVnets(vm.name_raw)}));
 
     for (const vm of vms_ret) {
         const getVMVnetsParams = [vm.name_raw]; getVMVnetsParams.consoleHandlers = params.consoleHandlers;

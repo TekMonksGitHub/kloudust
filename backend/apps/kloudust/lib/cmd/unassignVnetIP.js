@@ -11,6 +11,7 @@ const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const createVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVnet.js`);
+const getVMReadiness = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMReadiness.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
@@ -36,6 +37,11 @@ module.exports.exec = async function(params) {
 
     const hostInfoVM = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfoVM) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+    const readiness = await getVMReadiness.checkReadiness(vm.name, hostInfoVM, params.consoleHandlers);
+    if (!readiness.status) {
+        params.consoleHandlers.LOGERROR(`VM ${vm.name_raw} is not ready for guest-agent-dependent operations`);
+        return CMD_CONSTANTS.FALSE_RESULT();
+    }
 
     const xforgeArgsVMIPCommand = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 

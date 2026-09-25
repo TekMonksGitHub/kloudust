@@ -14,6 +14,7 @@ const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
+const getVMReadiness = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMReadiness.js`);
 
 /**
  * Lists the host VMs - either all or running (default)
@@ -29,7 +30,7 @@ module.exports.exec = async function(params) {
     if (hostname && (!hostInfo)) { const error = "Bad hostname or host not found"; 
         params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error); }
     const vms = await dbAbstractor.listVMsForCloudAdmin(vmtypes, hostname);
-    const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push({...vm, creationcmd: undefined});
+    const vms_ret = []; if (vms) for (const vm of vms) vms_ret.push(getVMReadiness.addPowerStateInfo({...vm, creationcmd: undefined}));
 
     let out = "VM information from the database follows.";
     for (const vm of vms_ret) out += "\n"+JSON.stringify(vm);
