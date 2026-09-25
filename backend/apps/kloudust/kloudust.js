@@ -124,6 +124,8 @@ exports.loginUser = async function(args, consoleHandler) {
     
     asyncStorage.getStore().org = userObject.org;
     KLOUD_CONSTANTS.env.org = _=> asyncStorage.getStore().org; // the project check below needs this
+    const roleEnsured = await _ensureAndUpdateRoleWithJWT(args.loginAssignedRole[0], userObject, consoleHandler);
+    if (!roleEnsured) return false;  // loginapp user role got changed 
     const project_check = (userObject.role == KLOUD_CONSTANTS.ROLES.ORG_ADMIN || 
         userObject.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) ? true : await dbAbstractor.checkUserBelongsToAnyProject(userObject.id);  
     if (!project_check) {   // not part of this project  
@@ -189,4 +191,27 @@ function _createConsoleHandler(consoleStreamHandler) {
         EXITOK: _ => consoleStreamHandler(KLOUD_CONSTANTS.SUCCESS_MSG, undefined, undefined), 
         EXITFAILED: _ => consoleStreamHandler(undefined, undefined, KLOUD_CONSTANTS.FAILED_MSG)
     };}
+}
+
+async function _ensureAndUpdateRoleWithJWT(loginAssignedRole, userObject, consoleHandler) {
+    if (userObject.role === KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) return true;
+
+    const roleMap = {
+        [KLOUD_CONSTANTS.LOGINAPP_ORG_USER]: KLOUD_CONSTANTS.ROLES.USER,
+        [KLOUD_CONSTANTS.LOGINAPP_ORG_ADMIN]: KLOUD_CONSTANTS.ROLES.ORG_ADMIN
+    };
+
+    const targetRole = roleMap[loginAssignedRole];
+    if (!targetRole || userObject.role === targetRole) return true;
+
+    const previousRole = userObject.role;
+    const updated = await dbAbstractor.updateKDUserRole(userObject.id, targetRole);
+    if (!updated) {
+        const err = `Failed to change the Kloudust user role from ${previousRole} to ${targetRole} for ${userObject.id}`;
+        consoleHandler.LOGERROR(err); return false;
+    }
+
+    userObject.role = targetRole;
+    consoleHandler.LOGINFO(`Kloudust user role changed from ${previousRole} to ${targetRole} for ${userObject.id}`);
+    return true;
 }
