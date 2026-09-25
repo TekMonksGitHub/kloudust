@@ -124,6 +124,8 @@ exports.loginUser = async function(args, consoleHandler) {
     
     asyncStorage.getStore().org = userObject.org;
     KLOUD_CONSTANTS.env.org = _=> asyncStorage.getStore().org; // the project check below needs this
+    const roleEnsured = await _ensureAndUpdateRoleWithJWT(args.loginAssignedRole[0], userObject, consoleHandler);
+    if (!roleEnsured) return false;  // loginapp user role got changed 
     const project_check = (userObject.role == KLOUD_CONSTANTS.ROLES.ORG_ADMIN || 
         userObject.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) ? true : await dbAbstractor.checkUserBelongsToAnyProject(userObject.id);  
     if (!project_check) {   // not part of this project  
@@ -189,4 +191,31 @@ function _createConsoleHandler(consoleStreamHandler) {
         EXITOK: _ => consoleStreamHandler(KLOUD_CONSTANTS.SUCCESS_MSG, undefined, undefined), 
         EXITFAILED: _ => consoleStreamHandler(undefined, undefined, KLOUD_CONSTANTS.FAILED_MSG)
     };}
+}
+
+async function _ensureAndUpdateRoleWithJWT(loginAssignedRole, userObject, consoleHandler) {
+    if (loginAssignedRole == KLOUD_CONSTANTS.LOGINAPP_ORG_USER && userObject.role != KLOUD_CONSTANTS.ROLES.USER) {
+        if (userObject.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) {
+            consoleHandler.LOGWARN(`Can not change the klodust user role from ${userObject.role} to ${KLOUD_CONSTANTS.ROLES.USER}.`);
+            return true;
+        }
+        const result = await dbAbstractor.updateKDUserRole(userObject.id, KLOUD_CONSTANTS.ROLES.USER);
+        if (result) {
+            consoleHandler.LOGINFO(`Kloudust user role changed from ${userObject.role} to ${KLOUD_CONSTANTS.ROLES.USER} for ${userObject.id}`);
+            userObject.role = KLOUD_CONSTANTS.ROLES.USER; return true;
+        } else {
+            const err = `Failed to change the kloudust user role from ${userObject.role} to ${KLOUD_CONSTANTS.ROLES.USER} for ${userObject.id}`
+            consoleHandler.LOGERROR(err); return false;
+        }
+    }
+    if (loginAssignedRole == KLOUD_CONSTANTS.LOGINAPP_ORG_ADMIN && userObject.role == KLOUD_CONSTANTS.ROLES.USER) {
+        const result = await dbAbstractor.updateKDUserRole(userObject.id, KLOUD_CONSTANTS.ROLES.ORG_ADMIN);
+        if (result) {
+            consoleHandler.LOGINFO(`Kloudust user role changed from ${userObject.role} to ${KLOUD_CONSTANTS.ROLES.ORG_ADMIN} for ${userObject.id}`);
+            userObject.role = KLOUD_CONSTANTS.ROLES.ORG_ADMIN; return true;
+        } else {
+            const err = `Failed to change the kloudust user role from ${userObject.role} to ${KLOUD_CONSTANTS.ROLES.ORG_ADMIN} for ${userObject.id}`;
+            consoleHandler.LOGERROR(err); return false;
+        }
+    } return true;
 }

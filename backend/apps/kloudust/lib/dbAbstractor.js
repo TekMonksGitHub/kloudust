@@ -1714,6 +1714,20 @@ exports.deleteRelationship = async function(primary_key, type) {
     return result;
 }
 
+/**
+ * Update the given user's role in DB
+ * @param {string} email The user's email, must be unique
+ * @param {string} role The user's role to be
+ * @return true on succes, false otherwise
+ */
+exports.updateKDUserRole = async function(email, role) {
+    if (role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) return false;  // other user's can't become cloudadmin
+    const userToUpdate = (await _db().getQuery("select * from users where id = ?", [email]))[0];
+    if (userToUpdate.role == KLOUD_CONSTANTS.ROLES.CLOUD_ADMIN) return false;  // cloudadmin can not become orgadmin or user
+    const query = "update users set role = ? where id = ? collate nocase";
+    return await _db().runCmd(query, [role, userToUpdate.id]);
+}
+
 const _logUnauthorized = _ => KLOUD_CONSTANTS.LOGERROR("User is not authorized.");
 
 const _getProjectID = (project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => 
