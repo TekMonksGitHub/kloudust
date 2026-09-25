@@ -20,6 +20,12 @@ const POWER_OP_PARAMS_MAP = {
     "resume": "resume", "hardboot": "reset", "default": "start"
 }
 
+// autostart / noautostart don't change the power state so aren't here
+const POWER_OP_STATES_MAP = {
+    "start": "Running", "reboot": "Booting", "hardboot": "Booting", "default": "Running", "resume": "Running",
+    "stop": "Stopped", "forcestop": "Stopped", "pause": "Stopped"
+}
+
 /**
  * Performs the given power operation on the VM
  * @param {array} params The incoming params - must be - type (centos8 only for now), ip, user id, password, ssh hostkey, VM name, [start|pause|stop|forcestop|reboot|autostart|noautostart] - default is start
@@ -46,5 +52,7 @@ module.exports.exec = async function(params) {
         ] 
     }
 
-    return await xforge(xforgeArgs);
+    const results = await xforge(xforgeArgs);
+    if (results.result && POWER_OP_STATES_MAP[power_op]) await dbAbstractor.setVMPowerState(vm_name, POWER_OP_STATES_MAP[power_op]);
+    return results;
 }

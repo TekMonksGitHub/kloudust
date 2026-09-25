@@ -14,6 +14,7 @@ const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
 const addVMVnet = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/addVMVnet.js`);
 const liveMigrateHostHelper = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/liveMigrateHostHelper.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
+const getVMReadiness = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/getVMReadiness.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
@@ -30,6 +31,11 @@ module.exports.exec = async function(params) {
 
     const hostInfo = await dbAbstractor.getHostEntry(vm.hostname); 
     if (!hostInfo) {params.consoleHandlers.LOGERROR("Bad hostname for the VM or host not found"); return CMD_CONSTANTS.FALSE_RESULT();}
+    const readiness = await getVMReadiness.checkReadiness(vm.name, hostInfo, params.consoleHandlers);
+    if (!readiness.status) {
+        params.consoleHandlers.LOGERROR(`VM ${vm.name_raw} is not ready for guest-agent-dependent operations`);
+        return CMD_CONSTANTS.FALSE_RESULT();
+    }
 
     const hostToInfo = await dbAbstractor.getHostEntry(hostToName); 
     if (!hostToInfo) {params.consoleHandlers.LOGERROR("Bad hostname for host to."); return CMD_CONSTANTS.FALSE_RESULT();}
