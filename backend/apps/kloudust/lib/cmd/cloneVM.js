@@ -75,7 +75,7 @@ async function _cloneVMReal(vm, clone_vm_name, hostInfo, hosting_project, clone_
     if (results.result) {
         if (await dbAbstractor.addOrUpdateVMToDB(clone_vm_name, vm.description, vm.hostname, vm.arch, 
             vm.os, vm.cpus, vm.memory, vm.disks, vm.creationcmd, clone_vm_name_raw, vm.vmtype, 
-            undefined, hosting_project, undefined, "Booting")) return results;
+            undefined, hosting_project, undefined, CMD_CONSTANTS.VM_POWER_STATES.BOOTING)) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;
 }

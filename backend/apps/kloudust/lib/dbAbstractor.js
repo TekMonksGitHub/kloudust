@@ -9,6 +9,7 @@
 const path = require("path");
 const kdutils = require(`${KLOUD_CONSTANTS.LIBDIR}/utils.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
+const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 const crypt = require(`${KLOUD_CONSTANTS.MONKSHU_BACKEND_LIBDIR}/crypt.js`);
 const monkshubridge = require(`${KLOUD_CONSTANTS.LIBDIR}/monkshubridge.js`);
 const jsonxparser = require(`${KLOUD_CONSTANTS.MONKSHU_BACKEND_LIBDIR}/jsonx.js`);
@@ -374,11 +375,11 @@ exports.getAvailableHosts = async (vcpu, ram, disk, arch, factors) => {
  * @param {string} ip The VM IPs, default is empty
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment
- * @param {string} powerstate The power state for a new VM row, default is Unknown. Ignored on update.
+ * @param {string} powerstate The power state for a new VM row, one of CMD_CONSTANTS.VM_POWER_STATES, default is UNKNOWN. Ignored on update.
  * @return true on success or false otherwise
  */
 exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, memory, disks, creation_cmd="undefined",
-        name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org(), powerstate="Unknown") => {
+        name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org(), powerstate=CMD_CONSTANTS.VM_POWER_STATES.UNKNOWN) => {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
@@ -386,7 +387,7 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, 
     let totaldisk = 0; for (const disk of disks) totaldisk += disk.size;
 
     const id = `${org}_${project}_${name}`;
-    const query = "insert into vms (id, name, description, hostname, arch, org, projectid, os, cpus, memory, disk, disksjson, creationcmd, name_raw, vmtype, ips, powerstate, lastcheckedits) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) \
+    const query = "insert into vms (id, name, description, hostname, arch, org, projectid, os, cpus, memory, disk, disksjson, creationcmd, name_raw, vmtype, ips, powerstate, pslastchecked) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) \
         on conflict(id) do update set name=excluded.name, description=excluded.description, hostname=excluded.hostname, \
         arch=excluded.arch, org=excluded.org, projectid=excluded.projectid, os=excluded.os, cpus=excluded.cpus, memory=excluded.memory, \
         disk=excluded.disk, disksjson=excluded.disksjson, creationcmd=excluded.creationcmd, name_raw=excluded.name_raw, \
@@ -398,7 +399,7 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, 
 /**
  * Saves the VM's power state and the time it was checked.
  * @param {string} name The VM name
- * @param {string} powerstate The power state - Booting, Running, Stopped or Unknown
+ * @param {string} powerstate The power state - one of CMD_CONSTANTS.VM_POWER_STATES
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment
  * @return true on success or false otherwise
@@ -407,7 +408,7 @@ exports.setVMPowerState = async (name, powerstate, project=KLOUD_CONSTANTS.env.p
     if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
 
-    return await _db().runCmd("update vms set powerstate = ?, lastcheckedits = ? where id = ? collate nocase",
+    return await _db().runCmd("update vms set powerstate = ?, pslastchecked = ? where id = ? collate nocase",
         [powerstate, Date.now(), `${org}_${project}_${name}`]);
 }
 

@@ -21,9 +21,10 @@ const POWER_OP_PARAMS_MAP = {
 }
 
 // autostart / noautostart don't change the power state so aren't here
+const {BOOTING, RUNNING, STOPPED} = CMD_CONSTANTS.VM_POWER_STATES;
 const POWER_OP_STATES_MAP = {
-    "start": "Running", "reboot": "Booting", "hardboot": "Booting", "default": "Running", "resume": "Running",
-    "stop": "Stopped", "forcestop": "Stopped", "pause": "Stopped"
+    "start": RUNNING, "reboot": BOOTING, "hardboot": BOOTING, "default": RUNNING, "resume": RUNNING,
+    "stop": STOPPED, "forcestop": STOPPED, "pause": STOPPED
 }
 
 /**

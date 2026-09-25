@@ -12,7 +12,7 @@
     "VMS_cpus": "Cores",
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
-    "VMS_powerstate": "Status",
+    "VMS_powerstatelabel": "Status",
     "VMS_ips": "Public IP",
     "VMS_vnets": "Vnets",
     "VMS_privateips": "Private IPs",
@@ -28,7 +28,11 @@
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
     "VMSClone": "Clone",
-    "VMSGetStatus": "Get Status"
+    "VMSGetStatus": "Get Status",
+    "VMSPowerState_booting": "Booting",
+    "VMSPowerState_running": "Running",
+    "VMSPowerState_stopped": "Stopped",
+    "VMSPowerState_unknown": "Unknown"
 },
 
 "hi": {
@@ -39,7 +43,7 @@
     "VMS_cpus": "Cores",
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
-    "VMS_powerstate": "Status",
+    "VMS_powerstatelabel": "Status",
     "VMS_ips": "Public IP",
     "VMS_vnets": "Vnets",
     "VMS_privateips": "Private IPs",
@@ -55,7 +59,11 @@
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
     "VMSClone": "Clone",
-    "VMSGetStatus": "Get Status"
+    "VMSGetStatus": "Get Status",
+    "VMSPowerState_booting": "Booting",
+    "VMSPowerState_running": "Running",
+    "VMSPowerState_stopped": "Stopped",
+    "VMSPowerState_unknown": "Unknown"
 },
 
 "ja": {
@@ -66,7 +74,7 @@
     "VMS_cpus": "Cores",
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
-    "VMS_powerstate": "Status",
+    "VMS_powerstatelabel": "Status",
     "VMS_ips": "Public IP",
     "VMS_vnets": "Vnets",
     "VMS_privateips": "Private IPs",
@@ -82,7 +90,11 @@
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
     "VMSClone": "Clone",
-    "VMSGetStatus": "Get Status"
+    "VMSGetStatus": "Get Status",
+    "VMSPowerState_booting": "Booting",
+    "VMSPowerState_running": "Running",
+    "VMSPowerState_stopped": "Stopped",
+    "VMSPowerState_unknown": "Unknown"
 },
 
 "zh": {
@@ -93,7 +105,7 @@
     "VMS_cpus": "Cores",
     "VMS_memory": "Memory (MB)",
     "VMS_datetime": "Date created",
-    "VMS_powerstate": "Status",
+    "VMS_powerstatelabel": "Status",
     "VMS_ips": "Public IP",
     "VMS_vnets": "Vnets",
     "VMS_privateips": "Private IPs",
@@ -110,7 +122,11 @@
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
     "VMSClone": "Clone",
-    "VMSGetStatus": "Get Status"
+    "VMSGetStatus": "Get Status",
+    "VMSPowerState_booting": "Booting",
+    "VMSPowerState_running": "Running",
+    "VMSPowerState_stopped": "Stopped",
+    "VMSPowerState_unknown": "Unknown"
 }
 },
 
@@ -148,8 +164,8 @@
         "<style>div#button img {width: 3em !important; height: 3em !important;}</style>",
         "<style>div#button span {font-size: smaller !important; height: -webkit-fill-available;}</style>",
         "<style>div#button:hover {border: 1px dashed #BC5205 !important;}</style>",
-        "<style>.vm-Booting div#button:not([onclick*=_vmsGetStatus]), .vm-Unknown div#button:not([onclick*=_vmsGetStatus]) {opacity: 0.4; pointer-events: none;}</style>",
-        "<style>.vm-Running div#button[onclick*=_vmsGetStatus], .vm-Stopped div#button[onclick*=_vmsGetStatus] {display: none;}</style>"
+        "<style>.vm-locked div#button:not([onclick*=_vmsGetStatus]) {opacity: 0.4; pointer-events: none;}</style>",
+        "<style>.vm-unlocked div#button[onclick*=_vmsGetStatus] {display: none;}</style>"
     ],
 
     "clickrow_javascript": [
@@ -165,26 +181,26 @@
         "   vm.ips = vm.ips.trim()===''?'Not Assigned':vm.ips; vm.vnets = vm.vnets.length === 0 ?'No Vnets Found':vm.vnets.join(',');",
         "   vm.privateips = vm.private_ips.length === 0 ? 'No IPs Assigned' : vm.private_ips.join(','); ",
         "   vm.rulesets = vm.rulesets.length === 0 ? 'No Rulesets Applied' : vm.rulesets.join(',');",
-        "   if (Date.now() - vm.lastcheckedits > 10*60*1000) vm.powerstate = 'Unknown';",
+        "   vm.powerstatelabel = await $$.libi18n.get('VMSPowerState_'+vm.powerstate);   ",
         "}",
         "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
         "APP_CONSTANTS.ENV._vmsGetStatus = async () => {",
         "   const vm_name = APP_CONSTANTS.ENV._vms_form_data.name_raw;",
-        "   monkshu_env.components['table-list'].getShadowRootByHostId('vms')?.querySelector('div#hider')?.click();   // close the popup",
+        "   monkshu_env.components['table-list'].getShadowRootByHostId('vms')?.querySelector('div#hider')?.click();  ",
         "   const result = await cmdmanager.kdcmd('getVMReadiness', ['vm_name', 'max_wait'], {vm_name, max_wait: 10}, activeProject);",
-        "   if (result.powerstate) APP_CONSTANTS.ENV._vmsSetPowerState(vm_name, result.powerstate);",
+        "   if (result.powerstate) await APP_CONSTANTS.ENV._vmsSetPowerState(vm_name, result.powerstate, result.locked);",
         "};",
         "const html = (await modIconList.iconlist.getHTML(tabledef.popupform, monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager))",
-        "   .replace(\"window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].iconlist.cmdClicked('getstatusvm')\", 'APP_CONSTANTS.ENV._vmsGetStatus()');   // Get Status runs here, no form file",
+        "   .replace(\"window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].iconlist.cmdClicked('getstatusvm')\", 'APP_CONSTANTS.ENV._vmsGetStatus()');  ",
         "const tag = name => '{'+'{'+name+'}'+'}';  ",
-        "tabledef.onclickrow_html.push(\"<div class='vm-\"+tag('powerstate')+\"'>\"+html+\"</div>\"); ",
-        "const keys = ['name_raw','description','powerstate','ips','privateips','vnets','rulesets','os','disk','cpus','memory','datetime'];",
-        "APP_CONSTANTS.ENV._vmsSetPowerState = (vm_name, powerstate) => {",
+        "tabledef.onclickrow_html.push(\"<div class='\"+tag('#locked')+\"vm-locked\"+tag('/locked')+tag('^locked')+\"vm-unlocked\"+tag('/locked')+\"'>\"+html+\"</div>\");   // locks/hides buttons via CSS",
+        "const keys = ['name_raw','description','powerstatelabel','ips','privateips','vnets','rulesets','os','disk','cpus','memory','datetime'];",
+        "APP_CONSTANTS.ENV._vmsSetPowerState = async (vm_name, powerstate, locked) => {",
         "   const root = monkshu_env.components['table-list'].getShadowRootByHostId('vms');",
         "   for (const tr of root?.querySelectorAll('tbody tr')||[]) {",
         "       const rowB64 = tr.getAttribute('onclick')?.match(/'([^']+)'\\)/)?.[1]; if (!rowB64) continue;",
         "       const row = JSON.parse($$.libutil.base64ToString(rowB64)); if (row.name_raw != vm_name) continue;",
-        "       row.powerstate = powerstate; tr.cells[keys.indexOf('powerstate')].textContent = powerstate;",
+        "       row.powerstate = powerstate; row.locked = locked; row.powerstatelabel = await $$.libi18n.get('VMSPowerState_'+powerstate); tr.cells[keys.indexOf('powerstatelabel')].textContent = row.powerstatelabel;",
         "       tr.setAttribute('onclick', tr.getAttribute('onclick').replace(rowB64, $$.libutil.stringToBase64(JSON.stringify(row))));",
         "   }",
         "};",

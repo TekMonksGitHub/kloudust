@@ -13,7 +13,8 @@ const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
 
-const BOOT_TIME_AFTER_CREATE_VM = 10 * 60 * 1000; // 10 minutes in milliseconds
+const DOMSTATE_RUNNING = "running", DOMSTATE_SHUT_OFF = "shut off";  // as printed by virsh domstate
+const VM_POWER_STATES_LOCKED = [CMD_CONSTANTS.VM_POWER_STATES.BOOTING, CMD_CONSTANTS.VM_POWER_STATES.UNKNOWN];  // guest-agent operations not ready
 
 /**
  * Returns {result, status}, where status is true only when the guest agent is ready.
@@ -72,17 +73,28 @@ exports.checkReadiness = async function(vm_name, hostInfo, consoleHandlers,
 
     // domstate decides Running vs Stopped, the guest agent only decides Booting vs Running
     const domstate = results.stdout?.match(/KD_DOMSTATE=(.*)/)?.[1].trim();
-    let powerstate = "Unknown";     // host unreachable or VM paused, crashed etc.
-    if (domstate == "shut off") powerstate = "Stopped";
-    else if (domstate == "running") {
+    const POWER_STATES = CMD_CONSTANTS.VM_POWER_STATES;
+    let powerstate = POWER_STATES.UNKNOWN;     // host unreachable or VM paused, crashed etc.
+    if (domstate == DOMSTATE_SHUT_OFF) powerstate = POWER_STATES.STOPPED;
+    else if (domstate == DOMSTATE_RUNNING) {
         const vm = results.result ? null : await dbAbstractor.getVM(vm_name);
-        powerstate = (vm && Date.now() - vm.timestamp < BOOT_TIME_AFTER_CREATE_VM) ? "Booting" : "Running";
+        powerstate = (vm && Date.now() - vm.timestamp < KLOUD_CONSTANTS.CONF.VM_BOOT_TIME_AFTER_CREATE*1000) ? 
+            POWER_STATES.BOOTING : POWER_STATES.RUNNING;
     }
     await dbAbstractor.setVMPowerState(vm_name, powerstate);
 
     const output = results.result ? `${results.stdout}\nVM is ready for Guest-agent operations!!`
         : `VM is ${powerstate} and not ready for Guest-agent operations!!`;
-    return {result: true, status: results.result, powerstate, out: output, stdout: output};
+    return {result: true, status: results.result, powerstate, locked: VM_POWER_STATES_LOCKED.includes(powerstate), 
+        out: output, stdout: output};
+}
+
+/** For VM lists - a power state older than VM_POWER_STATE_VALID_TIME (or never checked) is shown as unknown, and sets vm.locked */
+exports.addPowerStateInfo = vm => {
+    const age = Date.now() - vm.pslastchecked;
+    if (!(age <= KLOUD_CONSTANTS.CONF.VM_POWER_STATE_VALID_TIME*1000)) vm.powerstate = CMD_CONSTANTS.VM_POWER_STATES.UNKNOWN;
+    vm.locked = VM_POWER_STATES_LOCKED.includes(vm.powerstate);
+    return vm;
 }
 
 function _getMaxWait(max_wait_raw) {

@@ -11,3 +11,4 @@ exports.SCRIPT_JSONOUT_SPLITTER = "-----KLOUDUST_JSON_OUT-----";
 exports.PROJECT_EXCLUDED_COMMANDS = ["getUserProjects", "addHost", "rebootHost", "addImage", "addUser", 
     "lookupHost", "listHosts", "listHostResources", "listVMsForHost", "customCmd", "changeUserRole", 
     "liveMigrate", "listVMImages", "initOrg", "listAutomations"];
+exports.VM_POWER_STATES = Object.freeze({BOOTING: "booting", RUNNING: "running", STOPPED: "stopped", UNKNOWN: "unknown"});
