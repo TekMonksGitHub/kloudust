@@ -17,6 +17,8 @@ const httpClient = require(`${CONSTANTS.LIBDIR}/httpClient.js`);
 const conf = require(`${KLOUD_CONSTANTS.CONFDIR}/kloudust.json`);
 const kloudust = require(`${KLOUD_CONSTANTS.ROOTDIR}/kloudust.js`);
 const API_JWT_VALIDATION = `${conf.TEKMONKS_LOGIN_BACKEND}/apps/loginapp/validatejwt`;
+const LOGIN_LISTENERS = conf.LOGIN_LISTENERS || [];
+const LOGIN_LISTENER_TIMEOUT = conf.LOGIN_LISTENER_TIMEOUT || 10000;
 
 const ASYNC_LOCAL_STORAGE = new AsyncLocalStorage();
 
@@ -72,13 +74,49 @@ async function _verifyJWT(jsonReq) {
             return CONSTANTS.FALSE_RESULT; 
         } else {
             KLOUD_CONSTANTS.LOGINFO(`User ${jwtClaims.id} from org ${jwtClaims.org} logged in successfully with role ${KLOUD_CONSTANTS.env.role()||jwtClaims.role}.`);
-            const finalResult = {...jwtClaims , role: KLOUD_CONSTANTS.env.role()||jwtClaims.role, ...CONSTANTS.TRUE_RESULT};
-            return finalResult
+            const listenerResults = await _notifyLoginListeners(jsonReq.jwt);
+            if (listenerResults.requiredFailed) {
+                KLOUD_CONSTANTS.LOGERROR("A required application login listener failed.");
+                return CONSTANTS.FALSE_RESULT;
+            }
+
+            const finalResult = {...jwtClaims , role: KLOUD_CONSTANTS.env.role()||jwtClaims.role, appLogins: listenerResults.appLogins, ...CONSTANTS.TRUE_RESULT};
+            return finalResult;
         }
     } catch (err) {
         KLOUD_CONSTANTS.LOGERROR(`Bad JWT token passed for login ${jsonReq.jwt}, JWT validation succeeded but JWT claims decode failed. Error is ${err}`);
         return CONSTANTS.FALSE_RESULT;
     }
+}
+
+// Each listener calls an application's own login verification endpoint.
+async function _notifyLoginListeners(jwt) {
+    const configuredListeners = LOGIN_LISTENERS.filter(listener => listener?.name && listener?.url);
+    const results = await Promise.all(configuredListeners.map(async listener => {
+        try {
+            const separator = listener.url.includes("?") ? "&" : "?";
+            const response = await httpClient.fetch(
+                `${listener.url}${separator}jwt=${encodeURIComponent(jwt)}`,
+                {timeout: listener.timeout || LOGIN_LISTENER_TIMEOUT}
+            );
+            let appResponse;
+            try { appResponse = await response.json(); }
+            catch (_) { appResponse = null; }
+
+            const result = {url: listener.url, response: appResponse, headers: response.headers || {}};
+            const succeeded = response.ok && appResponse?.result === true;
+            if (!succeeded) KLOUD_CONSTANTS.LOGERROR(`Login listener failed for ${listener.name}.`);
+            return {name: listener.name, required: listener.required !== false, succeeded, result};
+        } catch (err) {
+            KLOUD_CONSTANTS.LOGERROR(`Login listener request failed for ${listener.name}: ${err}`);
+            return {name: listener.name, required: listener.required !== false, succeeded: false,
+                result: {url: listener.url, response: {result: false}, headers: {}}};
+        }
+    }));
+
+    const appLogins = {};
+    for (const listenerResult of results) appLogins[listenerResult.name] = listenerResult.result;
+    return {appLogins, requiredFailed: results.some(result => result.required && !result.succeeded)};
 }
 
 const validateRequest = jsonReq => jsonReq && ((jsonReq.op=="verify" && jsonReq.jwt) || jsonReq.op=="getotk");

@@ -12,6 +12,8 @@
     "TKMLOGINAPP_URL": "https://login.tekmonks.com",
     "TKMLOGINAPP_DISABLE_MFA_KEY": "dma",
     "TKMLOGINAPP_DISABLE_MFA": false,
+    "USE_MONITORING": false,
+    "MONKVISION_FRONTEND_URL": "https://monkvision.tekmonks.com",
     
     "INSECURE_DEVELOPMENT_MODE": true,
     "VM_TYPE_VM": "vm",
