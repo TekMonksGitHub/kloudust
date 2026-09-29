@@ -2,7 +2,8 @@
 "rolelist": {
 "cloudadmin": [
     {"id": "cloudadmin", "label": "{{{i18n.CloudAdmin}}}", "logo": "img/cloudadmin.svg"},
-    {"id": "automations", "label": "{{{i18n.Automations}}}", "logo": "img/automations.svg"}
+    {"id": "automations", "label": "{{{i18n.Automations}}}", "logo": "img/automations.svg"},
+    {"id": "monitoring", "label": "{{{i18n.Monitoring}}}", "logo": "img/monitoring.svg"}
 ],
 "orgadmin": [
     {"id": "cloudadmin", "label": "{{{i18n.CloudAdmin}}}", "logo": "img/cloudadmin.svg"},
@@ -28,6 +29,7 @@
     "Projects": "Projects",
     "CloudAdmin": "Manage cloud",
     "Automations": "Automations",
+    "Monitoring": "Monitoring",
     "VirtualMachines": "Virtual machines",
     "Routers" : "Routers",
     "VirtualNetworks": "Virtual networks",
@@ -47,6 +49,7 @@
     "Projects": "Projects",
     "CloudAdmin": "Manage cloud",
     "Automations": "Automations",
+    "Monitoring": "Monitoring",
     "VirtualMachines": "Virtual machines",
     "Routers" : "Routers",
     "VirtualNetworks": "Virtual networks",
@@ -62,6 +65,7 @@
     "Projects": "Projects",
     "CloudAdmin": "Manage cloud",
     "Automations": "Automations",
+    "Monitoring": "Monitoring",
     "VirtualMachines": "Virtual machines",
     "Routers" : "Routers",
     "VirtualNetworks": "Virtual networks",
@@ -77,6 +81,7 @@
     "Projects": "Projects",
     "CloudAdmin": "Manage cloud",
     "Automations": "Automations",
+    "Monitoring": "Monitoring",
     "VirtualMachines": "Virtual machines",
     "Routers" : "Routers",
     "VirtualNetworks": "Virtual networks",

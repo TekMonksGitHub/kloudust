@@ -1,0 +1,5 @@
+{
+"id": "monitoring",
+"command": "monitoring",
+"type": "frontend_module"
+}
