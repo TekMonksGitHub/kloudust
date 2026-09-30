@@ -12,9 +12,12 @@
 	import {router} from "/framework/js/router.mjs";
 	import {loginmanager} from "./js/loginmanager.mjs"; 
  
-    const verifyResponse = await tkmlogin.verify("{{{APP_CONSTANTS.API_PATH}}}/login?op=verify&x-api-key={{{LOGIN_API_KEY}}}", 
-		router.decodeURL(window.location.href));
-	loginmanager.handleLoginResult(verifyResponse);
+	const resultURL = router.decodeURL(window.location.href);
+	const [verifyResponse, monkvisionResponse] = await Promise.all([
+		tkmlogin.verify("{{{APP_CONSTANTS.API_PATH}}}/login?op=verify&x-api-key={{{LOGIN_API_KEY}}}", resultURL),
+		APP_CONSTANTS.USE_MONITORING ? tkmlogin.verify(`${APP_CONSTANTS.MONKVISION_API_LOGIN}?op=verify`, resultURL) : undefined
+	]);
+	loginmanager.handleLoginResult(verifyResponse, monkvisionResponse);
 	</script>
 </head>
 </html>
