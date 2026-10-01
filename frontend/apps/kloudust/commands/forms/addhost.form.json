@@ -3,7 +3,7 @@
 "command": "addHost",
 "type": "kloudust_cmdline",
 "kloudust_cmdline_params": ["hostname", "hostip", "ostype", "adminid", "adminpass", "hostsshkey", "sshport", "cores", 
-    "memory", "disk", "netspeed", "processor", "processorarch", "sockets", "nochangepassword"],
+    "memory", "disk", "netspeed", "processor", "processorarch", "sockets", "nochangepassword", "encrypt_inter_host_traffic"],
 
 "title": "{{{i18n.RegisterHost}}}",
 
@@ -23,6 +23,7 @@
         "HostProcessor": "Processor in Vendor:Name:Model:Speed in Mhz format",
         "HostProcessorArchitecture": "Processor architecture",
         "HostSockets": "Number of sockets",
+        "EncryptInterHostTraffic": "Encrypt inter-host VxLAN traffic?",
         "SSHPort": "SSH port",
         "HostAddButtonLabel": "Add Host",
         "Advanced": "Optional",
@@ -44,6 +45,7 @@
         "HostProcessor": "Processor in Vendor:Name:Model:Speed in Mhz format",
         "HostProcessorArchitecture": "Processor architecture",
         "HostSockets": "Number of sockets",
+        "EncryptInterHostTraffic": "Encrypt inter-host VxLAN traffic?",
         "SSHPort": "SSH port",
         "HostAddButtonLabel": "Add Host",
         "Advanced": "Optional",
@@ -65,6 +67,7 @@
         "HostProcessor": "Processor in Vendor:Name:Model:Speed in Mhz format",
         "HostProcessorArchitecture": "Processor architecture",
         "HostSockets": "Number of sockets",
+        "EncryptInterHostTraffic": "Encrypt inter-host VxLAN traffic?",
         "SSHPort": "SSH port",
         "HostAddButtonLabel": "Add Host",
         "Advanced": "Optional",
@@ -86,6 +89,7 @@
         "HostProcessor": "Processor in Vendor:Name:Model:Speed in Mhz format",
         "HostProcessorArchitecture": "Processor architecture",
         "HostSockets": "Number of sockets",
+        "EncryptInterHostTraffic": "Encrypt inter-host VxLAN traffic?",
         "SSHPort": "SSH port",
         "HostAddButtonLabel": "Add Host",
         "Advanced": "Optional",
@@ -124,7 +128,9 @@
     {"id": "processorarch", "type": "text", "placeholder": "{{{i18n.HostProcessorArchitecture}}}", "pattern":"\\s*[A-Za-z0-9]+\\s*"},
     {"id": "sockets", "type": "number", "placeholder": "{{{i18n.HostSockets}}}", "pattern":"\\s*[0-9]+\\s*"},
     {"id": "nochangepassword", "multioption": true, "type": "select", "label": "{{{i18n.HostChangeAdminPassword}}}", 
-        "options":[{"value":"change", "label":"Yes"}, {"value":"nochange", "label":"No"}]}
+        "options":[{"value":"change", "label":"Yes"}, {"value":"nochange", "label":"No"}]},
+    {"id": "encrypt_inter_host_traffic", "multioption": true, "type": "select", "label": "{{{i18n.EncryptInterHostTraffic}}}",
+        "options":[{"value":"false", "label":"No"}, {"value":"true", "label":"Yes"}]}
     ],
 
     "submitlabel": "{{{i18n.HostAddButtonLabel}}}"

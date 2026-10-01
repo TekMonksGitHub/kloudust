@@ -112,16 +112,17 @@ exports.expandVnetToHost = async function (vnetName, hostInfoOrHostname, console
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
+        for (const peerHostInfo of peerHostInfos) if (!await _configureVxLANIPSec(peerHostInfo, hostInfo, consoleHandlers)) return false;
         if (!(await dbAbstractor.addVnetResource(vnetName, hostInfo.hostname, VNET_HOST_RELATION))) {
             consoleHandlers.LOGERROR(`Database relationship error adding host ${hostInfo.hostname} to Vnet ${vnetName}.`);
-            exports.deleteVnetFromHost(vnetNameOrRecord, hostInfo, consoleHandlers, true);  // no need to await as this is cleanup
+            exports.deleteVnetFromHost(vnetName, hostInfo, consoleHandlers, true);  // no need to await as this is cleanup
             return false;
         }
 
         for (const peerHostInfo of peerHostInfos.filter(peerHostInfoThis => hostInfo.hostname != peerHostInfoThis.hostname)) {
-            if (!await exports.runAddVxLANPeers(vnetName, vnetRecord.vnetnum, [hostInfo.hostaddress], peerHostInfo, consoleHandlers)) {
+            if (!await exports.runAddVxLANPeers(vnetName, vnetRecord.vnetnum, [hostInfo.hostaddress], peerHostInfo, consoleHandlers) || !await _configureVxLANIPSec(hostInfo, peerHostInfo, consoleHandlers)) {
                 consoleHandlers.LOGERROR(`Vnet peer modification error for host ${peerHostInfo.hostname} for Vnet ${vnetName}.`);
-                exports.deleteVnetFromHost(vnetNameOrRecord, hostInfo, consoleHandlers, true);  // no need to await as this is cleanup
+                exports.deleteVnetFromHost(vnetName, hostInfo, consoleHandlers, true);  // no need to await as this is cleanup
                 return false;
             }
         }
@@ -151,7 +152,7 @@ exports.deleteVnetFromHost = async function (vnetNameOrRecord, hostInfo, console
         return true;  // already not on this host
     } else consoleHandlers.LOGINFO(`Vnet ${vnetName} being removed from the host ${hostInfo.hostname}`);
 
-    if (!nodbupdate) if (!(await dbAbstractor.deleteVnetResource(vnetName, hostInfo.hostname, exports.VNET_HOST_TYPE))) {
+    if (!nodbupdate) if (!(await dbAbstractor.deleteVnetResource(vnetName, hostInfo.hostname, VNET_HOST_RELATION))) {
         consoleHandlers.LOGERROR(`Database relationship error removing host ${hostInfo.hostname} to Vnet ${vnetName}.`);
         return false;
     }
@@ -168,13 +169,20 @@ exports.deleteVnetFromHost = async function (vnetNameOrRecord, hostInfo, console
     }
     const results = await xforge(xforgeArgs);
 
-    if (!nopeerupdate) {
-        const peerHostInfos = await _getHostInfoObjects(vnetResources);
-        if (results.result) {
-            for (const peerHostInfo of peerHostInfos.filter(peerHostInfoThis => peerHostInfoThis.hostname != hostnameThis))
-                if (!await exports.runDeleteVxLANPeers(vnetName, vnetRecord.vnetnum, [hostInfo.hostaddress], peerHostInfo, consoleHandlers))
-                    consoleHandlers.LOGERROR(`Vnet peer modification error for host ${hostname} for Vnet ${vnetName}.`);
-        }
+    const peerHostInfos = await _getHostInfoObjects(vnetResources);
+    const peers = peerHostInfos.filter(peerHostInfoThis => peerHostInfoThis.hostname != hostInfo.hostname);
+    // IPsec connection is per host pair, so keep it if the pair still shares another Vnet
+    const thisHostVnets = (await dbAbstractor.getVnetsForResource(hostInfo.hostname, VNET_HOST_RELATION)||[])
+        .filter(vnet => !vnet.endsWith("_"+vnetName));
+    const _sharesOtherVnet = async peerHostInfo => (await dbAbstractor.getVnetsForResource(peerHostInfo.hostname, 
+        VNET_HOST_RELATION)||[]).some(vnet => thisHostVnets.includes(vnet));
+    for (const peerHostInfo of peers) if (!await _sharesOtherVnet(peerHostInfo))
+        if (!await _removeVxLANIPSec(peerHostInfo, hostInfo, consoleHandlers)) consoleHandlers.LOGERROR("Vnet IPsec removal error for host "+hostInfo.hostname+".");
+    if (!nopeerupdate && results.result) for (const peerHostInfo of peers) {
+        if (!await exports.runDeleteVxLANPeers(vnetName, vnetRecord.vnetnum, [hostInfo.hostaddress], peerHostInfo, consoleHandlers))
+            consoleHandlers.LOGERROR(`Vnet peer modification error for host ${peerHostInfo.hostname} for Vnet ${vnetName}.`);
+        if (!await _sharesOtherVnet(peerHostInfo) && !await _removeVxLANIPSec(hostInfo, peerHostInfo, consoleHandlers)) 
+            consoleHandlers.LOGERROR("Vnet IPsec removal error for host "+peerHostInfo.hostname+".");
     }
 
     return results.result;
@@ -238,6 +246,42 @@ async function _runModifyVxLANPeers(vlan_name, vlan_num, peers, hostInfo, consol
     }
     const results = await xforge(xforgeArgs);
     return results.result;
+}
+
+async function _configureVxLANIPSec(peerHostInfo, hostInfo, consoleHandlers) {
+    if (!hostInfo.encryptinterhosttraffic || !peerHostInfo.encryptinterhosttraffic) {
+        if (hostInfo.encryptinterhosttraffic || peerHostInfo.encryptinterhosttraffic) consoleHandlers.LOGWARN(
+            `VxLAN traffic between ${hostInfo.hostname} and ${peerHostInfo.hostname} is NOT encrypted, as encryption is not enabled on both hosts.`);
+        return true;
+    }
+    const peerHostAddress = peerHostInfo.hostaddress;
+    const psk = KLOUD_CONSTANTS.CONF.INTER_HOST_TRAFFIC_PSK;
+    if (!psk) {consoleHandlers.LOGERROR("INTER_HOST_TRAFFIC_PSK is not configured."); return false;}
+    const xforgeArgs = {
+        colors: KLOUD_CONSTANTS.COLORED_OUT,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
+        console: consoleHandlers,
+        other: [
+            hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
+            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/configureVxLANIPSec.sh`,
+            peerHostAddress, Buffer.from(psk).toString("base64")
+        ]
+    };
+    return (await xforge(xforgeArgs)).result;
+}
+
+async function _removeVxLANIPSec(peerHostInfo, hostInfo, consoleHandlers) {
+    if (!hostInfo.encryptinterhosttraffic || !peerHostInfo.encryptinterhosttraffic) return true;
+    const xforgeArgs = {
+        colors: KLOUD_CONSTANTS.COLORED_OUT,
+        file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
+        console: consoleHandlers,
+        other: [
+            hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
+            `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/removeVxLANIPSec.sh`, peerHostInfo.hostaddress
+        ]
+    };
+    return (await xforge(xforgeArgs)).result;
 }
 
 async function _getPeerHostAddresses(hostInfos) {

@@ -22,5 +22,6 @@
     "VCPU_TO_PHYSICAL_CPU_FACTOR" : 8,
     "VMEM_TO_PHYSICAL_MEM_FACTOR" : 1.5,
     "DISABLE_DUPLICATE_REQUEST_CHECK": false,
+    "INTER_HOST_TRAFFIC_PSK": "_kloudust_host_inter_traffic_encryption_key_",
     "LOG_REMOTE_SSH_FILES": true
 }

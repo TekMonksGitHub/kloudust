@@ -10,6 +10,7 @@
  *  speed in bytes per second, 11 - processor in Vendor:ProcessorFamily:Model format, 
  *  12 - processor architecture,  14 - number of sockets, 
  *  14 - optional - if set to nochange the host password is not changed
+ *  15 - optional - encrypt inter-host traffic
  * 
  * (C) 2020 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
@@ -31,7 +32,7 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_cloud_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
 
     const [hostname, hostip, ostype, adminid, adminpass, hostsshkey, oldsshport_raw, cores, memory, disk, netspeed, 
-        processor, processorarchitecture, sockets, nochangepassword] = [...params];
+        processor, processorarchitecture, sockets, nochangepassword="", encrypt_inter_host_traffic=false] = [...params];
     const oldsshport = oldsshport_raw && oldsshport_raw.trim() != "" ? oldsshport_raw : 22;
     const newsshport = Math.floor(Math.random() * (KLOUD_CONSTANTS.CONF.SSH_RANGE.MAX - KLOUD_CONSTANTS.CONF.SSH_RANGE.MIN + 1) + KLOUD_CONSTANTS.CONF.SSH_RANGE.MIN);
 
@@ -43,6 +44,11 @@ module.exports.exec = async function(params) {
         params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error);
     }
 
+    const encryptInterHostTraffic = String(encrypt_inter_host_traffic).toLowerCase() == "true";
+    if (encryptInterHostTraffic && !KLOUD_CONSTANTS.CONF.INTER_HOST_TRAFFIC_PSK) {
+        const error = "INTER_HOST_TRAFFIC_PSK must be configured before enabling inter-host traffic encryption.";
+        params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error);
+    }
     const newPassword = nochangepassword.toLowerCase() == "nochange" ? adminpass : cryptoMod.randomBytes(32).toString("hex");
     const agentconfig = xforge_module.getAgentConfig(hostip, adminid, newPassword, newsshport);
     const xforgeArgs = {
@@ -52,7 +58,8 @@ module.exports.exec = async function(params) {
         other: [
             hostip, adminid, adminpass, hostsshkey, oldsshport,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/addHost.sh`,
-            newPassword, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, newsshport, agentconfig.port, vnet.KD_DEFAULT_HOST_NETWORK
+            newPassword, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, newsshport, agentconfig.port, vnet.KD_DEFAULT_HOST_NETWORK,
+            encryptInterHostTraffic, Buffer.from(KLOUD_CONSTANTS.CONF.INTER_HOST_TRAFFIC_PSK||"").toString("base64")
         ],
         agent_config: agentconfig
     }
@@ -72,7 +79,7 @@ module.exports.exec = async function(params) {
 
         if (await dbAbstractor.addHostToDB(hostname, hostip, ostype.toLowerCase(), adminid, newPassword, 
             hostsshkey, newsshport, realCores, realMemory, realDisk, realNetspeed, realProcessor, 
-            realProcessorArchitecture, realSockets)) return {result: true, stdout: scriptOutChunks[0], 
+            realProcessorArchitecture, realSockets, encryptInterHostTraffic)) return {result: true, stdout: scriptOutChunks[0], 
                 out: scriptOutChunks[0], err: results.stderr, stderr: results.stderr}; 
         else {
             _showError("Database error in adding the host.", hostip, newPassword, adminid, adminpass, oldsshport, newsshport, params.consoleHandlers||KLOUD_CONSTANTS.LOG); 

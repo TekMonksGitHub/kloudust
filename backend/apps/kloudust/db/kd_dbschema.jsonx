@@ -34,7 +34,7 @@
         type varchar not null, rootid varchar not null, rootpw varchar not null, \
         hostkey varchar not null, port integer default 22 not null, cores integer not null, \
         memory integer not null, disk integer not null, networkspeed integer not null, processor varchar not null, \
-        processorarchitecture varchar not null, sockets integer not null, synctimestamp integer default 0, \
+        processorarchitecture varchar not null, sockets integer not null, encryptinterhosttraffic integer default 0, synctimestamp integer default 0, \
         timestamp integer default (cast(strftime('%s','now') || substr(strftime('%f','now'),4) as integer)), \
         org varchar default '*', projectid varchar default '*')",
 

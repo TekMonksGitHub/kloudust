@@ -30,7 +30,7 @@ echoerr() { echo "$@" 1>&2; }
 
 function exitFailed() {
     echo Failed.
-    rm $VXLAN_BOOT_SCRIPT
+    rm -f "$VXLAN_BOOT_SCRIPT"
     exit 1
 }
 
@@ -55,7 +55,7 @@ echo "MTU set for $DEFAULT_ETH to $DEFAULT_ETH_MTU"
 # the virtual network and this is the only important step. Rest should work if this works.
 #########################################################################################################
 if [ ! "`ip link | grep "$VLAN_NAME":`" ]; then                                  # this creates the VxLAN to match VLAN name 
-    if ! ip link add $VLAN_NAME type vxlan id $VLAN_ID dev $DEFAULT_ETH dstport 0; then exitFailed; fi 	
+    if ! ip link add $VLAN_NAME type vxlan id $VLAN_ID dev $DEFAULT_ETH dstport 8472; then exitFailed; fi 	
     echo Created a new VxLAN $VLAN_NAME with ID $VLAN_ID and VTeP $DEFAULT_ETH
 else
     echo Skipped creating VxLAN $VLAN_NAME as it already exists

@@ -16,6 +16,7 @@ AGENT_PORT=${INCOMING_AGENT_PORT:-24}
 DEFAULT_KD_NET_IN={5}
 DEFAULT_KD_NET=${DEFAULT_KD_NET_IN:-kddefault}
 DEFAULT_KD_NET_BRIDGE="${DEFAULT_KD_NET}_br"
+ENCRYPT_INTER_HOST_TRAFFIC={6}
 
 function exitFailed() {
     echo Failed
@@ -70,6 +71,7 @@ if [ -f "`which yum`" ]; then
     if ! sudo yum -y install fail2ban; then exitFailed; fi
     if ! sudo yum -y install sshpass; then exitFailed; fi
     if ! sudo yum -y install jq; then exitFailed; fi
+    if [ "$ENCRYPT_INTER_HOST_TRAFFIC" == "true" ] && ! sudo yum -y install strongswan; then exitFailed; fi
     if ! sudo yum -y install qemu-kvm libvirt virt-top bridge-utils libguestfs-tools virt-install tuned genisoimage; then exitFailed; fi
     if ! sudo systemctl stop firewalld; then exitFailed; fi
     if ! sudo systemctl disable firewalld; then exitFailed; fi
@@ -79,6 +81,7 @@ else
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install fail2ban; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install sshpass; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install jq; then exitFailed; fi
+    if [ "$ENCRYPT_INTER_HOST_TRAFFIC" == "true" ] && ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install strongswan; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install net-tools iptables-persistent; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils virtinst libosinfo-bin guestfs-tools tuned genisoimage; then exitFailed; fi
     # Remove snapd on Ububtu as it opens outgoing connections to the snap store
@@ -276,6 +279,13 @@ if ! sudo nft add rule inet kdhostfirewall input ct state established,related ac
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $NEW_SSH_PORT accept; then exitFailed; fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport $AGENT_PORT accept; then exitFailed; fi          #Agent port
 if ! sudo nft add rule inet kdhostfirewall input udp dport 8472 accept; then exitFailed; fi   # VxLAN port
+if [ "$ENCRYPT_INTER_HOST_TRAFFIC" == "true" ]; then
+    if ! sudo nft add rule inet kdhostfirewall input udp dport 500 accept; then exitFailed; fi
+    if ! sudo nft add rule inet kdhostfirewall input udp dport 4500 accept; then exitFailed; fi
+    if ! sudo nft add rule inet kdhostfirewall input ip protocol esp accept; then exitFailed; fi
+    if [ -f "`which yum 2>/dev/null`" ]; then SWAN_SVC=strongswan; else SWAN_SVC=strongswan-starter; fi
+    if ! sudo systemctl enable --now $SWAN_SVC; then exitFailed; fi
+fi
 if ! sudo nft add rule inet kdhostfirewall input tcp dport 49152-49215 accept; then exitFailed; fi  # Migration port range
 if ! sudo nft add chain inet kdhostfirewall input { policy drop\; }; then exitFailed; fi
 
