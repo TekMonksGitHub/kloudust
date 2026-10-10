@@ -52,5 +52,12 @@ module.exports.exec = async function(params) {
         ]
     }
 
-    return await xforge(xforgeArgs);
+    const results = await xforge(xforgeArgs);
+    if (results.result && snapshotInfo.extrainfo) {
+        const snapshotDisks = JSON.parse(snapshotInfo.extrainfo).map(disk => ({...disk, attached: true}));
+        vm.disks = [...snapshotDisks, ...vm.disks.filter(disk => !snapshotDisks.some(snapshotDisk => snapshotDisk.diskname == disk.diskname))];
+        await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.arch,
+            vm.os, vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, vm.ips);
+    }
+    return results;
 }
