@@ -21,7 +21,9 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
 
     const [vm_name_raw, snapshot_name_in] = [...params]; 
-    const snapshot_name = snapshot_name_in||`${vm_name}_snapshot_${Date.now()}`, vm_name = createVM.resolveVMName(vm_name_raw);
+    const vm_name = createVM.resolveVMName(vm_name_raw), snapshot_name = snapshot_name_in?.trim()||`snapshot_${Date.now()}`;
+    if (!/^[\w-]+$/.test(snapshot_name)) {
+        const error = "Snapshot name can only contain letters, numbers, _ and -"; params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error); }
 
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
@@ -42,7 +44,8 @@ module.exports.exec = async function(params) {
 
     const results = await xforge(xforgeArgs);
     if (results.result) {
-        if (await dbAbstractor.addOrUpdateSnapshot(vm_name, snapshot_name)) return results;
+        const disks = JSON.stringify(vm.disks.filter(disk => disk.attached !== false));
+        if (await dbAbstractor.addOrUpdateSnapshot(vm_name, snapshot_name, disks)) return results;
         else {params.consoleHandlers.LOGERROR("DB failed"); return {...results, result: false};}
     } else return results;
 }

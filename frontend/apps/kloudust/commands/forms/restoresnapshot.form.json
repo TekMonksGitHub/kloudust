@@ -15,7 +15,8 @@
         "FieldValidationErrorGeneric": "Validation error",
         "SnapshotRestoreSubmitLabel": "Restore",
         "SnapshotRestoreAutoStartPostRestore": "Auto restart VM post restoration",
-        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds"
+        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds",
+        "RestoreSnapshotAdvanced": "Advanced"
     },
     "hi": {
         "SnapshotRestoreTitle": "Restore Snapshot",
@@ -25,7 +26,8 @@
         "FieldValidationErrorGeneric": "Validation error",
         "SnapshotRestoreSubmitLabel": "Restore",
         "SnapshotRestoreAutoStartPostRestore": "Auto restart VM post restoration",
-        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds"
+        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds",
+        "RestoreSnapshotAdvanced": "Advanced"
     },
     "ja": {
         "SnapshotRestoreTitle": "Restore Snapshot",
@@ -35,7 +37,8 @@
         "FieldValidationErrorGeneric": "Validation error",
         "SnapshotRestoreSubmitLabel": "Restore",
         "SnapshotRestoreAutoStartPostRestore": "Auto restart VM post restoration",
-        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds"
+        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds",
+        "RestoreSnapshotAdvanced": "Advanced"
     },
     "zh": {
         "SnapshotRestoreTitle": "Restore Snapshot",
@@ -45,7 +48,8 @@
         "FieldValidationErrorGeneric": "Validation error",
         "SnapshotRestoreSubmitLabel": "Restore",
         "SnapshotRestoreAutoStartPostRestore": "Auto restart VM post restoration",
-        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds"
+        "SnapshotRestoreVMShutdownWait": "Shutdown wait for VM in seconds",
+        "RestoreSnapshotAdvanced": "Advanced"
     }
 },
 
