@@ -59,5 +59,6 @@ module.exports.exec = async function(params) {
         await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.arch,
             vm.os, vm.cpus, vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, vm.ips);
     }
+    if (results.result && start?.trim().toLowerCase() == "true") await dbAbstractor.setVMPowerState(vm.name, CMD_CONSTANTS.VM_POWER_STATES.BOOTING);
     return results;
 }
