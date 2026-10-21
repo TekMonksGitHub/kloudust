@@ -1531,6 +1531,28 @@ exports.removeResourceVnetIP = async function(resource_name, vnet_name, ip, rela
 }
 
 /**
+ * Removes the given IP from VM Vnet
+ * @param {string} vm_name The VM name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ip IP
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeVMVnetIP = async (vm_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeResourceVnetIP(vm_name, vnet_name, ip, 'vmvnetip', project, org);
+
+/**
+ * REmoves the given IP from Router Vnet
+ * @param {string} router_name The router name
+ * @param {string} vnet_name The Vnet name
+ * @param {string} ip IP
+ * @param {string} project The project, if skipped is auto picked from the environment
+ * @param {string} org The org, if skipped is auto picked from the environment
+ * @returns true on success or false on failure
+ */
+exports.removeRouterVnetIP = async (router_name, vnet_name, ip, project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org()) => exports.removeResourceVnetIP(router_name, vnet_name, ip, 'routervnetip', project, org);
+
+/**
  * Removes the given IP from lb Vnet
  * @param {string} lb_name The lb name
  * @param {string} vnet_name The Vnet name
