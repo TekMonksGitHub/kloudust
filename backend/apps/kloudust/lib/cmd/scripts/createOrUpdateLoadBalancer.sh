@@ -34,12 +34,12 @@ fi
 if ! ip netns exec "${LB_NAME}" ip link set lo up; then exitFailed; fi
 
 #setup the nat rule for the load balancer namespace
-if ! ip netns exec "${LB_NAME}" nft list table ip ipvs_nat >/dev/null 2>&1; then
-    if ! ip netns exec "${LB_NAME}" nft add table ip ipvs_nat; then exitFailed; fi
+if ! ip netns exec "${LB_NAME}" nft list table ip iplb_nat >/dev/null 2>&1; then
+    if ! ip netns exec "${LB_NAME}" nft add table ip iplb_nat; then exitFailed; fi
 fi
 
-if ! ip netns exec "${LB_NAME}" nft list chain ip ipvs_nat postrouting >/dev/null 2>&1; then
-    if ! ip netns exec "${LB_NAME}" nft add chain ip ipvs_nat postrouting "{ type nat hook postrouting priority srcnat ; }"; then exitFailed; fi
+if ! ip netns exec "${LB_NAME}" nft list chain ip iplb_nat postrouting >/dev/null 2>&1; then
+    if ! ip netns exec "${LB_NAME}" nft add chain ip iplb_nat postrouting "{ type nat hook postrouting priority srcnat ; }"; then exitFailed; fi
 fi
 
 if ! ip netns exec "${LB_NAME}" sysctl -w net.ipv4.vs.conntrack=1; then exitFailed; fi
@@ -128,7 +128,7 @@ while read -r entry; do
     if [ $DEFAULT_GATEWAY == "true" ]; then
         if ! ip netns exec "${LB_NAME}" ip route replace default via "${GATEWAY_IP}" dev "${VETH_NS}"; then exitFailed; fi
     fi
-    if ! ip netns exec "${LB_NAME}" nft add rule ip ipvs_nat postrouting oifname "\"${VETH_NS}\"" masquerade; then exitFailed; fi
+    if ! ip netns exec "${LB_NAME}" nft add rule ip iplb_nat postrouting oifname "\"${VETH_NS}\"" masquerade; then exitFailed; fi
 
 done < <(jq -c '.[]' <<< "${VNET_GATEWAYS}")
 
