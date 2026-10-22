@@ -6,7 +6,16 @@ function exitFailed() {
 }
 
 printf "Cloning VM {1} to {2}\n"
-if ! sudo virt-clone --original {1} --auto-clone --name {2}; then exitFailed; fi
+CLONE_FILES=()
+for SRC in `sudo virsh domblklist {1} --details | awk '$2=="disk" {print $4}'`; do
+    if [[ "$SRC" != "/kloudust/disks/{1}."* && "$SRC" != "/kloudust/disks/{1}_"* ]]; then
+        echo Error!! Disk $SRC is not named after {1}, unable to name its clone.
+        exitFailed
+    fi
+    CLONE_FILES+=(--file "/kloudust/disks/{2}${SRC#"/kloudust/disks/{1}"}")
+done
+if [ ${#CLONE_FILES[@]} -eq 0 ]; then echo Error!! No disks found for {1}.; exitFailed; fi
+if ! sudo virt-clone --original {1} --name {2} "${CLONE_FILES[@]}"; then exitFailed; fi
 
 printf "\n\nResetting clone identity\n"
 if ! sudo virt-sysprep --domain {2} --hostname "{3}" \
