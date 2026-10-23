@@ -36,6 +36,12 @@ exports.exec = async function(params) {
         params.consoleHandlers.LOGERROR(`VM ${vm_name} deletion from Vnet ${vnet_name} failed as Vnet record not found. Aborting`); return CMD_CONSTANTS.FALSE_RESULT();
     }
 
+    const assignedVnetIPs = await dbAbstractor.getVMVnetIP(vm_name, vnet_name);
+    if (assignedVnetIPs && assignedVnetIPs.length) {
+        errorMsg = `Cannot detach VNet ${vnet_name_raw} from VM ${vm_name_raw}: IP address(es) ${assignedVnetIPs.join(", ")} still assigned.\nUnassign all VNet IP addresses first.`;
+        params.consoleHandlers.LOGERROR(errorMsg); return {...CMD_CONSTANTS.FALSE_RESULT(), err: errorMsg};
+    }
+
     const xforgeArgs = {
         colors: KLOUD_CONSTANTS.COLORED_OUT, 
         file: `${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/samples/remoteCmd.xf.js`,
