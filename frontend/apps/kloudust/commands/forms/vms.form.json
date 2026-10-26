@@ -21,7 +21,7 @@
 
     "VMSFirewall": "Firewall",
     "VMSAssignIP": "Assign IP",
-    "VMSVNet": "Virtual Network",
+    "VMSAttachVNet": "Attach VNet",
     "VMSDetachVNet": "Detach VNet",
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
@@ -53,7 +53,7 @@
 
     "VMSFirewall": "Firewall",
     "VMSAssignIP": "Assign IP",
-    "VMSVNet": "Virtual Network",
+    "VMSAttachVNet": "Attach VNet",
     "VMSDetachVNet": "Detach VNet",
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
@@ -85,7 +85,7 @@
 
     "VMSFirewall": "Firewall",
     "VMSAssignIP": "Assign IP",
-    "VMSVNet": "Virtual Network",
+    "VMSAttachVNet": "Attach VNet",
     "VMSDetachVNet": "Detach VNet",
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
@@ -117,7 +117,7 @@
 
     "VMSFirewall": "Firewall",
     "VMSAssignIP": "Assign IP",
-    "VMSVNet": "Virtual Network",
+    "VMSAttachVNet": "Attach VNet",
     "VMSDetachVNet": "Detach VNet",
     "VMSPowerOpVM": "Power",
     "VMSDelete": "Delete",
@@ -141,7 +141,7 @@
             {"id": "getstatusvm", "label": "{{{i18n.VMSGetStatus}}}", "logo": "img/monitor.svg"},
             {"id": "firewallvm", "label": "{{{i18n.VMSFirewall}}}", "logo": "img/firewall.svg"},
             {"id": "assignipvm", "label": "{{{i18n.VMSAssignIP}}}", "logo": "img/assignipvm.svg"},
-            {"id": "vnetvm", "label": "{{{i18n.VMSVNet}}}", "logo": "img/vnet.svg"},
+            {"id": "vnetvm", "label": "{{{i18n.VMSAttachVNet}}}", "logo": "img/vnet.svg"},
             {"id": "detachvnetvm", "label": "{{{i18n.VMSDetachVNet}}}", "logo": "img/vnet.svg"},
             {"id": "poweropvm", "label": "{{{i18n.VMSPowerOpVM}}}", "logo": "img/poweropvm.svg"},
             {"id": "deletevm", "label": "{{{i18n.VMSDelete}}}", "logo": "img/deletevm.svg"},
