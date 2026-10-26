@@ -8,32 +8,32 @@
     
     "i18n": {
         "en": {
-            "VNetVMTitle": "Change virtual machine network",
-            "VMVnetDescription": "Change virtual machine network. Complete the required fields and then submit to change the virtual machine network.",
+            "VNetVMTitle": "Attach virtual network",
+            "VMVnetDescription": "Attach a virtual network to this virtual machine. If the network doesn't exist, it is created.",
             "VMVnetName": "Virtual network name",
             "VMName": "Virtual machine name",
             "FieldValidationErrorGeneric": "Validation error",
             "VNetVMSubmitLabel": "Submit"
         },
         "hi": {
-            "VNetVMTitle": "Change virtual machine network",
-            "VMVnetDescription": "Change virtual machine network. Complete the required fields and then submit to change the virtual machine network.",
+            "VNetVMTitle": "Attach virtual network",
+            "VMVnetDescription": "Attach a virtual network to this virtual machine. If the network doesn't exist, it is created.",
             "VMVnetName": "Virtual network नाम",
             "VMName": "Virtual machine name",
             "FieldValidationErrorGeneric": "Validation error",
             "VNetVMSubmitLabel": "Submit"
         },
         "ja": {
-            "VNetVMTitle": "Change virtual machine network",
-            "VMVnetDescription": "Change virtual machine network. Complete the required fields and then submit to change the virtual machine network.",
+            "VNetVMTitle": "Attach virtual network",
+            "VMVnetDescription": "Attach a virtual network to this virtual machine. If the network doesn't exist, it is created.",
             "VMVnetName": "Virtual network名",
             "VMName": "Virtual machine name",
             "FieldValidationErrorGeneric": "Validation error",
             "VNetVMSubmitLabel": "Submit"
         },
         "zh": {
-            "VNetVMTitle": "Change virtual machine network",
-            "VMVnetDescription": "Change virtual machine network. Complete the required fields and then submit to change the virtual machine network.",
+            "VNetVMTitle": "Attach virtual network",
+            "VMVnetDescription": "Attach a virtual network to this virtual machine. If the network doesn't exist, it is created.",
             "VMVnetName": "Virtual network姓名",
             "VMName": "Virtual machine name",
             "FieldValidationErrorGeneric": "Validation error",
