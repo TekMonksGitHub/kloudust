@@ -2,7 +2,7 @@
 "id": "createwindowsvdi",
 "command": "createVM",
 "type": "kloudust_cmdline",
-"kloudust_cmdline_params": ["vm_name", "vm_description", "cores", "memory", "disk", "creation_image_name", 
+"kloudust_cmdline_params": ["vm_name", "vm_description", "cores", "memory", "disk", "vnet", "creation_image_name",
     "cloudinit_data", "force_overwrite", "maxcores", "maxmemory", "additional_params", "vmtype", "no_qemu_agent"],
 
 "title": "{{{i18n.VMCreateTitle}}}",
@@ -111,8 +111,8 @@
 
     "required_label": "{{{i18n.Required}}}",
     "required_fields": [
-    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true, 
-        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true,
+        "pattern":"\\s*[A-Za-z0-9]+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
     {"id": "vm_description", "type": "text", "placeholder": "{{{i18n.VMDescription}}}", "required": true},
     {"id": "cores", "type": "number", "placeholder": "{{{i18n.VMCores}}}", "required": true, "min": 2,
         "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
@@ -124,6 +124,7 @@
         "pattern":"\\s*[A-Za-z0-9]+\\s*", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
     {"id": "adminpass", "type": "password", "placeholder": "{{{i18n.VMAdministratorPassword}}}", "required": true, 
         "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "vnet", "type": "hidden", "value": ""},
     {"id": "vmtype", "type": "hidden", "value": "windowsvdi"},
     {"id": "creation_image_name", "multioption": true, "type": "select", "label": "{{{i18n.VMImage}}}", 
         "options":[]}
