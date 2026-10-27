@@ -1,6 +1,10 @@
 {
     "DEBUG_MODE": true,
     "TEKMONKS_LOGIN_BACKEND": "https://login.tekmonks.com:8443",
+	"LOGIN_LISTENER_TIMEOUT": 10000,
+	"LOGIN_LISTENERS": [
+		{"name": "monkvision", "url": "https://monkvision.tekmonks.com/apps/monkvision/login?op=verify", "required": false}
+	],
 	"HOST_TYPES": ["rhel9", "rhel9_compatible", "ubuntu22"],
     "OS_MAPPINGS": [],
     "INIT_MODULES": ["lib/dbAbstractor.js", "lib/jobs.js"],
