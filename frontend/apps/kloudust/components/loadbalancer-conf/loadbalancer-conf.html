@@ -1,0 +1,126 @@
+<!--
+/* 
+ * (C) 2026 TekMonks. All rights reserved.
+ * License: See enclosed license file.
+ */
+ -->
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: inherit;
+    }
+
+    select,
+    input {
+        background-color: inherit;
+        color: inherit;
+        border: none;
+        border-bottom: 1px solid;
+        padding: 0.2em 0em 0.2em 0.5em;
+        outline: none;
+    }
+
+    select option {
+        background-color: white;
+        color: black;
+    }
+
+    .section-title {
+        margin-top: 1.5em;
+        margin-bottom: 0.8em;
+        padding-bottom: 0.3em;
+    }
+
+    .row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+        gap: 1em;
+        margin-bottom: 1.5em;
+    }
+
+    .row > :last-child {
+        grid-column: 5;
+    }
+
+    .button-span {
+        display: flex;
+        min-width: 4em;
+        justify-content: space-between;
+        margin-left: 0.5em;
+        justify-self: end;
+    }
+
+    .roundbutton {
+        border: 1px solid black;
+        width: 1.4em;
+        height: 1.4em;
+        border-radius: 1.4em;
+        text-align: center;
+        font-size: 1em;
+        cursor: pointer;
+        line-height: 1.25em;
+    }
+
+    {{#style}}{{{.}}}{{/style}}
+</style>
+
+<div class="section-title">Connected Virtual Networks</div>
+<div id="vnetscontainer">
+</div>
+
+<template id="vnetrowtemplate">
+    <span id="vnetrow" class="row">
+        <select name="vnet" id="vnet" onchange="monkshu_env.components['loadbalancer-conf'].handleVnetChange(this.parentNode)">
+            <option value="">Select VNet</option>
+            {{#vnets}}
+            <option value="{{value}}">{{name}}</option>
+            {{/vnets}}
+        </select>
+        <input id="ip" type="text" placeholder="IP Address">
+        <span class="button-span">
+            <span class="roundbutton" onclick="monkshu_env.components['loadbalancer-conf'].addVnetRow(this.parentNode.parentNode)">+</span>
+            <span class="roundbutton" onclick="monkshu_env.components['loadbalancer-conf'].removeVnetRow(this.parentNode.parentNode)">-</span>
+        </span>
+    </span>
+</template>
+
+<div class="section-title">Frontend Configuration</div>
+<div class="row">
+    <select id="fe_vnet"
+        onchange="monkshu_env.components['loadbalancer-conf'].feVnetChanged(this)">
+        <option value="">VIP VNet</option>
+    </select>
+    <input id="fe_ip" type="text" placeholder="Virtual IP (VIP)" readonly>
+    <input id="fe_port" type="text" placeholder="Port">
+    <select id="fe_protocol">
+        <option value="tcp">TCP</option>
+        <option value="udp">UDP</option>
+    </select>
+    <select id="fe_scheduler">
+        <option value="rr">rr (Round Robin)</option>
+        <option value="wrr">wrr (Weighted RR)</option>
+        <option value="lc">lc (Least Conn)</option>
+        <option value="wlc">wlc (Weighted LC)</option>
+    </select>
+</div>
+
+<div class="section-title">Backend Real Servers</div>
+<div id="backendscontainer">
+</div>
+
+<template id="backendrowtemplate">
+    <span id="backendrow" class="row">
+        <input id="ip" type="text" placeholder="Real Server IP">
+        <input id="port" type="text" placeholder="Port (optional)">
+        <input id="weight" type="number" placeholder="Weight" value="1">
+        <span class="button-span">
+            <span class="roundbutton" onclick="monkshu_env.components['loadbalancer-conf'].addBackendRow(this.parentNode.parentNode)">+</span>
+            <span class="roundbutton" onclick="monkshu_env.components['loadbalancer-conf'].removeBackendRow(this.parentNode.parentNode)">-</span>
+        </span>
+    </span>
+</template>

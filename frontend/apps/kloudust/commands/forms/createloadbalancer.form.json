@@ -1,0 +1,75 @@
+{
+"id": "createloadbalancer",
+"command": "createOrUpdateLoadBalancer",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["lb_name", "lb_description", "lb_settings"],
+
+"title": "{{{i18n.LBTitle}}}",
+
+"i18n": {
+    "en": {
+        "LBTitle": "Create Load Balancer",
+        "LBDescription": "Create an IPVS Load Balancer.",
+        "LBDescriptionField": "Description",
+        "LBName": "Name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "LBCreateLabel": "Create"
+    },
+    "hi": {
+        "LBTitle": "Create Load Balancer",
+        "LBDescription": "Create an IPVS Load Balancer.",
+        "LBDescriptionField": "Description",
+        "LBName": "नाम",
+        "FieldValidationErrorGeneric": "Validation error",
+        "LBCreateLabel": "Create"
+    },
+    "ja": {
+        "LBTitle": "Create Load Balancer",
+        "LBDescription": "Create an IPVS Load Balancer.",
+        "LBDescriptionField": "Description",
+        "LBName": "名",
+        "FieldValidationErrorGeneric": "Validation error",
+        "LBCreateLabel": "Create"
+    },
+    "zh": {
+        "LBTitle": "Create Load Balancer",
+        "LBDescription": "Create an IPVS Load Balancer.",
+        "LBDescriptionField": "Description",
+        "LBName": "姓名",
+        "FieldValidationErrorGeneric": "Validation error",
+        "LBCreateLabel": "Create"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.LBDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "lb_name", "type": "text", "placeholder": "{{{i18n.LBName}}}", "required": true,
+        "pattern":"[0-9a-zA-Z]+", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}"},
+    {"id": "lb_description", "type": "text", "placeholder": "{{{i18n.LBDescriptionField}}}"},
+    {"id": "lb_settings", "type": "hidden", "value":"{}"},
+    {"id": "lbSettingsComponent", "inputtype": "loadbalancer-conf",
+        "style":"body{background-color: #4C4C4C; color: #DCDCDC} select option{background-color: #4c4c4cc9; color: #DCDCDC} input::placeholder{color: #DCDCDC} span.roundbutton{border: 1px solid #DCDCDC}"}
+    ],
+
+    "submitlabel": "{{{i18n.LBCreateLabel}}}",
+
+    "submit_javascript": [
+        "const form = arguments[1], shadowroot = form._form_shadowroot;",
+        "const retObject = arguments[0]||{};",
+        "retObject.lb_settings = JSON.stringify(JSON.stringify(shadowroot.querySelector('loadbalancer-conf').value));",
+        "return true;"
+    ],
+
+    "load_javascript": [
+        "const form = arguments[0] || {};",
+        "const vnets = await $$.libapimanager.rest(APP_CONSTANTS.API_KLOUDUSTCMD, 'POST', {",
+        "cmd: `listVnets`, ", "project: $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT)}, true);",
+        "form.required_fields[3].value = JSON.stringify({'vnets' : vnets.resources.map(v=>v.raw_name.includes('backbone') ? {name:'Public Vnet',value:'PUBLIC_VNET'} : {name:v.raw_name,value:v.raw_name})});",
+        "return form;"
+    ]
+}
+
+}
