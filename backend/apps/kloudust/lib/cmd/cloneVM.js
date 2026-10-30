@@ -28,6 +28,7 @@ module.exports.exec = async function(params) {
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {params.consoleHandlers.LOGUNAUTH(); return CMD_CONSTANTS.FALSE_RESULT();}
     const [vm_name_raw, cloned_vm_name_raw, number_of_clones_raw, hosting_project] = [...params];
     const number_of_clones = parseInt(number_of_clones_raw) || 1;
+    if (number_of_clones < 1) {params.consoleHandlers.LOGERROR("Number of clones must be 1 or more"); return CMD_CONSTANTS.FALSE_RESULT();}
     const vm_name = createVM.resolveVMName(vm_name_raw);
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
