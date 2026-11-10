@@ -20,6 +20,7 @@
 
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const createVM = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/createVM.js`);
+const vmRecovery = require(`${KLOUD_CONSTANTS.LIBDIR}/vmRecovery.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const {xforge} = require(`${KLOUD_CONSTANTS.THIRD_PARTY_DIR}/xforge/xforge`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
@@ -86,6 +87,7 @@ module.exports.exec = async function(params) {
 
         await dbAbstractor.addOrUpdateVMToDB(vm.name, vm.description, vm.hostname, vm.arch,
             vm.os, cores?cores:vm.cpus, memory?memory*1024*1024:vm.memory, vm.disks, vm.creationcmd, vm.name_raw, vm.vmtype, vm.ips);
+        await vmRecovery.saveVMMetadata(vm, hostInfo, params.consoleHandlers);
         if (restart?.toLowerCase() == "true") await dbAbstractor.setVMPowerState(vm.name, CMD_CONSTANTS.VM_POWER_STATES.BOOTING); 
     }
 
