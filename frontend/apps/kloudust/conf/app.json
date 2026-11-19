@@ -17,5 +17,6 @@
     
     "INSECURE_DEVELOPMENT_MODE": true,
     "VM_TYPE_VM": "vm",
-    "VM_TYPES_SERVICES": ["windowsvdi", "oracledbaas", "mariadbaas"]
+    "VM_TYPES_SERVICES": ["windowsvdi", "oracledbaas", "mariadbaas"],
+    "VNC_CONSOLE_ENABLED": true
 }

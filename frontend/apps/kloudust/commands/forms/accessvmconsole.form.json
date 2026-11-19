@@ -1,0 +1,74 @@
+{
+"id": "accessvmconsole",
+"command": "accessVMConsole",
+"type": "kloudust_cmdline",
+"kloudust_cmdline_params": ["vm_name"],
+
+"title": "{{{i18n.VMConsoleTitle}}}",
+
+"i18n": {
+    "en": {
+        "VMConsoleTitle": "Open the console of a virtual machine",
+        "VMConsoleDescription": "The console opens in a new window with a temporary password, and closes when you close that window.",
+        "VMName": "Virtual machine name",
+        "FieldValidationErrorGeneric": "Validation error",
+        "VMConsoleSubmitLabel": "Open console"
+    },
+    "hi": {
+        "VMConsoleTitle": "Open the console of a virtual machine",
+        "VMConsoleDescription": "The console opens in a new window with a temporary password, and closes when you close that window.",
+        "VMName": "वीएम नाम",
+        "FieldValidationErrorGeneric": "Validation error",
+        "VMConsoleSubmitLabel": "Open console"
+    },
+    "ja": {
+        "VMConsoleTitle": "Open the console of a virtual machine",
+        "VMConsoleDescription": "The console opens in a new window with a temporary password, and closes when you close that window.",
+        "VMName": "VM名",
+        "FieldValidationErrorGeneric": "Validation error",
+        "VMConsoleSubmitLabel": "Open console"
+    },
+    "zh": {
+        "VMConsoleTitle": "Open the console of a virtual machine",
+        "VMConsoleDescription": "The console opens in a new window with a temporary password, and closes when you close that window.",
+        "VMName": "虚拟机名称",
+        "FieldValidationErrorGeneric": "Validation error",
+        "VMConsoleSubmitLabel": "Open console"
+    }
+},
+
+"form": {
+    "description": "{{{i18n.VMConsoleDescription}}}",
+
+    "required_label": "{{{i18n.Required}}}",
+    "required_fields": [
+    {"id": "vm_name", "type": "text", "placeholder": "{{{i18n.VMName}}}", "required": true,
+        "pattern":"\\s[0-9a-zA-Z]+\\s", "validation_error": "{{{i18n.FieldValidationErrorGeneric}}}",
+        "value":"{{{APP_CONSTANTS.ENV._vms_form_data.name_raw}}}",
+        "readonly":"{{#APP_CONSTANTS.ENV._vms_form_data.name_raw}}true{{/APP_CONSTANTS.ENV._vms_form_data.name_raw}}"}
+    ],
+
+    "submitlabel": "{{{i18n.VMConsoleSubmitLabel}}}",
+
+    "submit_javascript": [
+        "const {vm_name} = arguments[0], cmdmanager = monkshu_env.apps[APP_CONSTANTS.APP_NAME].cmdmanager;",
+        "const project = $$.libsession.get(APP_CONSTANTS.ACTIVE_PROJECT, APP_CONSTANTS.DEFAULT_PROJECT);",
+        "const consoleWindow = window.open($$.librouter.encodeURL(APP_CONSTANTS.VNC_HTML), `kdconsole_${Date.now()}`, 'width=1024,height=800');",
+        "cmdmanager.closeForm();",
+        "if (!consoleWindow) cmdmanager.addAlert(Date.now(), `Console for ${vm_name} was blocked, please allow pop-ups for this site.`, true);",
+        "else {",
+        "    const access = cmdmanager.kdcmd('accessVMConsole', ['vm_name', 'operation'], {vm_name, operation: 'connect'}, project);",
+        "    APP_CONSTANTS.ENV[`_${consoleWindow.name}`] = access.then(result => ({...result, vm_name}));",
+        "    access.then(result => {",
+        "        if (!result?.result) {consoleWindow.close(); return;}",
+        "        const timer = setInterval(_ => {",
+        "            if (!consoleWindow.closed) return;",
+        "            clearInterval(timer); cmdmanager.kdcmd('accessVMConsole', ['vm_name', 'operation'], {vm_name, operation: 'close'}, project);",
+        "        }, 1000);",
+        "    });",
+        "}",
+        "return new Promise(_ => {});   // never settles, so form-runner does not also run the command"
+    ]
+}
+
+}

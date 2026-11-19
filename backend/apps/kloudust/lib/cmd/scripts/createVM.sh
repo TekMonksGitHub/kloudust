@@ -120,11 +120,11 @@ else
     DISK="$DISK",size=$DISK_SIZE
     BOOTCMD="--cdrom $INSTALL_PATH"
     CLOUD_INIT=""
-    ISO_VNC_ARGS="--graphics vnc,listen=0.0.0.0"
 fi
 
 
 if [[ "$OS_VARIANT" = win* ]]; then
+    VIDEO_MODEL=vga
     MAX_MEMORY=$(( MAX_MEMORY > MEMORY ? MAX_MEMORY : MEMORY ))
     MEMORY_ARGS="$MEMORY,maxMemory=$MAX_MEMORY,maxMemory.slots=16"
     CPU_MODEL_ARG="${CPU_MODEL_ARG:---cpu host-model},cell0.cpus=0-$(($MAX_VCPUS-1)),cell0.memory=$(($MEMORY*1024))"
@@ -150,10 +150,14 @@ if [[ "$OS_VARIANT" = win* ]]; then
         CLOUD_INIT=""
     fi
 else
+    VIDEO_MODEL=virtio
     WIN_DISK_ARGS=""
     WIN_KVM_ARGS=""
     MEMORY_ARGS="currentMemory=$MEMORY,maxmemory=$MAX_MEMORY"
 fi;
+
+# Placeholder password, it only enables VNC password auth - accessVMConsole sets the real one per session
+VNC_ARGS="--graphics vnc,listen=0.0.0.0,websocket=-1,password=$(od -An -tx1 -N4 /dev/urandom | tr -d ' \n')"
 
 QEMU_GUEST_AGENT="--channel unix,target_type=virtio,name=org.qemu.guest_agent.0"
 if [[ "$NO_GUEST_AGENT" = true ]]; then QEMU_GUEST_AGENT=""; fi
@@ -178,9 +182,9 @@ if ! virt-install --name $NAME --metadata name=$NAME --metadata title="$DESCRIPT
     --controller type=scsi,model=virtio-scsi \
     --noautoconsole \
     --virt-type kvm \
-    --video model=qxl,heads=1 \
+    --video model=$VIDEO_MODEL \
     $NETWORK_ARGS \
-    $ISO_VNC_ARGS \
+    $VNC_ARGS \
     $VIRT_INSTALL_PARAMS \
     $CPU_MODEL_ARG \
     $QEMU_GUEST_AGENT \
@@ -202,9 +206,9 @@ INSTALL="virt-install --name $NAME --metadata name=$NAME --metadata title=\"$DES
     --controller type=scsi,model=virtio-scsi \
     --noautoconsole \
     --virt-type kvm \
-    --video model=qxl,heads=1 \
+    --video model=$VIDEO_MODEL \
     $NETWORK_ARGS \
-    $ISO_VNC_ARGS \
+    $VNC_ARGS \
     $VIRT_INSTALL_PARAMS \
     $QEMU_GUEST_AGENT \
     $WIN_KVM_ARGS \
