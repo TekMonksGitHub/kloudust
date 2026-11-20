@@ -103,13 +103,15 @@ function _showError(message, hostip, newPassword, userid, oldPassword, oldsshpor
 }
 
 /**
- * Issues a server certificate for the given host, signed by the Kloudust CA. Creates the CA on first use.
+ * Issues a server certificate for the given host, signed by the Kloudust CA. Creates the CA and the
+ * console proxy's client certificate on first use.
  * @param {string} hostip The host's IP address
  * @returns {object} {cacert, cert, key} as base64 encoded PEMs, throws on failure
  */
 async function _issueKDServerCert(hostip) {
     const result = await serverutils.exec("bash", [`${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/issueKDServerCert.sh`,
-        `${KLOUD_CONSTANTS.CONFDIR}/kdca`, hostip, String(KLOUD_CONSTANTS.CONF.KD_CERT_VALIDITY||730)], "utf8");
+        `${KLOUD_CONSTANTS.CONFDIR}/kdca`, hostip, String(KLOUD_CONSTANTS.CONF.KD_CERT_VALIDITY||730),
+        `${CONSTANTS.LIBDIR}/crypt.js`], "utf8");
     if (!result.result) throw new Error(result.stderr || result.exception);
     const [cacert, cert, key] = result.stdout.trim().split("\n").slice(-3);
     return {cacert, cert, key};
