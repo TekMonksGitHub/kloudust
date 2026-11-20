@@ -6,6 +6,9 @@
 # {3} The new SSH port, defaults to 22 if not provided
 # {4} The agent port, defaults to 24 if not provided
 # {5} The default host network, defaults to kddefault if not provided
+# {8} The Kloudust CA certificate, base64 encoded PEM
+# {9} This host's server certificate, base64 encoded PEM
+# {10} This host's server private key, base64 encoded PEM
 
 NEW_PASSWORD="{1}"
 JSONOUT_SPLITTER="{2}"
@@ -17,6 +20,9 @@ DEFAULT_KD_NET_IN={5}
 DEFAULT_KD_NET=${DEFAULT_KD_NET_IN:-kddefault}
 DEFAULT_KD_NET_BRIDGE="${DEFAULT_KD_NET}_br"
 ENCRYPT_INTER_HOST_TRAFFIC={6}
+KD_CA_CERT="{8}"
+KD_SERVER_CERT="{9}"
+KD_SERVER_KEY="{10}"
 
 function exitFailed() {
     echo Failed
@@ -155,6 +161,19 @@ if [ -f "`which yum`" ]; then
 else 
     if ! sudo chgrp -R libvirt /kloudust/; then exitFailed; fi
 fi
+
+
+printf "\n\nInstalling the Kloudust server certificates\n"
+if [ -f "`which yum`" ]; then QEMU_GROUP=qemu; else QEMU_GROUP=kvm; fi
+if ! sudo mkdir -p /etc/pki/libvirt-vnc; then exitFailed; fi
+if ! sudo install -m 644 /dev/null /etc/pki/libvirt-vnc/ca-cert.pem; then exitFailed; fi
+if ! echo "$KD_CA_CERT" | sudo bash -c "base64 -d > /etc/pki/libvirt-vnc/ca-cert.pem"; then exitFailed; fi
+if ! sudo install -m 644 /dev/null /etc/pki/libvirt-vnc/server-cert.pem; then exitFailed; fi
+if ! echo "$KD_SERVER_CERT" | sudo bash -c "base64 -d > /etc/pki/libvirt-vnc/server-cert.pem"; then exitFailed; fi
+if ! sudo install -m 640 -g $QEMU_GROUP /dev/null /etc/pki/libvirt-vnc/server-key.pem; then exitFailed; fi
+if ! echo "$KD_SERVER_KEY" | sudo bash -c "base64 -d > /etc/pki/libvirt-vnc/server-key.pem"; then exitFailed; fi
+if ! sudo sed -i '/^\s*vnc_tls\s*=/d; /^\s*vnc_tls_x509_verify\s*=/d' /etc/libvirt/qemu.conf; then exitFailed; fi
+if ! printf "vnc_tls = 1\nvnc_tls_x509_verify = 1\n" | sudo tee -a /etc/libvirt/qemu.conf > /dev/null; then exitFailed; fi   # reboot applies it
 
 
 printf "\n\nAdding the default Kloudust network\n"

@@ -1,6 +1,7 @@
 # Logs
 **/logs
 backend/apps/kloudust/db/*.db
+backend/apps/kloudust/conf/kdca/
 
 # Dependency directories
 node_modules/

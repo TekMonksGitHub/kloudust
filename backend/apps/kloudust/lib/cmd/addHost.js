@@ -17,6 +17,7 @@
  */
 const cryptoMod = require("crypto");
 const vnet = require(`${KLOUD_CONSTANTS.LIBDIR}/vnet.js`);
+const serverutils = require(`${CONSTANTS.LIBDIR}/utils.js`);
 const roleman = require(`${KLOUD_CONSTANTS.LIBDIR}/roleenforcer.js`);
 const dbAbstractor = require(`${KLOUD_CONSTANTS.LIBDIR}/dbAbstractor.js`);
 const CMD_CONSTANTS = require(`${KLOUD_CONSTANTS.LIBDIR}/cmd/cmdconstants.js`);
@@ -49,6 +50,10 @@ module.exports.exec = async function(params) {
         const error = "INTER_HOST_TRAFFIC_PSK must be configured before enabling inter-host traffic encryption.";
         params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error);
     }
+    let kdServerCert; try {kdServerCert = await _issueKDServerCert(hostip);} catch (err) {
+        const error = `Unable to issue the server certificate for ${hostip}: ${err}`;
+        params.consoleHandlers.LOGERROR(error); return CMD_CONSTANTS.FALSE_RESULT(error);
+    }
     const newPassword = nochangepassword.toLowerCase() == "nochange" ? adminpass : cryptoMod.randomBytes(32).toString("hex");
     const agentconfig = xforge_module.getAgentConfig(hostip, adminid, newPassword, newsshport);
     const xforgeArgs = {
@@ -59,7 +64,8 @@ module.exports.exec = async function(params) {
             hostip, adminid, adminpass, hostsshkey, oldsshport,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/addHost.sh`,
             newPassword, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, newsshport, agentconfig.port, vnet.KD_DEFAULT_HOST_NETWORK,
-            encryptInterHostTraffic, Buffer.from(KLOUD_CONSTANTS.CONF.INTER_HOST_TRAFFIC_PSK||"").toString("base64")
+            encryptInterHostTraffic, Buffer.from(KLOUD_CONSTANTS.CONF.INTER_HOST_TRAFFIC_PSK||"").toString("base64"),
+            kdServerCert.cacert, kdServerCert.cert, kdServerCert.key
         ],
         agent_config: agentconfig
     }
@@ -94,4 +100,17 @@ function _showError(message, hostip, newPassword, userid, oldPassword, oldsshpor
     consoleHandlers.LOGERROR(`${message}. Host: ${hostip}`);
     consoleHandlers.LOGERROR(`Host ${hostip} initialization failed. Password and SSH ports may be changed.`);
     consoleHandlers.LOGERROR(`Login password for ${hostip} and user ${userid} is one of these now: ${oldPassword} or ${newPassword}. Further the SSH port is either ${oldsshport} or ${newsshport}.`);
+}
+
+/**
+ * Issues a server certificate for the given host, signed by the Kloudust CA. Creates the CA on first use.
+ * @param {string} hostip The host's IP address
+ * @returns {object} {cacert, cert, key} as base64 encoded PEMs, throws on failure
+ */
+async function _issueKDServerCert(hostip) {
+    const result = await serverutils.exec("bash", [`${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/issueKDServerCert.sh`,
+        `${KLOUD_CONSTANTS.CONFDIR}/kdca`, hostip, String(KLOUD_CONSTANTS.CONF.KD_CERT_VALIDITY||730)], "utf8");
+    if (!result.result) throw new Error(result.stderr || result.exception);
+    const [cacert, cert, key] = result.stdout.trim().split("\n").slice(-3);
+    return {cacert, cert, key};
 }
