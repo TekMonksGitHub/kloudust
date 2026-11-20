@@ -153,7 +153,7 @@
             {"id": "snapshotvm", "label": "{{{i18n.VMSSnapshot}}}", "logo": "img/snapshot.svg"},
             {"id": "exportvm", "label": "{{{i18n.VMSExport}}}", "logo": "img/exportvm.svg"},
             {"id": "clonevm", "label": "{{{i18n.VMSClone}}}", "logo": "img/clonevm.svg"},
-            {"id": "accessvmconsole", "label": "{{{i18n.VMSConsole}}}", "logo": "img/monitor.svg"}
+            {"id": "accessvmconsole", "label": "{{{i18n.VMSConsole}}}", "logo": "img/console.svg"}
         ]
     }
     },
