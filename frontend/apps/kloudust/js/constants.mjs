@@ -13,10 +13,11 @@ const INDEX_HTML = APP_PATH+"/index.html";
 const MAIN_HTML = APP_PATH+"/main.html";
 const LOGIN_HTML = APP_PATH+"/login.html";
 const LOGINRESULT_HTML = APP_PATH+"/loginresult.html";
+const VNC_HTML = APP_PATH+"/kdvnc.html";
 
 export const APP_CONSTANTS = {
     FRONTEND, BACKEND, APP_PATH, APP_NAME, CONF_PATH, API_PATH,
-    INDEX_HTML, MAIN_HTML, LOGIN_HTML, LOGINRESULT_HTML, 
+    INDEX_HTML, MAIN_HTML, LOGIN_HTML, LOGINRESULT_HTML, VNC_HTML,
 
     ENV: {},
 
@@ -52,7 +53,7 @@ export const APP_CONSTANTS = {
     TKMLOGIN_LIB: `${APP_PATH}/3p/tkmlogin.mjs`,
 
     PERMISSIONS_MAP: {
-        user:[window.location.origin, MAIN_HTML, LOGIN_HTML, LOGINRESULT_HTML, APP_PATH+$$.MONKSHU_CONSTANTS.ERROR_HTML], 
+        user:[window.location.origin, MAIN_HTML, VNC_HTML, LOGIN_HTML, LOGINRESULT_HTML, APP_PATH+$$.MONKSHU_CONSTANTS.ERROR_HTML], 
         guest:[window.location.origin, LOGIN_HTML, LOGINRESULT_HTML, $$.MONKSHU_CONSTANTS.ERROR_HTML]
     },
     API_KEYS: {"*":"fheiwu98237hjief8923ydewjidw834284hwqdnejwr79389"},

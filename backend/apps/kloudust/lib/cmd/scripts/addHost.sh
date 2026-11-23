@@ -74,6 +74,7 @@ if [ -f "`which yum`" ]; then
     if ! sudo yum -y ipvsadm jq; then exitFailed; fi
     if [ "$ENCRYPT_INTER_HOST_TRAFFIC" == "true" ] && ! sudo yum -y install strongswan; then exitFailed; fi
     if ! sudo yum -y install qemu-kvm libvirt virt-top bridge-utils libguestfs-tools virt-install tuned genisoimage; then exitFailed; fi
+    if ! sudo yum -y install python3-websockify; then exitFailed; fi
     if ! sudo systemctl stop firewalld; then exitFailed; fi
     if ! sudo systemctl disable firewalld; then exitFailed; fi
     if ! sudo systemctl mask firewalld; then exitFailed; fi
@@ -86,6 +87,7 @@ else
     if [ "$ENCRYPT_INTER_HOST_TRAFFIC" == "true" ] && ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install strongswan; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install net-tools iptables-persistent; then exitFailed; fi
     if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils virtinst libosinfo-bin guestfs-tools tuned genisoimage; then exitFailed; fi
+    if ! yes | sudo DEBIAN_FRONTEND=noninteractive apt -qq -y install websockify; then exitFailed; fi
     # Remove snapd on Ububtu as it opens outgoing connections to the snap store
     # Also remove ufw as we will use nftables directly 
     snap list 2>/dev/null | egrep -v 'base$|snapd$|Notes$' | awk '{print $1}' | xargs -I{} sudo snap remove {} --purge 2>/dev/null || true
