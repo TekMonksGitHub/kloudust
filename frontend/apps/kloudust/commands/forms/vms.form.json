@@ -174,7 +174,7 @@
         "<style>div#button img {width: 3em !important; height: 3em !important;}</style>",
         "<style>div#button span {font-size: smaller !important; height: -webkit-fill-available;}</style>",
         "<style>div#button:hover {border: 1px dashed #BC5205 !important;}</style>",
-        "<style>.vm-locked div#button:not([onclick*=_vmsGetStatus]) {opacity: 0.4; pointer-events: none;}</style>",
+        "<style>.vm-locked div#button:not([onclick*=_vmsGetStatus]):not([onclick*=accessvmconsole]) {opacity: 0.4; pointer-events: none;}</style>",
         "<style>.vm-unlocked div#button[onclick*=_vmsGetStatus] {display: none;}</style>"
     ],
 
