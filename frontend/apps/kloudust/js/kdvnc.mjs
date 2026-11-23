@@ -9,10 +9,13 @@ import {RFB, KeyTable, keysyms} from "../3p/novnc.min.mjs";
 const KEYS = {ctrl: [KeyTable.XK_Control_L, "ControlLeft"], alt: [KeyTable.XK_Alt_L, "AltLeft"],
     win: [KeyTable.XK_Super_L, "MetaLeft"], tab: [KeyTable.XK_Tab, "Tab"], esc: [KeyTable.XK_Escape, "Escape"]};
 const SHIFTED_CHARS = /[A-Z~!@#$%^&*()_+{}|:"<>?]/;
+const IDLE_TIMEOUT = 15*60*1000;
 
-let rfb, connected = false;
+let rfb, connected = false, idleTimer;
 
 async function connect(screen) {
+    for (const type of ["keydown", "mousedown", "mousemove", "wheel", "touchstart"]) window.addEventListener(type, _resetIdleTimer, true);
+    _resetIdleTimer();
     const sessionKey = `_${window.name}`, env = window.opener?.APP_CONSTANTS?.ENV;
     const session = await env?.[sessionKey]; if (env) delete env[sessionKey];
     if (!session?.result) {_setStatus("Console access failed. Close this window and try again.", "error"); return;}
@@ -50,6 +53,8 @@ function toggleFullscreen() {
     if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen();
     rfb?.focus();
 }
+
+function _resetIdleTimer() {clearTimeout(idleTimer); idleTimer = setTimeout(_ => window.close(), IDLE_TIMEOUT);}
 
 function _setStatus(text, state="") {
     const status = document.querySelector("span#status"); status.textContent = status.title = text; status.className = state;

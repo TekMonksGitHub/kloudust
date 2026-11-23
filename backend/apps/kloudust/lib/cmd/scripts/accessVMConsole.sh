@@ -6,18 +6,17 @@
 # {3} - VNC password, only used for connect
 # {4} - JSON out splitter
 # {5} - VNC password expiry in seconds, only used for connect
-# {6} - The console proxy's IP, the only address allowed to connect, only used for connect
 
 VM_NAME="{1}"
 OPERATION="{2}"
 PASSWORD="{3}"
 JSONOUT_SPLITTER="{4}"
 PASSWORD_EXPIRY="{5}"
-PROXY_IP="{6}"
 RULE_COMMENT="kdconsole_$VM_NAME"
 UNIT="kdconsole-$(systemd-escape "$VM_NAME")"
 CERT=/kloudust/etc/kdconsole.crt
 KEY=/kloudust/etc/kdconsole.key
+DETACH_LISTENER='{"execute":"display-update","arguments":{"type":"vnc","addresses":[]}}'
 
 function exitFailed() {
     echo "$1" >&2
@@ -25,7 +24,18 @@ function exitFailed() {
     exit 1
 }
 
+function detachListener() {
+    virsh qemu-monitor-command "$VM_NAME" "$DETACH_LISTENER" > /dev/null 2>&1
+}
+
+function freePort() {
+    for CANDIDATE in $(seq "$1" "$2"); do
+        if [ -z "$(ss -Hltn "sport = :$CANDIDATE")" ]; then echo "$CANDIDATE"; return; fi
+    done
+}
+
 systemctl stop "$UNIT" > /dev/null 2>&1
+detachListener
 for HANDLE in $(nft -a list chain inet kdhostfirewall input | grep "comment \"$RULE_COMMENT\"" | grep -o "handle [0-9]*" | cut -d" " -f2); do
     if ! nft delete rule inet kdhostfirewall input handle "$HANDLE"; then exitFailed "Unable to remove the console firewall rule"; fi
 done
@@ -36,9 +46,7 @@ if [ "$OPERATION" == "close" ]; then
     exit 0
 fi
 
-VNC_DISPLAY=$(virsh vncdisplay "$VM_NAME" 2>/dev/null | grep -o ":[0-9]\+$" | tr -d ":")
-if [ -z "$VNC_DISPLAY" ]; then exitFailed "Console is not enabled for $VM_NAME or it is not running"; fi
-if [ -z "$PROXY_IP" ]; then exitFailed "VNC_PROXY_IP is not configured"; fi
+if [ "$(virsh domstate "$VM_NAME" 2>/dev/null)" != "running" ]; then exitFailed "$VM_NAME is not running"; fi
 
 if [ ! -f "$CERT" ] || [ ! -f "$KEY" ]; then
     if ! (umask 077; openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=$(hostname)" -keyout "$KEY" -out "$CERT" 2>/dev/null); then
@@ -49,17 +57,22 @@ fi
 HMP_ERRORS=$(virsh qemu-monitor-command --hmp "$VM_NAME" "change vnc password $PASSWORD" 2>&1; virsh qemu-monitor-command --hmp "$VM_NAME" "expire_password vnc +$PASSWORD_EXPIRY" 2>&1)
 if [ -n "$(echo "$HMP_ERRORS" | tr -d '[:space:]')" ]; then exitFailed "Unable to set the console password: $HMP_ERRORS"; fi
 
-PORT=""
-for CANDIDATE in $(seq 6080 6179); do
-    if [ -z "$(ss -Hltn "sport = :$CANDIDATE")" ]; then PORT=$CANDIDATE; break; fi
-done
-if [ -z "$PORT" ]; then exitFailed "No free console port"; fi
+VNC_PORT=$(freePort 5900 5983)
+PORT=$(freePort 6080 6179)
+if [ -z "$VNC_PORT" ] || [ -z "$PORT" ]; then exitFailed "No free console port"; fi
 
-HANDLE=$(nft --echo --handle insert rule inet kdhostfirewall input ip saddr "$PROXY_IP" tcp dport "$PORT" accept comment "\"$RULE_COMMENT\"" | grep -o "handle [0-9]*" | cut -d" " -f2)
-if [ -z "$HANDLE" ]; then exitFailed "Unable to open the console firewall rule"; fi
+ATTACH_LISTENER="{\"execute\":\"display-update\",\"arguments\":{\"type\":\"vnc\",\"addresses\":[{\"type\":\"inet\",\"host\":\"127.0.0.1\",\"port\":\"$VNC_PORT\"}]}}"
+if ! ATTACH_RESULT=$(virsh qemu-monitor-command "$VM_NAME" "$ATTACH_LISTENER" 2>&1) || [[ "$ATTACH_RESULT" == *'"error"'* ]]; then
+    detachListener
+    exitFailed "Unable to start the VNC listener of $VM_NAME, QEMU 7.1 or later is needed: $ATTACH_RESULT"
+fi
 
-if ! systemd-run --unit "$UNIT" --collect --quiet /bin/bash -c "websockify --run-once --timeout 60 --ssl-only --cert $CERT --key $KEY $PORT 127.0.0.1:$((5900+VNC_DISPLAY)); nft delete rule inet kdhostfirewall input handle $HANDLE"; then
+HANDLE=$(nft --echo --handle insert rule inet kdhostfirewall input tcp dport "$PORT" accept comment "\"$RULE_COMMENT\"" | grep -o "handle [0-9]*" | cut -d" " -f2)
+if [ -z "$HANDLE" ]; then detachListener; exitFailed "Unable to open the console firewall rule"; fi
+
+if ! systemd-run --unit "$UNIT" --collect --quiet /bin/bash -c "websockify --run-once --timeout 60 --ssl-only --cert $CERT --key $KEY $PORT 127.0.0.1:$VNC_PORT; virsh qemu-monitor-command '$VM_NAME' '$DETACH_LISTENER' > /dev/null 2>&1; nft delete rule inet kdhostfirewall input handle $HANDLE"; then
     nft delete rule inet kdhostfirewall input handle "$HANDLE"
+    detachListener
     exitFailed "Unable to start the console listener"
 fi
 sleep 1

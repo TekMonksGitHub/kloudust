@@ -157,7 +157,7 @@ else
 fi;
 
 # Placeholder password, it only enables VNC password auth - accessVMConsole sets the real one per session
-VNC_ARGS="--graphics vnc,listen=127.0.0.1,password=$(od -An -tx1 -N4 /dev/urandom | tr -d ' \n')"
+VNC_ARGS="--graphics vnc,listen=none,password=$(od -An -tx1 -N4 /dev/urandom | tr -d ' \n')"
 
 QEMU_GUEST_AGENT="--channel unix,target_type=virtio,name=org.qemu.guest_agent.0"
 if [[ "$NO_GUEST_AGENT" = true ]]; then QEMU_GUEST_AGENT=""; fi

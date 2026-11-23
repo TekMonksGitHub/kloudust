@@ -39,6 +39,7 @@ module.exports.exec = async function(params) {
 
     const password = operation == "connect" ? crypt.encrypt(vm_name, undefined, undefined, true).toString("base64url").slice(0, PASSWORD_LENGTH) : "";
     const results = await _runConsoleScript(vm_name, operation, password, params.consoleHandlers);
+    KLOUD_CONSTANTS.LOGINFO(`VM console ${operation} for ${vm_name} by user ${roleman.getCurrentuser()} ${results.result ? "succeeded" : "failed"}`);
     if (!results.result) return CMD_CONSTANTS.FALSE_RESULT(results.err, results.out);
     if (operation == "close") return CMD_CONSTANTS.TRUE_RESULT(results.out, results.err);
 
@@ -63,8 +64,7 @@ async function _runConsoleScript(vm_name, operation, password, consoleHandlers) 
         other: [
             hostInfo.hostaddress, hostInfo.rootid, hostInfo.rootpw, hostInfo.hostkey, hostInfo.port,
             `${KLOUD_CONSTANTS.LIBDIR}/cmd/scripts/accessVMConsole.sh`,
-            vm_name, operation, password, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, PASSWORD_EXPIRY_SECONDS,
-            KLOUD_CONSTANTS.CONF.VNC_PROXY_IP||""
+            vm_name, operation, password, CMD_CONSTANTS.SCRIPT_JSONOUT_SPLITTER, PASSWORD_EXPIRY_SECONDS
         ]
     }
 
