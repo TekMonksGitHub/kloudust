@@ -1,0 +1,124 @@
+<!--
+(C) 2026 TekMonks. All rights reserved.
+License: See enclosed LICENSE file.
+-->
+<style>
+@import url('./fonts/appfonts.css');
+
+html, body {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	background-color: #000000;
+	font-family: 'Red Hat Text';
+}
+
+div#toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75em;
+	padding: 0.4em 0.8em;
+	background-color: #D9D9D9;
+	color: #4C4C4C;
+	font-size: 0.9em;
+}
+div#toolbar img {
+	display: block;
+	height: 1.6em;
+}
+
+span.group {
+	display: flex;
+	gap: 0.3em;
+}
+
+button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 2.2em;
+	padding: 0 0.8em;
+	font: inherit;
+	line-height: 1;
+	white-space: nowrap;
+	color: inherit;
+	background-color: #E5E5E5;
+	border: 1px solid #BFBFBF;
+	border-radius: 0.3em;
+	cursor: pointer;
+}
+button:hover {background-color: #F2FAFF;}
+button.down {
+	background-color: #4C4C4C;
+	border-color: #4C4C4C;
+	color: #FFFFFF;
+}
+
+span#status {
+	flex: 1 1 12em;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+span#status::before {
+	content: "";
+	display: inline-block;
+	width: 0.6em;
+	height: 0.6em;
+	margin-right: 0.5em;
+	border-radius: 50%;
+	vertical-align: middle;
+	background-color: #A6A6A6;
+}
+span#status.connected::before {background-color: #2E9E44;}
+span#status.error::before {background-color: #D93025;}
+
+div#screen {
+	flex-grow: 1;
+	min-height: 0;
+}
+</style>
+
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name=viewport content="width=device-width, initial-scale=1.0">
+
+	<link href="./img/favicon.svg" rel="icon" type="image/svg+xml">
+
+	<script type="module">
+	import {kdvnc} from "./js/kdvnc.mjs"; window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc = kdvnc;
+	kdvnc.connect(document.querySelector("div#screen"));
+	</script>
+
+	<title>{{i18n.Title}}</title>
+</head>
+
+<body>
+<div id="toolbar">
+	<img src="./img/kloudustlogo.svg" alt="Kloudust">
+	<span id="status">Connecting...</span>
+	<button onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc.sendCtrlAltDel()">Ctrl+Alt+Del</button>
+	<span class="group">
+		<button onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc.toggleKey(this, 'ctrl')">Ctrl</button>
+		<button onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc.toggleKey(this, 'alt')">Alt</button>
+		<button onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc.toggleKey(this, 'win')">Win</button>
+	</span>
+	<span class="group">
+		<button onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc.sendKey('tab')">Tab</button>
+		<button onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc.sendKey('esc')">Esc</button>
+	</span>
+	<button onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc.typeText()">Type Text</button>
+	<button onclick="window.monkshu_env.apps[APP_CONSTANTS.APP_NAME].kdvnc.toggleFullscreen()">Fullscreen</button>
+</div>
+
+<div id="screen"></div>
+</body>
+</html>

@@ -29,6 +29,7 @@
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
     "VMSClone": "Clone",
+    "VMSConsole": "Console",
     "VMSGetStatus": "Get Status",
     "VMSPowerState_booting": "Booting",
     "VMSPowerState_running": "Running",
@@ -61,6 +62,7 @@
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
     "VMSClone": "Clone",
+    "VMSConsole": "Console",
     "VMSGetStatus": "Get Status",
     "VMSPowerState_booting": "Booting",
     "VMSPowerState_running": "Running",
@@ -93,6 +95,7 @@
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
     "VMSClone": "Clone",
+    "VMSConsole": "Console",
     "VMSGetStatus": "Get Status",
     "VMSPowerState_booting": "Booting",
     "VMSPowerState_running": "Running",
@@ -126,6 +129,7 @@
     "VMSSnapshot": "Snapshot",
     "VMSExport": "Export",
     "VMSClone": "Clone",
+    "VMSConsole": "Console",
     "VMSGetStatus": "Get Status",
     "VMSPowerState_booting": "Booting",
     "VMSPowerState_running": "Running",
@@ -148,7 +152,8 @@
             {"id": "resizevm", "label": "{{{i18n.VMSResize}}}", "logo": "img/resizevm.svg"},
             {"id": "snapshotvm", "label": "{{{i18n.VMSSnapshot}}}", "logo": "img/snapshot.svg"},
             {"id": "exportvm", "label": "{{{i18n.VMSExport}}}", "logo": "img/exportvm.svg"},
-            {"id": "clonevm", "label": "{{{i18n.VMSClone}}}", "logo": "img/clonevm.svg"}
+            {"id": "clonevm", "label": "{{{i18n.VMSClone}}}", "logo": "img/clonevm.svg"},
+            {"id": "accessvmconsole", "label": "{{{i18n.VMSConsole}}}", "logo": "img/console.svg"}
         ]
     }
     },
@@ -190,6 +195,7 @@
         "   vm.powerstatelabel = await $$.libi18n.get('VMSPowerState_'+vm.powerstate);   ",
         "}",
         "const modIconList = await import(`${APP_CONSTANTS.FORM_MODULES_PATH}/iconlist.mjs`), tabledef = arguments[0];",
+        "if (!APP_CONSTANTS.VNC_CONSOLE_ENABLED) for (const role in tabledef.popupform.rolelist) tabledef.popupform.rolelist[role] = tabledef.popupform.rolelist[role].filter(cmd => cmd.id != 'accessvmconsole');",
         "APP_CONSTANTS.ENV._vmsGetStatus = async () => {",
         "   const vm_name = APP_CONSTANTS.ENV._vms_form_data.name_raw;",
         "   monkshu_env.components['table-list'].getShadowRootByHostId('vms')?.querySelector('div#hider')?.click();  ",
