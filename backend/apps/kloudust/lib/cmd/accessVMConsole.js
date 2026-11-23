@@ -39,7 +39,8 @@ module.exports.exec = async function(params) {
 
     const password = operation == "connect" ? crypt.encrypt(vm_name, undefined, undefined, true).toString("base64url").slice(0, PASSWORD_LENGTH) : "";
     const results = await _runConsoleScript(vm_name, operation, password, params.consoleHandlers);
-    KLOUD_CONSTANTS.LOGINFO(`VM console ${operation} for ${vm_name} by user ${roleman.getCurrentuser()} ${results.result ? "succeeded" : "failed"}`);
+    const status = operation == "connect" ? (results.result ? "opened" : "failed to open") : (results.result ? "closed" : "failed to close");
+    KLOUD_CONSTANTS.LOGINFO(`VM console ${status} for ${vm_name} by user ${roleman.getCurrentuser()}`);
     if (!results.result) return CMD_CONSTANTS.FALSE_RESULT(results.err, results.out);
     if (operation == "close") return CMD_CONSTANTS.TRUE_RESULT(results.out, results.err);
 
