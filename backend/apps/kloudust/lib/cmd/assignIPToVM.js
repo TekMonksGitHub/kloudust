@@ -38,10 +38,23 @@ module.exports.exec = async function(params) {
     const vm = await dbAbstractor.getVM(vm_name);
     if (!vm) {params.consoleHandlers.LOGERROR("Bad VM name or VM not found"); return CMD_CONSTANTS.FALSE_RESULT();}
 
-    if(vm.ips.trim().length !== 0) {params.consoleHandlers.LOGERROR("VM already has a public ip assigned to it!"); return CMD_CONSTANTS.FALSE_RESULT();}
-    
-    let ipObject = await dbAbstractor.getAssignableIP(vm.hostname);
-    if(!ipObject) ipObject = await dbAbstractor.getAssignableIP();
+    if(vm.ips.trim().length !== 0) {
+        const err = "VM already has a public ip assigned to it";
+        params.consoleHandlers.LOGERROR(err); return CMD_CONSTANTS.FALSE_RESULT(err);
+    }
+    const userSelectIP = KLOUD_CONSTANTS.CONF.OPTIONAL_FEATURES?.USER_SELECT_IP === true;
+    let ipObject;
+    const requestedIP = ip_raw?.trim();
+    if (userSelectIP && requestedIP) {
+        ipObject = await dbAbstractor.getAssignableIPByAddress(requestedIP);
+        if (!ipObject) {
+            const err = `Public IP ${requestedIP} is unavailable or already allocated. Select a free IP.`;
+            params.consoleHandlers.LOGERROR(err); return CMD_CONSTANTS.FALSE_RESULT(err);
+        }
+    } else {
+        ipObject = await dbAbstractor.getAssignableIP(vm.hostname);
+        if(!ipObject) ipObject = await dbAbstractor.getAssignableIP();
+    }
     if(!ipObject) { params.consoleHandlers.LOGERROR("Could not find any assignable IPs"); return CMD_CONSTANTS.FALSE_RESULT(); }
 
     const ip = ipObject.ip;

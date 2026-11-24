@@ -1457,6 +1457,23 @@ exports.getAssignableIP = async function(hostname) {
     return results?.[0];
 }
 
+/** Returns every IP that is currently available for assignment. 
+ * @returns Every IP that is currently available for assignment.
+*/
+exports.getAssignableIPs = async function() {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    return await _db().getQuery("select ip from ip where allocatedto = '' order by ip", []);
+}
+
+/** Returns the requested IP only when it is registered and unallocated. 
+ * @returns requested IP only when it is registered and unallocated
+*/
+exports.getAssignableIPByAddress = async function(ip) {
+    if (!roleman.checkAccess(roleman.ACTIONS.lookup_project_resource)) {_logUnauthorized(); return false;}
+    const results = await _db().getQuery("select ip, hostname from ip where ip = ? and allocatedto = ''", [ip]);
+    return results?.[0];
+}
+
 /**
  * Adds the given IP to resource Vnet
  * @param {string} resource_name The resource name
