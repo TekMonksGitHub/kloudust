@@ -42,7 +42,7 @@ module.exports.exec = async function(params) {
         const err = "VM already has a public ip assigned to it";
         params.consoleHandlers.LOGERROR(err); return CMD_CONSTANTS.FALSE_RESULT(err);
     }
-    const userSelectIP = KLOUD_CONSTANTS.CONF.FRONTEND_CONFIG?.USER_SELECT_IP === true;
+    const userSelectIP = KLOUD_CONSTANTS.CONF.OPTIONAL_FEATURES?.USER_SELECT_IP === true;
     let ipObject;
     const requestedIP = ip_raw?.trim();
     if (userSelectIP && requestedIP) {

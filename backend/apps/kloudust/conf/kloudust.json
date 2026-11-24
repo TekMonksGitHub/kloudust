@@ -30,5 +30,5 @@
     "DB_CONNECT_INFO": "",
     "LOG_REMOTE_SSH_FILES": true,
     "VNC_CONSOLE_ENABLED": true,
-    "FRONTEND_CONFIG": {"USER_SELECT_IP": false}
+    "OPTIONAL_FEATURES": {"USER_SELECT_IP": false}
 }
