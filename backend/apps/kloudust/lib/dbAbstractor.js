@@ -376,10 +376,11 @@ exports.getAvailableHosts = async (vcpu, ram, disk, arch, factors) => {
  * @param {string} project The project, if skipped is auto picked from the environment
  * @param {string} org The org, if skipped is auto picked from the environment
  * @param {string} powerstate The power state for a new VM row, one of CMD_CONSTANTS.VM_POWER_STATES, default is UNKNOWN. Ignored on update.
+ * @param {string} extrainfo Free-form extra info for the VM row. If not sent, an existing value is kept on update.
  * @return true on success or false otherwise
  */
 exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, memory, disks, creation_cmd="undefined",
-        name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org(), powerstate=CMD_CONSTANTS.VM_POWER_STATES.UNKNOWN) => {
+        name_raw, vmtype, ips='', project=KLOUD_CONSTANTS.env.prj(), org=KLOUD_CONSTANTS.env.org(), powerstate=CMD_CONSTANTS.VM_POWER_STATES.UNKNOWN, extrainfo) => {
 
     if (!roleman.checkAccess(roleman.ACTIONS.edit_project_resource)) {_logUnauthorized(); return false;}
     project = roleman.getNormalizedProject(project); org = roleman.getNormalizedOrg(org);
@@ -387,13 +388,13 @@ exports.addOrUpdateVMToDB = async (name, description, hostname, arch, os, cpus, 
     let totaldisk = 0; for (const disk of disks) totaldisk += disk.size;
 
     const id = `${org}_${project}_${name}`;
-    const query = "insert into vms (id, name, description, hostname, arch, org, projectid, os, cpus, memory, disk, disksjson, creationcmd, name_raw, vmtype, ips, powerstate, pslastchecked) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) \
+    const query = "insert into vms (id, name, description, hostname, arch, org, projectid, os, cpus, memory, disk, disksjson, creationcmd, name_raw, vmtype, ips, powerstate, pslastchecked, extrainfo) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) \
         on conflict(id) do update set name=excluded.name, description=excluded.description, hostname=excluded.hostname, \
         arch=excluded.arch, org=excluded.org, projectid=excluded.projectid, os=excluded.os, cpus=excluded.cpus, memory=excluded.memory, \
         disk=excluded.disk, disksjson=excluded.disksjson, creationcmd=excluded.creationcmd, name_raw=excluded.name_raw, \
-        vmtype=excluded.vmtype, ips=excluded.ips";
+        vmtype=excluded.vmtype, ips=excluded.ips, extrainfo=coalesce(excluded.extrainfo, extrainfo)";
     return await _db().runCmd(query, [id, name, description, hostname, arch, org, _getProjectID(project, org), 
-        os, cpus, memory, totaldisk, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips, powerstate, Date.now()]);
+        os, cpus, memory, totaldisk, JSON.stringify(disks), creation_cmd, name_raw, vmtype, ips, powerstate, Date.now(), extrainfo]);
 }
 
 /**

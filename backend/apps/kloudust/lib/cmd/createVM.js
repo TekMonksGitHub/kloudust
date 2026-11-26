@@ -8,7 +8,7 @@
  *  11 - additional creation params (optional), 12 - vm type, default is vm, or anything else
  *  13 - No QEMU agent - "true" if no needed else "false", 14 - set to true to not install qemu-agent, 
  *  15 - KVM network name (only cloud admins can do this) else Qemu user network, 
- *  16 - hostname for the VM (only cloud admins can do this)
+ *  16 - hostname for the VM (only cloud admins can do this), 17 - extra info saved with the VM in the DB
  * 
  * (C) 2020 TekMonks. All rights reserved.
  * License: See enclosed LICENSE file.
@@ -32,7 +32,7 @@ module.exports.exec = async function(params) {
 
     const [vm_name_raw, vm_description, cores_s, memory_s, disk_s, vnet_name, creation_image_name, cloudinit_data, 
         force_overwrite, max_cores_s, max_memory_s, additional_params, vmtype_raw, no_qemu_agent_raw, 
-        network_name_raw, hostname] = [...params];
+        network_name_raw, hostname, extrainfo] = [...params];
     const vm_name = exports.resolveVMName(vm_name_raw), cores = parseInt(cores_s), memory = parseInt(memory_s), diskgb = parseInt(disk_s), disk = diskgb*1073741824, 
         max_cores = parseInt(max_cores_s||cores_s) > cores ? parseInt(max_cores_s||cores_s) : Math.min(cores * KLOUD_CONSTANTS.CONF.MAX_CORES_MULTIPLIER, KLOUD_CONSTANTS.CONF.VM_MAX_CORES), 
         max_memory = parseInt(max_memory_s||memory_s) > memory ? parseInt(max_memory_s||memory_s) : Math.min(memory * KLOUD_CONSTANTS.CONF.MAX_MEMORY_MULTIPLIER, KLOUD_CONSTANTS.CONF.VM_MAX_MEMORY),
@@ -107,7 +107,7 @@ module.exports.exec = async function(params) {
     if (results.result) {
         if (await dbAbstractor.addOrUpdateVMToDB(vm_name, vm_description, hostInfo.hostname, kdResource.processorarchitecture,
                 ostype, cores, memory*1024*1024, [{diskname: exports.DEFAULT_DISK, size: disk}], 
-                ["createVM ", ...params].join(" "), vm_name_raw, vmtype, undefined, undefined, undefined, CMD_CONSTANTS.VM_POWER_STATES.BOOTING)) {
+                ["createVM ", ...params].join(" "), vm_name_raw, vmtype, undefined, undefined, undefined, CMD_CONSTANTS.VM_POWER_STATES.BOOTING, extrainfo)) {
                 
             if (vnet_name && vnet_name.trim().length) {   // add VM to the given Virtual network
                 const paramsVnet = [vm_name_raw, vnet_name, "true"]; paramsVnet.consoleHandlers = params.consoleHandlers;
